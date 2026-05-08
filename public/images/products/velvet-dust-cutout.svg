@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="1400" viewBox="0 0 900 1400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glass" x1="185" y1="110" x2="725" y2="1220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="0.3" stop-color="#F0EAEA" stop-opacity="0.72"/>
+      <stop offset="0.7" stop-color="#DAE4EA" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#A6B7C3" stop-opacity="0.34"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="265" y1="440" x2="635" y2="1125" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CAB9B3" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#0D1017" stop-opacity="0.26"/>
+    </linearGradient>
+    <linearGradient id="cap" x1="338" y1="108" x2="562" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#776E71"/>
+      <stop offset="1" stop-color="#1A1A1A"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(300 428) rotate(90) scale(550 260)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.56"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="80" y="180" width="740" height="1140" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <ellipse cx="452" cy="1222" rx="244" ry="42" fill="#020304" fill-opacity="0.28" filter="url(#shadow)"/>
+  <rect x="356" y="128" width="188" height="112" rx="28" fill="url(#cap)"/>
+  <rect x="394" y="82" width="112" height="86" rx="24" fill="#1C1F24"/>
+  <path d="M262 264C262 202 312 152 374 152H530C592 152 642 202 642 264V1038C642 1139 560 1221 459 1221H445C344 1221 262 1139 262 1038V264Z" fill="url(#glass)"/>
+  <path d="M292 438C292 403 320 375 355 375H549C584 375 612 403 612 438V1026C612 1090 560 1142 496 1142H408C344 1142 292 1090 292 1026V438Z" fill="url(#liquid)"/>
+  <rect x="300" y="520" width="304" height="294" rx="18" fill="#E4D8D2" fill-opacity="0.84"/>
+  <rect x="324" y="544" width="256" height="246" rx="12" stroke="#F8F1E4" stroke-opacity="0.44"/>
+  <text x="452" y="616" text-anchor="middle" fill="#F8F1E4" font-size="34" letter-spacing="12" font-family="Arial, Helvetica, sans-serif">DOTFUMES</text>
+  <text x="452" y="694" text-anchor="middle" fill="#FFFFFF" font-size="72" font-style="italic" font-family="Georgia, 'Times New Roman', serif">Velvet Dust</text>
+  <text x="452" y="756" text-anchor="middle" fill="#EEE7DB" font-size="22" letter-spacing="10" font-family="Arial, Helvetica, sans-serif">EAU DE PARFUM</text>
+  <path d="M262 264C262 202 312 152 374 152H530C592 152 642 202 642 264V1038C642 1139 560 1221 459 1221H445C344 1221 262 1139 262 1038V264Z" stroke="#FFFFFF" stroke-opacity="0.34" stroke-width="10"/>
+  <path d="M326 260C341 219 370 174 412 152" stroke="#FFFFFF" stroke-opacity="0.52" stroke-width="18" stroke-linecap="round"/>
+  <rect x="284" y="216" width="52" height="760" rx="26" fill="url(#shine)"/>
+</svg>

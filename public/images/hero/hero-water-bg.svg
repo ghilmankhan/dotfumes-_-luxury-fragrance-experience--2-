@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1100" viewBox="0 0 1600 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="80" x2="1520" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07131E"/>
+      <stop offset="0.45" stop-color="#0A2432"/>
+      <stop offset="1" stop-color="#010406"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1110 320) rotate(136.26) scale(520 400)">
+      <stop stop-color="#79B8D9" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#79B8D9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mist" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(500 720) rotate(25) scale(780 380)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur-xl" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="36"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="1100" fill="url(#bg)"/>
+  <ellipse cx="1100" cy="320" rx="520" ry="400" fill="url(#glow)"/>
+  <ellipse cx="500" cy="720" rx="780" ry="380" fill="url(#mist)"/>
+  <g opacity="0.2" filter="url(#blur-xl)">
+    <path d="M-160 892C182 705 420 686 735 772C1028 851 1344 720 1776 417V1210H-160V892Z" fill="#79C5D7"/>
+    <path d="M1512 140C1247 315 1037 385 812 360C587 335 368 225 118 145" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="18" stroke-linecap="round"/>
+    <path d="M162 318C370 432 557 453 767 396C1019 327 1197 344 1507 531" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <text x="110" y="986" fill="#FFFFFF" fill-opacity="0.08" font-size="96" font-style="italic" font-family="Georgia, 'Times New Roman', serif" letter-spacing="12">LIQUID MIRROR</text>
+</svg>

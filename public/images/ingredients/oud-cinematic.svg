@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="122" y1="92" x2="1098" y2="1510" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A090A"/>
+      <stop offset="0.45" stop-color="#272229"/>
+      <stop offset="1" stop-color="#080708"/>
+    </linearGradient>
+    <radialGradient id="halo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(644 410) rotate(90) scale(392 392)">
+      <stop stop-color="#B0A5A1" stop-opacity="0.58"/>
+      <stop offset="1" stop-color="#B0A5A1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="url(#bg)"/>
+  <circle cx="644" cy="410" r="392" fill="url(#halo)"/>
+  <ellipse cx="618" cy="882" rx="344" ry="444" fill="#101114" fill-opacity="0.28"/>
+  <path d="M288 942C352 726 466 532 614 420C748 318 868 286 1010 326" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="18" stroke-linecap="round"/>
+  <path d="M210 1196C354 1064 456 922 542 748C626 580 672 468 770 296" stroke="#FFFFFF" stroke-opacity="0.09" stroke-width="12" stroke-linecap="round"/>
+  <text x="146" y="1420" fill="#FFFFFF" fill-opacity="0.86" font-size="86" font-style="italic" font-family="Georgia, 'Times New Roman', serif">Smoked Oud</text>
+</svg>

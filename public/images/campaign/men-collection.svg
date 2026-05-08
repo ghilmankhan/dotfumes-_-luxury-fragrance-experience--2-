@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="68" y1="94" x2="1113" y2="1496" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#081018"/>
+      <stop offset="0.6" stop-color="#223140"/>
+      <stop offset="1" stop-color="#0A0B0D"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(820 412) rotate(123) scale(520 420)">
+      <stop stop-color="#7BB5D2" stop-opacity="0.65"/>
+      <stop offset="1" stop-color="#7BB5D2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="1600" fill="url(#bg)"/>
+  <ellipse cx="820" cy="412" rx="520" ry="420" fill="url(#spot)"/>
+  <rect x="156" y="244" width="628" height="984" rx="32" fill="#050608" fill-opacity="0.22"/>
+  <path d="M132 1274C312 1148 432 1058 570 854C676 698 736 550 864 430C946 352 1018 308 1128 274" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="16" stroke-linecap="round"/>
+  <path d="M264 1508C430 1286 532 1172 624 1026C722 872 764 780 920 610" stroke="#FFFFFF" stroke-opacity="0.09" stroke-width="10" stroke-linecap="round"/>
+  <text x="158" y="1370" fill="#FFFFFF" fill-opacity="0.88" font-size="88" font-style="italic" font-family="Georgia, 'Times New Roman', serif">Pour Homme</text>
+  <text x="164" y="1444" fill="#F4E9D7" fill-opacity="0.7" font-size="24" letter-spacing="12" font-family="Arial, Helvetica, sans-serif">THE ARCHITECT</text>
+</svg>
