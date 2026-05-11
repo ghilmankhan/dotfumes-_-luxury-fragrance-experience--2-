@@ -5,10 +5,11 @@ export interface Product {
   price: number;
   description: string;
   shortDescription: string;
-  category: "Men" | "Women" | "Unisex";
+  category: 'Men' | 'Women' | 'Unisex';
   images: {
-    hero: string;
-    transparent: string;
+    front: string;
+    angle: string;
+    flatLay: string;
     lifestyle: string[];
   };
   notes: {

@@ -17,19 +17,15 @@ export const AssetImage: React.FC<AssetImageProps> = ({
   style,
   ...props
 }) => {
-  const [loaded, setLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    setLoaded(false);
-  }, [src]);
+  const [imageState, setImageState] = React.useState({
+    src,
+    loaded: false,
+  });
+  const loaded = imageState.src === src && imageState.loaded;
+  const loading = props.loading ?? (props.fetchPriority === 'high' ? 'eager' : 'lazy');
 
   return (
-    <div
-      className={cn(
-        'relative overflow-hidden bg-white/5',
-        wrapperClassName,
-      )}
-    >
+    <div className={cn('relative overflow-hidden bg-white/5', wrapperClassName)}>
       <div
         aria-hidden="true"
         className={cn(
@@ -43,14 +39,19 @@ export const AssetImage: React.FC<AssetImageProps> = ({
         {...props}
         src={src}
         alt={alt}
+        loading={loading}
+        decoding={props.decoding ?? 'async'}
         style={style}
         onLoad={(event) => {
-          setLoaded(true);
+          setImageState({ src, loaded: true });
           props.onLoad?.(event);
+        }}
+        onError={(event) => {
+          props.onError?.(event);
         }}
         className={cn(
           'relative z-[1] transition-[opacity,filter,transform] duration-[1600ms] ease-out',
-          loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-xl scale-[1.03]',
+          loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-100 blur-xl scale-[1.03]',
           className,
           imgClassName,
         )}

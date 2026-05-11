@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@100..900&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
-  
-  --color-brand-black: #0A0A0A;
-  --color-brand-white: #FDFDFD;
-  --color-brand-gold: #C5A059;
-  --color-brand-ivory: #F9F8F6;
-  --color-brand-gray: #A1A1A1;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+
+  --color-brand-black: #0a0a0a;
+  --color-brand-white: #fdfdfd;
+  --color-brand-gold: #c5a059;
+  --color-brand-ivory: #f9f8f6;
+  --color-brand-gray: #a1a1a1;
 }
 
 @layer base {
@@ -36,6 +36,7 @@
   }
   .noise-overlay {
     @apply pointer-events-none mix-blend-overlay opacity-30 bg-repeat;
-    background-image: url('https://www.transparenttextures.com/patterns/p6.png');
+    background-image: radial-gradient(rgba(255, 255, 255, 0.32) 0.6px, transparent 0.6px);
+    background-size: 5px 5px;
   }
 }

@@ -1,8 +1,12 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { AssetImage } from '../AssetImage';
+import { FEATURED_PRODUCTS } from '../../constants/products';
+import { COLLECTION_IMAGES } from '../../constants/images';
 
 export const Hero = () => {
+  const heroProduct = FEATURED_PRODUCTS[0];
   const containerRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -19,15 +23,12 @@ export const Hero = () => {
       ref={containerRef}
       className="relative min-h-screen w-full overflow-hidden bg-brand-black"
     >
-      <motion.div
-        style={{ y: backgroundY }}
-        className="absolute inset-0 z-0 scale-110"
-      >
+      <motion.div style={{ y: backgroundY }} className="absolute inset-0 z-0 scale-110">
         <AssetImage
-          src="/images/hero/hero-ice-bg.webp"
-          alt="Icy cinematic atmosphere for Wild Silence"
-          wrapperClassName="h-full w-full bg-[#081019]"
-          className="h-full w-full object-cover opacity-35"
+          src={COLLECTION_IMAGES.familyMood}
+          alt="Dotfumes obsidian cinematic fragrance campaign"
+          wrapperClassName="h-full w-full bg-[#090806]"
+          className="h-full w-full object-cover opacity-45"
           sizes="100vw"
           fetchPriority="high"
         />
@@ -69,9 +70,9 @@ export const Hero = () => {
             transition={{ duration: 1.2, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="font-serif text-[4rem] italic leading-[0.78] tracking-[-0.06em] text-white md:text-[6rem] lg:text-[8.5rem]"
           >
-            Wild
+            Bold
             <br />
-            <span className="ml-[14%] text-white/78">Silence</span>
+            <span className="ml-[14%] text-white/78">Decision</span>
           </motion.h1>
 
           <motion.p
@@ -80,7 +81,8 @@ export const Hero = () => {
             transition={{ duration: 1, delay: 0.45 }}
             className="mt-8 max-w-sm text-sm leading-7 text-brand-gray md:text-[15px]"
           >
-            A glacial composition of frozen bergamot, mineral air, and smoked cedarwood. Built like a fashion campaign, worn like a private ritual.
+            A commanding extrait of citrus voltage, cracked pepper, and polished woods. Built like a
+            private campaign, worn like a decision already made.
           </motion.p>
 
           <motion.div
@@ -89,10 +91,13 @@ export const Hero = () => {
             transition={{ duration: 0.9, delay: 0.65 }}
             className="mt-10 flex flex-wrap items-center gap-5"
           >
-            <button className="group relative overflow-hidden border border-brand-gold/35 px-10 py-5 text-[10px] font-semibold uppercase tracking-[0.5em] text-white transition-colors duration-700 hover:text-brand-black">
+            <Link
+              to="/collection"
+              className="group relative overflow-hidden border border-brand-gold/35 px-10 py-5 text-[10px] font-semibold uppercase tracking-[0.5em] text-white transition-colors duration-700 hover:text-brand-black focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            >
               <span className="relative z-10">Discover Anthology</span>
               <span className="absolute inset-0 translate-y-full bg-brand-gold transition-transform duration-500 ease-[0.16,1,0.3,1] group-hover:translate-y-0" />
-            </button>
+            </Link>
             <span className="text-[10px] uppercase tracking-[0.38em] text-white/45">
               Extrait de Memoire / 100ml
             </span>
@@ -113,8 +118,8 @@ export const Hero = () => {
               className="relative"
             >
               <AssetImage
-                src="/images/products/wild-silence-cutout.webp"
-                alt="Wild Silence fragrance bottle"
+                src={heroProduct.images.angle}
+                alt={`${heroProduct.name} fragrance bottle`}
                 wrapperClassName="bg-transparent"
                 className="relative z-10 h-auto w-full drop-shadow-[0_50px_100px_rgba(0,0,0,0.55)]"
                 sizes="(min-width: 1024px) 32rem, 75vw"
@@ -145,7 +150,7 @@ export const Hero = () => {
             <div className="text-[10px] uppercase tracking-[0.45em] text-brand-gold/90">
               Provenance
             </div>
-            <div className="mt-4 font-serif text-5xl italic text-white">$185</div>
+            <div className="mt-4 font-serif text-5xl italic text-white">${heroProduct.price}</div>
             <div className="mt-2 text-[10px] uppercase tracking-[0.32em] text-white/40">
               International Archives / 100ml
             </div>
@@ -156,17 +161,15 @@ export const Hero = () => {
               </div>
               <div className="space-y-5">
                 {[
-                  ['Overture', 'Frozen Bergamot'],
-                  ['Heart', 'Smoked Cedarwood'],
-                  ['Dry Down', 'White Ambergris'],
+                  ['Overture', heroProduct.notes.top[0]],
+                  ['Heart', heroProduct.notes.heart[0]],
+                  ['Dry Down', heroProduct.notes.base[0]],
                 ].map(([label, value]) => (
                   <div key={label}>
                     <div className="text-[9px] uppercase tracking-[0.36em] text-white/28">
                       {label}
                     </div>
-                    <div className="mt-2 font-serif text-xl italic text-white/88">
-                      {value}
-                    </div>
+                    <div className="mt-2 font-serif text-xl italic text-white/88">{value}</div>
                   </div>
                 ))}
               </div>

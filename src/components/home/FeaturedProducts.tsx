@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { FEATURED_PRODUCTS } from '../../constants/products';
 
@@ -17,10 +16,12 @@ export const FeaturedProducts = () => {
               viewport={{ once: true }}
               className="flex items-center gap-6 mb-10"
             >
-               <span className="text-[10px] md:text-[11px] uppercase tracking-[0.6em] text-brand-gold font-bold">The Selection</span>
-               <div className="h-px w-20 bg-brand-gold/20" />
+              <span className="text-[10px] md:text-[11px] uppercase tracking-[0.6em] text-brand-gold font-bold">
+                The Selection
+              </span>
+              <div className="h-px w-20 bg-brand-gold/20" />
             </motion.div>
-            
+
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -28,27 +29,31 @@ export const FeaturedProducts = () => {
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               className="font-serif text-5xl md:text-8xl text-brand-black leading-[0.9] tracking-tighter"
             >
-              Curated for the <br /> <span className="italic text-neutral-300">Refined Palette.</span>
+              Curated for the <br />{' '}
+              <span className="italic text-neutral-300">Refined Palette.</span>
             </motion.h2>
           </div>
-          
-          <motion.a
-            href="/shop"
+
+          <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="group flex flex-col items-end gap-3 text-[10px] uppercase tracking-[0.4em] font-bold text-brand-black/40 hover:text-brand-black transition-colors"
           >
-            <span>Explore All Anthology</span>
-            <div className="relative w-32 h-px bg-brand-black/10 overflow-hidden">
-               <motion.div 
-                 initial={{ x: '-100%' }}
-                 whileHover={{ x: '100%' }}
-                 transition={{ duration: 0.8 }}
-                 className="absolute inset-0 bg-brand-black"
-               />
-            </div>
-          </motion.a>
+            <Link
+              to="/collection"
+              className="group flex flex-col items-end gap-3 text-[10px] uppercase tracking-[0.4em] font-bold text-brand-black/40 hover:text-brand-black transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            >
+              <span>Explore All Anthology</span>
+              <div className="relative w-32 h-px bg-brand-black/10 overflow-hidden">
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  whileHover={{ x: '100%' }}
+                  transition={{ duration: 0.8 }}
+                  className="absolute inset-0 bg-brand-black"
+                />
+              </div>
+            </Link>
+          </motion.div>
         </div>
 
         {/* Product Grid - Minimal Museum Spacing */}
