@@ -16,8 +16,27 @@
   body {
     @apply bg-brand-black text-brand-white font-sans antialiased selection:bg-brand-gold selection:text-black;
   }
+
+  /* Cinematic scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(10, 10, 10, 0.4);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(197, 160, 89, 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(197, 160, 89, 0.5);
+  }
 }
 
+/* CINEMATIC ANIMATIONS */
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -27,16 +46,237 @@
   }
 }
 
+@keyframes smokeFlow {
+  0%, 100% {
+    opacity: 0.08;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.16;
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+@keyframes volumetricHaze {
+  0%, 100% {
+    opacity: 0.12;
+    filter: blur(140px);
+  }
+  50% {
+    opacity: 0.22;
+    filter: blur(160px);
+  }
+}
+
+@keyframes bottleGlow {
+  0%, 100% {
+    box-shadow: 0 0 80px rgba(197, 160, 89, 0.15), inset -20px -20px 60px rgba(0,0,0,0.4);
+  }
+  50% {
+    box-shadow: 0 0 120px rgba(197, 160, 89, 0.22), inset -20px -20px 60px rgba(0,0,0,0.3);
+  }
+}
+
+@keyframes cinematicReveal {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes subtleShift {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulseGold {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes atmosphericDrift {
+  0% {
+    transform: translateX(0) translateY(0);
+    opacity: 0.06;
+  }
+  50% {
+    transform: translateX(8px) translateY(-12px);
+    opacity: 0.12;
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+    opacity: 0.06;
+  }
+}
+
+@keyframes glassRefraction {
+  0%, 100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.1;
+  }
+}
+
 @layer utilities {
   .text-tracking-xl {
     letter-spacing: 0.4em;
   }
+
   .text-tracking-xxl {
     letter-spacing: 0.6em;
   }
+
   .noise-overlay {
     @apply pointer-events-none mix-blend-overlay opacity-30 bg-repeat;
     background-image: radial-gradient(rgba(255, 255, 255, 0.32) 0.6px, transparent 0.6px);
     background-size: 5px 5px;
+  }
+
+  /* Cinematic utility classes */
+  .cinematic-fade {
+    @apply bg-gradient-to-b from-transparent via-transparent to-black/60;
+  }
+
+  .editorial-vignette {
+    @apply bg-[radial-gradient(ellipse_100%_50%_at_50%_0%,transparent_20%,rgba(0,0,0,0.5)_100%)];
+  }
+
+  .luxury-text-shadow {
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .glass-frost {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .amber-glow {
+    box-shadow: 0 0 60px rgba(197, 160, 89, 0.2), inset -15px -15px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Animation utilities */
+  .animate-smoke {
+    animation: smokeFlow 8s ease-in-out infinite;
+  }
+
+  .animate-haze {
+    animation: volumetricHaze 10s ease-in-out infinite;
+  }
+
+  .animate-bottle-glow {
+    animation: bottleGlow 8s ease-in-out infinite;
+  }
+
+  .animate-cinema-reveal {
+    animation: cinematicReveal 1.2s ease-out forwards;
+  }
+
+  .animate-subtle-shift {
+    animation: subtleShift 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-gold {
+    animation: pulseGold 3s ease-in-out infinite;
+  }
+
+  .animate-drift {
+    animation: atmosphericDrift 12s ease-in-out infinite;
+  }
+
+  .animate-glass-refraction {
+    animation: glassRefraction 6s ease-in-out infinite;
+  }
+
+  /* GPU-accelerated transforms */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Premium blur filter optimization */
+  .blur-cinematic {
+    filter: blur(8px);
+  }
+
+  .blur-deep {
+    filter: blur(24px);
+  }
+
+  /* Realistic lighting gradients */
+  .light-gradient-warm {
+    @apply bg-gradient-to-r from-amber-950/40 via-transparent to-amber-900/20;
+  }
+
+  .light-gradient-cool {
+    @apply bg-gradient-to-b from-slate-400/10 via-transparent to-transparent;
+  }
+
+  /* Editorial composition helpers */
+  .asymmetric-layout {
+    display: grid;
+    grid-auto-flow: dense;
+  }
+
+  .editorial-spacing {
+    @apply space-y-8 md:space-y-12 lg:space-y-16;
+  }
+
+  /* Cinematic depth layering */
+  .depth-layer-1 {
+    z-index: 10;
+  }
+
+  .depth-layer-2 {
+    z-index: 20;
+  }
+
+  .depth-layer-3 {
+    z-index: 30;
+  }
+
+  .depth-layer-4 {
+    z-index: 40;
+  }
+
+  /* Negative space utilities */
+  .negative-space-lg {
+    @apply space-y-16 md:space-y-24 lg:space-y-32;
+  }
+
+  /* Premium easing curves */
+  .ease-cinema {
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Luxury text styling */
+  .text-luxury {
+    @apply font-serif italic tracking-tight leading-tight;
+  }
+
+  .text-luxury-meta {
+    @apply font-sans uppercase tracking-widest text-xs;
+  }
+}
+
+/* Motion system overrides for premium feel */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
