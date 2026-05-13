@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
           />
         </motion.div>
 
-        <div className="pointer-events-none absolute inset-0 z-20 hidden translate-y-8 items-center justify-center opacity-0 transition-all duration-700 ease-[0.16,1,0.3,1] group-hover:translate-y-0 group-hover:opacity-100 md:flex">
+        <div className="pointer-events-none invisible absolute inset-0 z-20 hidden translate-y-8 items-center justify-center opacity-0 transition-all duration-700 ease-[0.16,1,0.3,1] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 md:flex">
           <div className="flex gap-4 p-2 bg-white/40 backdrop-blur-xl border border-white/20 shadow-2xl">
             <button
               type="button"
