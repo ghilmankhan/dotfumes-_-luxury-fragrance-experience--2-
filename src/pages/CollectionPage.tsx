@@ -5,12 +5,19 @@ import { ProductCard } from '../components/home/ProductCard';
 import { Product } from '../models/types';
 import { AssetImage } from '../components/AssetImage';
 import { COLLECTION_IMAGES } from '../constants/images';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 type CategoryFilter = 'All' | Product['category'];
 
 const filters: CategoryFilter[] = ['All', 'Unisex', 'Women', 'Men'];
 
 export const CollectionPage = () => {
+  usePageMeta({
+    title: 'Collection | DOTFUMES',
+    description: 'Explore the full DOTFUMES fragrance archive across men, women, and unisex scents.',
+    path: '/collection',
+  });
+
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>('All');
 
   const products = useMemo(() => {

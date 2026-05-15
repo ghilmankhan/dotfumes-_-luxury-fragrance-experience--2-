@@ -81,7 +81,7 @@ export const CartDrawer = () => {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-[110] shadow-2xl flex flex-col"
           >
             <div className="px-8 py-6 border-b border-neutral-100 flex items-center justify-between">
@@ -104,6 +104,9 @@ export const CartDrawer = () => {
                   <ShoppingBag size={48} strokeWidth={1} className="text-neutral-200 mb-6" />
                   <p className="text-neutral-400 text-sm uppercase tracking-widest">
                     Your selection is empty
+                  </p>
+                  <p className="mt-3 max-w-[220px] text-xs leading-6 text-neutral-500">
+                    Explore the DOTFUMES archive and add your fragrance selections here.
                   </p>
                   <Link
                     to="/collection"
@@ -154,7 +157,7 @@ export const CartDrawer = () => {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="p-2 hover:bg-neutral-50 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+                              className="p-2 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold hover:bg-neutral-50 disabled:cursor-not-allowed disabled:text-neutral-300 disabled:hover:bg-transparent"
                               aria-label={`Decrease ${item.name} quantity`}
                             >
                               <Minus size={12} strokeWidth={1.5} />
@@ -165,6 +168,7 @@ export const CartDrawer = () => {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              disabled={item.quantity >= item.stock}
                               className="p-2 hover:bg-neutral-50 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
                               aria-label={`Increase ${item.name} quantity`}
                             >
@@ -175,6 +179,11 @@ export const CartDrawer = () => {
                             ${item.price * item.quantity}.00
                           </span>
                         </div>
+                        <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-neutral-400">
+                          {item.quantity >= item.stock
+                            ? 'Maximum stock selected'
+                            : `${item.stock - item.quantity} remaining`}
+                        </p>
                       </div>
                     </div>
                   ))}

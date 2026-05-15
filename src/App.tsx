@@ -15,6 +15,7 @@ import { CollectionPage } from './pages/CollectionPage';
 import { ProductPage } from './pages/ProductPage';
 import { AboutPage } from './pages/AboutPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
         </Routes>
 
         <Footer />

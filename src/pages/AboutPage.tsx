@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { AssetImage } from '../components/AssetImage';
 import { COLLECTION_IMAGES } from '../constants/images';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export const AboutPage = () => {
+  usePageMeta({
+    title: 'The House | DOTFUMES',
+    description: 'Learn the DOTFUMES house philosophy, materials, and fragrance craftsmanship.',
+    path: '/about',
+  });
+
   return (
     <section className="bg-brand-black text-white">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">

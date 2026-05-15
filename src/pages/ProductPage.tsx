@@ -1,10 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { Minus, Plus, ShoppingBag } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Minus, Plus, ShoppingBag, ShieldCheck, Truck, Leaf } from 'lucide-react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { FEATURED_PRODUCTS } from '../constants/products';
 import { AssetImage } from '../components/AssetImage';
 import { useCartStore } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
+import { usePageMeta } from '../hooks/usePageMeta';
+import { formatCurrency } from '../lib/order';
 
 export const ProductPage = () => {
   const { slug } = useParams();
@@ -12,6 +14,56 @@ export const ProductPage = () => {
   const [quantity, setQuantity] = useState(1);
   const { addItem, openCart } = useCartStore();
   const { pushToast } = useToastStore();
+
+  usePageMeta(
+    product
+      ? {
+          title: `${product.name} | DOTFUMES`,
+          description: product.description,
+          path: `/product/${product.slug}`,
+          ogType: 'product',
+        }
+      : {
+          title: 'Fragrance Not Found | DOTFUMES',
+          description: 'The requested DOTFUMES fragrance page could not be found.',
+          path: '/collection',
+        },
+  );
+
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description,
+      image: [product.images.front, product.images.angle, ...product.images.lifestyle],
+      brand: {
+        '@type': 'Brand',
+        name: 'DOTFUMES',
+      },
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'USD',
+        price: product.price,
+        availability:
+          product.stock > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+      },
+      category: `Luxury Perfume ${product.category}`,
+    });
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, [product]);
 
   const relatedProducts = useMemo(
     () => FEATURED_PRODUCTS.filter((item) => item.slug !== slug).slice(0, 2),
@@ -41,9 +93,15 @@ export const ProductPage = () => {
     }
   };
 
+  const notesSections: Array<{ label: string; notes: string[] }> = [
+    { label: 'Top Notes', notes: product.notes.top },
+    { label: 'Heart Notes', notes: product.notes.heart },
+    { label: 'Base Notes', notes: product.notes.base },
+  ];
+
   return (
     <section className="min-h-screen bg-brand-white text-brand-black">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.78fr)]">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
         <div className="relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-neutral-100 px-8 pt-28 lg:min-h-screen">
           <AssetImage
             src={product.images.angle}
@@ -69,22 +127,17 @@ export const ProductPage = () => {
           </h1>
           <p className="mt-8 max-w-xl text-sm leading-8 text-neutral-500">{product.description}</p>
 
-          <div className="mt-12 border-y border-black/10 py-8">
-            <div className="grid grid-cols-3 gap-5">
-              {Object.entries(product.notes).map(([label, notes]) => (
-                <div key={label}>
-                  <p className="text-[9px] uppercase tracking-[0.32em] text-black/35">{label}</p>
-                  <p className="mt-3 font-serif text-xl italic leading-7">{notes[0]}</p>
-                </div>
-              ))}
-            </div>
+          <div className="mt-12 grid gap-3 border-y border-black/10 py-8">
+            {notesSections.map((section) => (
+              <div key={section.label} className="grid gap-3 border-b border-black/5 pb-5 last:border-b-0 last:pb-0">
+                <p className="text-[9px] uppercase tracking-[0.32em] text-black/35">{section.label}</p>
+                <p className="font-serif text-xl italic leading-8">{section.notes.join(' · ')}</p>
+              </div>
+            ))}
           </div>
 
           <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div
-              className="flex w-fit items-center border border-black/10"
-              aria-label="Quantity selector"
-            >
+            <div className="flex w-fit items-center border border-black/10" aria-label="Quantity selector">
               <button
                 type="button"
                 onClick={() => setQuantity((value) => Math.max(1, value - 1))}
@@ -109,13 +162,19 @@ export const ProductPage = () => {
               className="inline-flex flex-1 items-center justify-center gap-3 bg-brand-black px-8 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:bg-neutral-800 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
             >
               <ShoppingBag size={15} strokeWidth={1.3} />
-              Add / ${product.price}.00
+              Add / {formatCurrency(product.price)}
             </button>
           </div>
 
           <p className="mt-5 text-[10px] uppercase tracking-[0.25em] text-black/35">
             {product.stock} pieces available
           </p>
+
+          <div className="mt-8 grid gap-3 border-t border-black/10 pt-8 sm:grid-cols-3">
+            <TrustBadge icon={<ShieldCheck size={14} />} label="Extrait concentration" />
+            <TrustBadge icon={<Truck size={14} />} label="Insured delivery" />
+            <TrustBadge icon={<Leaf size={14} />} label="Refill roadmap" />
+          </div>
         </div>
       </div>
 
@@ -163,9 +222,7 @@ export const ProductPage = () => {
 
       <div className="bg-brand-black px-6 py-24 text-white md:px-16 lg:px-24">
         <div className="mx-auto max-w-6xl">
-          <p className="text-[10px] uppercase tracking-[0.45em] text-brand-gold">
-            Related Archives
-          </p>
+          <p className="text-[10px] uppercase tracking-[0.45em] text-brand-gold">Related Archives</p>
           <div className="mt-12 grid gap-8 md:grid-cols-2">
             {relatedProducts.map((item) => (
               <Link
@@ -182,7 +239,7 @@ export const ProductPage = () => {
                 <div>
                   <p className="font-serif text-3xl italic">{item.name}</p>
                   <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-white/35">
-                    ${item.price}.00 / {item.category}
+                    {formatCurrency(item.price)} / {item.category}
                   </p>
                 </div>
               </Link>
@@ -193,3 +250,10 @@ export const ProductPage = () => {
     </section>
   );
 };
+
+const TrustBadge = ({ icon, label }: { icon: ReactNode; label: string }) => (
+  <div className="flex items-center gap-2 border border-black/10 px-3 py-3 text-[9px] uppercase tracking-[0.24em] text-black/55">
+    <span className="text-black/70">{icon}</span>
+    <span>{label}</span>
+  </div>
+);
