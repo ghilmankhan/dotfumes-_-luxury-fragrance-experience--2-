@@ -63,6 +63,10 @@ In Apps Script:
 Optional:
 - `PUBLIC_FORM_TOKEN` = shared token for frontend validation
 - `SHEET_NAME` = specific sheet tab name (if not first tab)
+- `ADMIN_READ_TOKEN` = required for `/exec?action=dashboard` and `/exec?action=orders`
+- `ORDERS_SHEET_NAME` = defaults to `Orders`
+- `PRODUCTS_SHEET_NAME` = defaults to `Products`
+- `SETTINGS_SHEET_NAME` = defaults to `Settings`
 
 ## 6. Deploy as Web App
 1. Click **Deploy** → **New deployment**.
@@ -82,6 +86,8 @@ VITE_ORDER_FORM_PUBLIC_TOKEN=your-shared-public-token
 VITE_CLIENT_WHATSAPP_NUMBER=923001234567
 VITE_CLIENT_ORDER_EMAIL=orders@dotfumes.com
 VITE_BASE_URL=https://dotfumes.com
+VITE_ADMIN_PASSWORD=your-admin-login-password
+VITE_ADMIN_READ_TOKEN=your-admin-read-token
 ```
 
 If `VITE_GOOGLE_APPS_SCRIPT_WEB_APP_URL` is empty, checkout uses local fallback mode only.
@@ -98,6 +104,12 @@ If `VITE_GOOGLE_APPS_SCRIPT_WEB_APP_URL` is empty, checkout uses local fallback 
    - Row appears in Google Sheet
    - Owner email notification is received
    - WhatsApp handoff link includes order details + slip URL
+
+7. Verify admin read endpoints in browser:
+   - `.../exec?action=products`
+   - `.../exec?action=settings`
+   - `.../exec?action=dashboard&adminToken=YOUR_ADMIN_READ_TOKEN`
+   - `.../exec?action=orders&adminToken=YOUR_ADMIN_READ_TOKEN`
 
 ## 9. Known Limitations
 - This is a lightweight Apps Script backend, not a full transactional commerce backend.
