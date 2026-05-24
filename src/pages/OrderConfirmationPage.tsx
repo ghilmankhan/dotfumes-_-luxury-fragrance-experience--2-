@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CheckCircle2, MessageCircle, Mail } from 'lucide-react';
 import { useMemo } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
@@ -35,7 +35,49 @@ export const OrderConfirmationPage = () => {
   }, [order]);
 
   if (!order) {
-    return <Navigate to="/checkout" replace />;
+    return (
+      <section className="min-h-screen bg-brand-black px-6 pb-24 pt-32 text-white md:px-16 lg:px-24">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+          animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, ease: 'easeOut' }}
+          className="mx-auto w-full max-w-4xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.35)] md:p-10"
+        >
+          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-brand-gold">
+            Order Archive
+          </p>
+          <h1 className="mt-6 font-serif text-5xl italic leading-[0.9] md:text-7xl">
+            No recent order <br />
+            <span className="text-white/45">was found.</span>
+          </h1>
+          <p className="mt-8 max-w-2xl text-sm leading-7 text-white/60">
+            Confirmation details appear here right after checkout. If you already placed an order,
+            contact support with your name and payment method so the team can assist.
+          </p>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <Link
+              to="/checkout"
+              className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              Return to Checkout
+            </Link>
+            <Link
+              to="/collection"
+              className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              Explore Collection
+            </Link>
+            <Link
+              to="/contact"
+              className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              Contact Support
+            </Link>
+          </div>
+        </motion.div>
+      </section>
+    );
   }
   const hasRemoteSlipUrl = order.slip.referenceUrl.startsWith('http');
 
@@ -59,7 +101,7 @@ export const OrderConfirmationPage = () => {
           </h1>
 
           <p className="mt-8 max-w-xl text-sm leading-7 text-white/60">
-            Your order details are ready with payment reference. Open one of the handoff options
+            Your order details are ready with payment reference. Open one of the contact options
             below and send the prefilled message so the DOTFUMES team can verify payment.
           </p>
 
@@ -112,13 +154,13 @@ export const OrderConfirmationPage = () => {
 
           <p className="mt-4 text-xs leading-6 text-white/45">
             WhatsApp and email open with your details prefilled. Please review and tap send to
-            complete the handoff.
+            complete confirmation.
           </p>
 
           <p className="mt-6 text-[10px] uppercase tracking-[0.26em] text-white/40">
             {order.submissionMode === 'google-sheets'
-              ? 'Order synced to Google Sheets desk. Payment review usually completes within one business day.'
-              : 'Private handoff mode active. Payment verification starts after you send the handoff message.'}
+              ? 'Payment review usually completes within one business day.'
+              : 'Payment verification starts after you send the handoff message.'}
           </p>
 
           <Link

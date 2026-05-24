@@ -9,6 +9,7 @@ interface CategoryBlockProps {
   title: string;
   subtitle: string;
   image: string;
+  imageAlt: string;
   href: string;
   className?: string;
 }
@@ -17,6 +18,7 @@ const CategoryBlock: React.FC<CategoryBlockProps> = ({
   title,
   subtitle,
   image,
+  imageAlt,
   href,
   className,
 }) => {
@@ -43,7 +45,7 @@ const CategoryBlock: React.FC<CategoryBlockProps> = ({
       >
         <AssetImage
           src={image}
-          alt={title}
+          alt={imageAlt}
           wrapperClassName="h-full w-full bg-neutral-950"
           className="h-full w-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-80 transition-all duration-1000"
         />
@@ -93,6 +95,7 @@ export const CategorySplit = () => {
         title="His / Hers"
         subtitle="Bleu Heat + Soft Promise"
         image={COLLECTION_IMAGES.duos.hisHersLifestyle}
+        imageAlt="Bleu Heat and Soft Promise perfume duo on a marble vanity still life"
         href="/collection"
       />
       <div className="w-px h-full bg-white/10 hidden md:block" />
@@ -100,6 +103,7 @@ export const CategorySplit = () => {
         title="Bold / Untamed"
         subtitle="Bold Decision + Wild Silence"
         image={COLLECTION_IMAGES.duos.boldUntamedLifestyle}
+        imageAlt="Bold Decision and Wild Silence perfume duo arranged on textured slate"
         href="/collection"
       />
     </section>

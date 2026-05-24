@@ -29,7 +29,7 @@ export class FrontendOnlyOrderService implements OrderSubmissionService {
       success: true,
       order,
       mode: 'frontend-fallback',
-      message: 'Order prepared locally. Complete WhatsApp or email handoff to notify DOTFUMES.',
+      message: 'Order prepared. Complete WhatsApp or email handoff to notify DOTFUMES.',
     };
   }
 }

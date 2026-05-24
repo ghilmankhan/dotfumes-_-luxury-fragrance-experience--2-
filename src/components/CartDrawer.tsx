@@ -179,7 +179,7 @@ export const CartDrawer = () => {
                             ${item.price * item.quantity}.00
                           </span>
                         </div>
-                        <p className="mt-2 text-[9px] uppercase tracking-[0.2em] text-neutral-400">
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-neutral-400">
                           {item.quantity >= item.stock
                             ? 'Maximum stock selected'
                             : `${item.stock - item.quantity} remaining`}
@@ -207,7 +207,7 @@ export const CartDrawer = () => {
                 >
                   Proceed to Checkout
                 </button>
-                <p className="mt-6 text-[9px] text-center text-neutral-400 uppercase tracking-widest">
+                <p className="mt-6 text-[10px] text-center text-neutral-400 uppercase tracking-[0.22em]">
                   Shipping and taxes calculated at checkout
                 </p>
               </div>

@@ -1,16 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, Menu, X } from 'lucide-react';
-import { Link, NavLink as RouterNavLink } from 'react-router-dom';
+import { Link, NavLink as RouterNavLink, useLocation } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { cn } from '../lib/utils';
 
 export const Navbar = () => {
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const { openCart, items } = useCartStore();
+  const isLightRoute = location.pathname === '/checkout' || location.pathname.startsWith('/product/');
+  const useSolidNav = isScrolled || isLightRoute;
+  const isLightNav = isLightRoute;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,22 +80,40 @@ export const Navbar = () => {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           'fixed top-0 left-0 w-full z-[60] transition-all duration-500 px-6 py-5 md:px-16 md:py-10 flex items-center justify-between',
-          isScrolled
-            ? 'bg-brand-black/90 backdrop-blur-md py-4 md:py-6 shadow-sm border-b border-white/5'
+          useSolidNav
+            ? isLightNav
+              ? 'bg-brand-white/94 backdrop-blur-md py-4 md:py-6 shadow-sm border-b border-black/8'
+              : 'bg-brand-black/90 backdrop-blur-md py-4 md:py-6 shadow-sm border-b border-white/5'
             : 'bg-transparent',
         )}
       >
         <div className="flex-1 hidden lg:flex items-center gap-12">
-          <div className="text-[10px] tracking-[0.4em] uppercase text-white/40">Paris / Grasse</div>
+          <div
+            className={cn(
+              'text-[10px] tracking-[0.4em] uppercase',
+              isLightNav ? 'text-black/45' : 'text-white/40',
+            )}
+          >
+            Paris / Grasse
+          </div>
           <div className="flex items-center gap-8">
-            <NavLink to="/collection">Collections</NavLink>
-            <NavLink to="/about">The House</NavLink>
+            <NavLink to="/collection" isLightNav={isLightNav}>
+              Collections
+            </NavLink>
+            <NavLink to="/about" isLightNav={isLightNav}>
+              The House
+            </NavLink>
           </div>
         </div>
 
         <div className="flex items-center justify-center">
           <Link to="/" className="group" aria-label="Dotfumes home">
-            <h1 className="text-xl md:text-2xl font-serif tracking-[0.6em] uppercase text-white font-light">
+            <h1
+              className={cn(
+                'text-xl md:text-2xl font-serif tracking-[0.6em] uppercase font-light',
+                isLightNav ? 'text-brand-black' : 'text-white',
+              )}
+            >
               Dotfumes
             </h1>
           </Link>
@@ -101,7 +123,10 @@ export const Navbar = () => {
           <button
             type="button"
             onClick={openCart}
-            className="relative p-2 text-white/60 hover:text-white transition-colors duration-300 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            className={cn(
+              'relative p-2 transition-colors duration-300 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold',
+              isLightNav ? 'text-black/70 hover:text-black' : 'text-white/60 hover:text-white',
+            )}
             aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? '' : 's'}`}
           >
             <div className="flex items-center gap-3">
@@ -115,7 +140,10 @@ export const Navbar = () => {
             ref={triggerRef}
             type="button"
             onClick={() => setIsMenuOpen(true)}
-            className="lg:hidden text-white/70 p-2 transition-colors hover:text-white focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            className={cn(
+              'lg:hidden p-2 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold',
+              isLightNav ? 'text-black/70 hover:text-black' : 'text-white/70 hover:text-white',
+            )}
             aria-label="Open navigation menu"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-navigation"
@@ -205,14 +233,28 @@ export const Navbar = () => {
   );
 };
 
-const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
+const NavLink = ({
+  to,
+  children,
+  isLightNav,
+}: {
+  to: string;
+  children: React.ReactNode;
+  isLightNav: boolean;
+}) => {
   return (
     <RouterNavLink
       to={to}
       className={({ isActive }) =>
         cn(
           'text-[10px] uppercase tracking-[0.3em] transition-colors duration-300',
-          isActive ? 'text-white' : 'text-white/60 hover:text-white',
+          isLightNav
+            ? isActive
+              ? 'text-black'
+              : 'text-black/65 hover:text-black'
+            : isActive
+              ? 'text-white'
+              : 'text-white/60 hover:text-white',
         )
       }
     >

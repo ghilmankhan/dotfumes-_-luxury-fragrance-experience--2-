@@ -1,9 +1,15 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AssetImage } from '../components/AssetImage';
 import { COLLECTION_IMAGES } from '../constants/images';
 import { usePageMeta } from '../hooks/usePageMeta';
 
 export const AboutPage = () => {
+  const [heroImageFailed, setHeroImageFailed] = useState(false);
+  const aboutHeroImage = heroImageFailed
+    ? COLLECTION_IMAGES.familyMood
+    : '/images/hero/dotfumes-about-hero-maison-split-1800x2400.webp';
+
   usePageMeta({
     title: 'The House | DOTFUMES',
     description: 'Learn the DOTFUMES house philosophy, materials, and fragrance craftsmanship.',
@@ -35,13 +41,14 @@ export const AboutPage = () => {
 
         <div className="relative min-h-[70vh] overflow-hidden">
           <AssetImage
-            src={COLLECTION_IMAGES.familyMood}
-            alt="Dotfumes campaign atmosphere"
+            src={aboutHeroImage}
+            alt="Dotfumes maison portrait hero with cinematic bottle arrangement"
             wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
-            className="h-full w-full object-cover opacity-70"
+            className="h-full w-full object-cover object-[58%_center] opacity-72 md:object-[64%_center]"
             fetchPriority="high"
+            onError={() => setHeroImageFailed(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-black via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-black via-brand-black/48 to-black/12" />
         </div>
       </div>
 

@@ -52,7 +52,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
         >
           <AssetImage
             src={product.images.front}
-            alt={product.name}
+            alt={`Front view of ${product.name} perfume bottle`}
             wrapperClassName="h-4/5 w-4/5 bg-transparent"
             className="h-full w-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.05)] group-hover:drop-shadow-[0_30px_60px_rgba(0,0,0,0.08)]"
           />

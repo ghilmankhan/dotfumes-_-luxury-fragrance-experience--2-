@@ -18,6 +18,16 @@ import { AboutPage } from './pages/AboutPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
 import { AdminPage } from './pages/AdminPage';
+import { ShippingPage } from './pages/ShippingPage';
+import { ReturnsPage } from './pages/ReturnsPage';
+import { ContactPage } from './pages/ContactPage';
+import { FaqPage } from './pages/FaqPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { JournalPage } from './pages/JournalPage';
+import { SustainabilityPage } from './pages/SustainabilityPage';
+import { CareersPage } from './pages/CareersPage';
 
 export default function App() {
   const location = useLocation();
@@ -48,6 +58,16 @@ export default function App() {
           <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          <Route path="/returns" element={<ReturnsPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/journal" element={<JournalPage />} />
+          <Route path="/sustainability" element={<SustainabilityPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         {!isAdminRoute ? <Footer /> : null}

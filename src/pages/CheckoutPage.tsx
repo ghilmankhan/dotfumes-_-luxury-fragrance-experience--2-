@@ -193,25 +193,29 @@ export const CheckoutPage = () => {
   return (
     <section className="min-h-screen bg-brand-white px-6 pb-24 pt-36 text-brand-black md:px-16 md:pt-44 lg:px-24">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_430px]">
-        <form onSubmit={submitOrder} className="order-2 space-y-12 lg:order-1" noValidate>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-brand-gold">
-              Checkout
-            </span>
-            <h1 className="mt-7 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
-              Complete <br />
-              <span className="text-neutral-300">Your Order.</span>
-            </h1>
-            <p className="mt-8 max-w-xl text-sm leading-7 text-black/55">
-              Finalize your details, choose a payment method, and upload your payment slip to
-              complete your DOTFUMES order handoff.
-            </p>
-            <p className="mt-3 max-w-xl text-xs leading-6 text-black/50">
-              After placing your order, WhatsApp and email open prefilled details. You may need to
-              tap send to complete handoff.
-            </p>
-          </div>
+        <div className="order-1 lg:col-start-1 lg:row-start-1">
+          <span className="text-[11px] font-bold uppercase tracking-[0.42em] text-brand-gold">
+            Checkout
+          </span>
+          <h1 className="mt-7 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
+            Complete <br />
+            <span className="text-neutral-300">Your Order.</span>
+          </h1>
+          <p className="mt-8 max-w-xl text-sm leading-7 text-black/65">
+            Finalize your details, choose a payment method, and upload your payment slip to
+            complete your DOTFUMES order confirmation request.
+          </p>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-black/60">
+            After placing your order, WhatsApp and email open prefilled details so you can send
+            confirmation quickly.
+          </p>
+        </div>
 
+        <form
+          onSubmit={submitOrder}
+          className="order-3 space-y-12 lg:col-start-1 lg:row-start-2 lg:order-2"
+          noValidate
+        >
           <AnimatePresence mode="wait">
             {errors.cart ? (
               <motion.div
@@ -246,7 +250,7 @@ export const CheckoutPage = () => {
           </AnimatePresence>
 
           <div className="space-y-8">
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.35em] text-black/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
               Customer Details
             </h2>
             <div className="grid gap-5 md:grid-cols-2">
@@ -306,7 +310,7 @@ export const CheckoutPage = () => {
           </div>
 
           <div className="space-y-7">
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.35em] text-black/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
               Payment Method
             </h2>
 
@@ -334,7 +338,7 @@ export const CheckoutPage = () => {
                     <p className="text-[11px] font-bold uppercase tracking-[0.25em]">{option.label}</p>
                     <p
                       className={`mt-2 text-xs leading-5 ${
-                        selected ? 'text-white/70' : 'text-black/55'
+                        selected ? 'text-white/80' : 'text-black/65'
                       }`}
                     >
                       {option.note}
@@ -360,7 +364,7 @@ export const CheckoutPage = () => {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.35em] text-black/40">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
               Payment Slip Upload
             </h2>
 
@@ -376,10 +380,10 @@ export const CheckoutPage = () => {
                   <Upload size={16} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.28em]">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em]">
                     Upload Slip (JPG / PNG / WEBP / PDF)
                   </p>
-                  <p className="mt-1 text-xs text-black/45">
+                  <p className="mt-1 text-xs text-black/60">
                     Required for payment verification. Maximum file size: 5MB.
                   </p>
                 </div>
@@ -398,7 +402,7 @@ export const CheckoutPage = () => {
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                   className="border border-black/10 p-4"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-black/45">Slip Preview</p>
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-black/60">Slip Preview</p>
                   {slipPreviewUrl ? (
                     <AssetImage
                       src={slipPreviewUrl}
@@ -407,17 +411,17 @@ export const CheckoutPage = () => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="mt-3 flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-center text-xs uppercase tracking-[0.24em] text-black/45">
+                    <div className="mt-3 flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-center text-xs uppercase tracking-[0.24em] text-black/60">
                       PDF file selected
                     </div>
                   )}
-                  <p className="mt-3 text-xs text-black/60">
+                  <p className="mt-3 text-xs text-black/70">
                     {slipFile.name} · {(slipFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                   <button
                     type="button"
                     onClick={removeSlip}
-                    className="mt-3 text-[10px] uppercase tracking-[0.22em] text-black/50 underline decoration-black/30 underline-offset-2 hover:text-black"
+                    className="mt-3 text-xs uppercase tracking-[0.2em] text-black/60 underline decoration-black/30 underline-offset-2 hover:text-black"
                   >
                     Remove slip
                   </button>
@@ -431,17 +435,29 @@ export const CheckoutPage = () => {
               <ShieldCheck size={16} className="mt-1 text-brand-gold" />
               {googleSheetsEnabled ? (
                 <p>
-                  Orders are sent to your Google Sheets desk with Drive slip storage and owner
-                  email notification. After confirmation, open WhatsApp to send the prefilled
-                  message to your team.
+                  Your order details and payment proof are reviewed manually before confirmation.
+                  After confirmation, open WhatsApp to send the prefilled confirmation message to the
+                  Dotfumes team.
                 </p>
               ) : (
                 <p>
-                  This checkout is in private handoff mode. Your slip stays on this device until you
-                  send the prefilled WhatsApp or email handoff.
+                  Your order details and payment proof are prepared for manual support confirmation.
+                  Please send the prefilled WhatsApp or email message to complete confirmation.
                 </p>
               )}
             </div>
+          </div>
+
+          <div className="border border-black/10 bg-white px-5 py-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-black/65">
+              What Happens Next
+            </p>
+            <ol className="mt-4 space-y-2 text-sm leading-6 text-black/65">
+              <li>1. Submit your order details and payment slip.</li>
+              <li>2. Dotfumes reviews your payment proof manually.</li>
+              <li>3. Your order is confirmed and coordinated through WhatsApp or email.</li>
+              <li>4. Support can assist if you need help after submission.</li>
+            </ol>
           </div>
 
           <button
@@ -455,14 +471,17 @@ export const CheckoutPage = () => {
                 : 'Preparing Order'
               : 'Place Order'}
           </button>
+          <p className="text-center text-[10px] uppercase tracking-[0.2em] text-black/58">
+            Manual verification keeps your handoff accurate before delivery coordination.
+          </p>
         </form>
 
-        <aside className="order-1 h-fit border border-black/10 bg-white p-6 shadow-[0_28px_80px_rgba(0,0,0,0.05)] lg:order-2 lg:sticky lg:top-28">
+        <aside className="order-2 h-fit border border-black/10 bg-white p-6 shadow-[0_28px_80px_rgba(0,0,0,0.05)] lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28">
           <h2 className="font-serif text-3xl italic">Your Selection</h2>
           <div className="mt-8 space-y-6">
             {items.length === 0 ? (
               <div className="py-14 text-center">
-                <p className="text-[10px] uppercase tracking-[0.32em] text-black/35">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-black/55">
                   Your selection is empty.
                 </p>
                 <Link
@@ -485,14 +504,14 @@ export const CheckoutPage = () => {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-serif text-xl italic">{item.name}</p>
-                        <p className="mt-2 text-[9px] uppercase tracking-[0.25em] text-black/35">
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-black/55">
                           {formatCurrency(item.price)}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeItem(item.id)}
-                        className="p-1 text-black/30 transition-colors hover:text-red-500"
+                        className="p-1 text-black/50 transition-colors hover:text-red-500"
                         aria-label={`Remove ${item.name}`}
                       >
                         <Trash2 size={15} strokeWidth={1.4} />
@@ -518,7 +537,7 @@ export const CheckoutPage = () => {
                         <Plus size={12} strokeWidth={1.4} />
                       </button>
                     </div>
-                    <p className="mt-3 text-[9px] uppercase tracking-[0.2em] text-black/35">
+                    <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-black/55">
                       Stock: {item.stock}
                     </p>
                   </div>
@@ -529,11 +548,11 @@ export const CheckoutPage = () => {
 
           <div className="mt-8 space-y-3 border-t border-black/10 pt-6">
             <div className="flex items-end justify-between">
-              <span className="text-[10px] uppercase tracking-[0.35em] text-black/35">Items</span>
+              <span className="text-[10px] uppercase tracking-[0.35em] text-black/55">Items</span>
               <span className="text-sm text-black/60">{totalItems}</span>
             </div>
             <div className="flex items-end justify-between">
-              <span className="text-[10px] uppercase tracking-[0.35em] text-black/35">Subtotal</span>
+              <span className="text-[10px] uppercase tracking-[0.35em] text-black/55">Subtotal</span>
               <span className="font-serif text-3xl italic">{formatCurrency(total())}</span>
             </div>
           </div>
@@ -561,7 +580,7 @@ const CheckoutInput = ({
   autoComplete?: string;
 }) => (
   <label className="block">
-    <span className="text-[10px] uppercase tracking-[0.3em] text-black/40">{label}</span>
+    <span className="text-[11px] uppercase tracking-[0.28em] text-black/60">{label}</span>
     <input
       required
       name={name}

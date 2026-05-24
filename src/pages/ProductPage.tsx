@@ -102,11 +102,11 @@ export const ProductPage = () => {
   return (
     <section className="min-h-screen bg-brand-white text-brand-black">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
-        <div className="relative flex min-h-[78vh] items-center justify-center overflow-hidden bg-neutral-100 px-8 pt-28 lg:min-h-screen">
+        <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
             src={product.images.angle}
-            alt={`${product.name} bottle`}
-            wrapperClassName="h-[70vh] w-full max-w-2xl bg-transparent"
+            alt={`${product.name} perfume bottle angled product view`}
+            wrapperClassName="h-[56vh] w-full max-w-2xl bg-transparent sm:h-[62vh] md:h-[66vh] lg:h-[70vh]"
             className="h-full w-full object-contain drop-shadow-[0_45px_90px_rgba(0,0,0,0.12)]"
             fetchPriority="high"
           />
@@ -115,7 +115,7 @@ export const ProductPage = () => {
         <div className="flex flex-col justify-center px-6 py-16 md:px-14 lg:px-16 lg:pt-32">
           <Link
             to="/collection"
-            className="mb-10 text-[10px] uppercase tracking-[0.35em] text-black/35 transition-colors hover:text-black"
+            className="mb-10 text-[11px] uppercase tracking-[0.26em] text-black/55 transition-colors hover:text-black"
           >
             Collection
           </Link>
@@ -130,7 +130,7 @@ export const ProductPage = () => {
           <div className="mt-12 grid gap-3 border-y border-black/10 py-8">
             {notesSections.map((section) => (
               <div key={section.label} className="grid gap-3 border-b border-black/5 pb-5 last:border-b-0 last:pb-0">
-                <p className="text-[9px] uppercase tracking-[0.32em] text-black/35">{section.label}</p>
+                <p className="text-[10px] uppercase tracking-[0.26em] text-black/58">{section.label}</p>
                 <p className="font-serif text-xl italic leading-8">{section.notes.join(' · ')}</p>
               </div>
             ))}
@@ -166,9 +166,16 @@ export const ProductPage = () => {
             </button>
           </div>
 
-          <p className="mt-5 text-[10px] uppercase tracking-[0.25em] text-black/35">
+          <p className="mt-5 text-[10px] uppercase tracking-[0.22em] text-black/58">
             {product.stock} pieces available
           </p>
+
+          <div className="mt-5 border border-black/10 bg-black/[0.02] px-4 py-4">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-black/65">
+              Authentic DOTFUMES selection with manual order support. Payment proof is uploaded
+              securely at checkout, then delivery is coordinated after verification.
+            </p>
+          </div>
 
           <div className="mt-8 grid gap-3 border-t border-black/10 pt-8 sm:grid-cols-3">
             <TrustBadge icon={<ShieldCheck size={14} />} label="Extrait concentration" />
@@ -183,7 +190,7 @@ export const ProductPage = () => {
           <div className="relative min-h-[60vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[0]}
-              alt={`${product.name} lifestyle campaign`}
+              alt={`${product.name} perfume lifestyle campaign scene`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-75"
             />
@@ -203,7 +210,7 @@ export const ProductPage = () => {
           <div className="flex items-center justify-center bg-white p-8 md:p-16">
             <AssetImage
               src={product.images.flatLay}
-              alt={`${product.name} flat lay bottle study`}
+              alt={`${product.name} perfume bottle top-down flat lay`}
               wrapperClassName="aspect-[4/3] w-full max-w-2xl bg-white"
               className="h-full w-full object-contain drop-shadow-[0_35px_70px_rgba(0,0,0,0.08)]"
             />
@@ -211,7 +218,7 @@ export const ProductPage = () => {
           <div className="relative min-h-[52vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[1]}
-              alt={`${product.name} still life notes`}
+              alt={`${product.name} still life with fragrance note ingredients`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-80"
             />
@@ -232,13 +239,13 @@ export const ProductPage = () => {
               >
                 <AssetImage
                   src={item.images.front}
-                  alt={item.name}
+                  alt={`Front view of ${item.name} perfume bottle`}
                   wrapperClassName="h-28 w-24 shrink-0 bg-white/5"
                   className="h-full w-full object-contain"
                 />
                 <div>
                   <p className="font-serif text-3xl italic">{item.name}</p>
-                  <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-white/35">
+                  <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-white/60">
                     {formatCurrency(item.price)} / {item.category}
                   </p>
                 </div>
@@ -252,7 +259,7 @@ export const ProductPage = () => {
 };
 
 const TrustBadge = ({ icon, label }: { icon: ReactNode; label: string }) => (
-  <div className="flex items-center gap-2 border border-black/10 px-3 py-3 text-[9px] uppercase tracking-[0.24em] text-black/55">
+  <div className="flex items-center gap-2 border border-black/10 px-3 py-3 text-[10px] uppercase tracking-[0.2em] text-black/62">
     <span className="text-black/70">{icon}</span>
     <span>{label}</span>
   </div>

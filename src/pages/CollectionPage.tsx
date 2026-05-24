@@ -19,6 +19,11 @@ export const CollectionPage = () => {
   });
 
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>('All');
+  const [heroImageFailed, setHeroImageFailed] = useState(false);
+
+  const collectionHeroImage = heroImageFailed
+    ? COLLECTION_IMAGES.familyMood
+    : '/images/hero/dotfumes-collection-hero-textsafe-five-bottles-2560x1440.webp';
 
   const products = useMemo(() => {
     if (activeFilter === 'All') {
@@ -32,24 +37,26 @@ export const CollectionPage = () => {
     <section className="min-h-screen bg-brand-white text-brand-black">
       <div className="relative min-h-[72vh] overflow-hidden bg-brand-black px-6 pt-36 text-white md:px-16 md:pt-44 lg:px-24">
         <AssetImage
-          src={COLLECTION_IMAGES.familyMood}
-          alt="Dotfumes family mood campaign"
+          src={collectionHeroImage}
+          alt="Dotfumes five-fragrance collection campaign in cinematic lighting"
           wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
-          className="h-full w-full object-cover opacity-55"
+          className="h-full w-full object-cover object-[72%_center] opacity-56 md:object-[76%_center] md:opacity-62 lg:object-right lg:opacity-64"
           fetchPriority="high"
+          onError={() => setHeroImageFailed(true)}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/55 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/36 md:from-black md:via-black/66 md:to-black/14 lg:from-black lg:via-black/48 lg:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-black/42 md:hidden" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-white via-transparent to-transparent" />
 
-        <div className="relative z-10 flex min-h-[52vh] max-w-5xl flex-col justify-end pb-20">
+        <div className="relative z-10 flex min-h-[52vh] max-w-5xl flex-col justify-end pb-20 md:max-w-4xl">
           <span className="text-[10px] font-bold uppercase tracking-[0.55em] text-brand-gold">
             The Collection
           </span>
-          <h1 className="mt-8 font-serif text-6xl italic leading-[0.88] tracking-tight md:text-8xl">
+          <h1 className="luxury-text-shadow mt-8 max-w-[12ch] font-serif text-[3.15rem] italic leading-[0.9] tracking-tight md:max-w-[10ch] md:text-7xl lg:max-w-none lg:text-8xl">
             Five worlds. <br />
             <span className="text-white/45">One house.</span>
           </h1>
-          <p className="mt-8 max-w-xl text-sm leading-8 text-white/55">
+          <p className="mt-7 max-w-[32ch] text-sm leading-7 text-white/78 md:mt-8 md:max-w-[42ch] md:leading-8 md:text-white/74 lg:max-w-xl lg:text-white/55">
             A cinematic fragrance family staged across decisive woods, soft florals, volcanic quiet,
             athletic blue heat, and golden first light.
           </p>
@@ -85,6 +92,9 @@ export const CollectionPage = () => {
                 Clean objects, <br />
                 <span className="text-neutral-300">cinematic souls.</span>
               </h2>
+              <p className="mt-6 text-[11px] uppercase tracking-[0.2em] text-black/52">
+                Manual review, payment-proof verification, and WhatsApp or email support included.
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-2" aria-label="Filter collection">
