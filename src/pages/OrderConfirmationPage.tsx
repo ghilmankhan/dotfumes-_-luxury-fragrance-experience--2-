@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
-import { CheckCircle2, MessageCircle, Mail } from 'lucide-react';
-import { useMemo } from 'react';
+import { CheckCircle2, MessageCircle, Mail, Copy, Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { readLatestOrder } from '../lib/storage';
 import {
   buildOrderEmailUrl,
+  buildWhatsAppMessage,
   buildWhatsAppOrderUrl,
   formatCurrency,
   formatPaymentMethodLabel,
@@ -17,11 +18,12 @@ export const OrderConfirmationPage = () => {
   const reduceMotion = useReducedMotion();
 
   usePageMeta({
-    title: 'Order Confirmed | DOTFUMES',
-    description: 'Your DOTFUMES order details and payment slip handoff are ready.',
+    title: 'Order Request Received | DOTFUMES',
+    description: 'Your DOTFUMES order request has been received for manual review.',
     path: '/order-confirmation',
     robots: 'noindex,nofollow',
   });
+  const [copied, setCopied] = useState(false);
 
   const actions = useMemo(() => {
     if (!order) {
@@ -33,6 +35,15 @@ export const OrderConfirmationPage = () => {
       emailUrl: buildOrderEmailUrl(order),
     };
   }, [order]);
+  const summaryForCopy = useMemo(() => {
+    if (!order) {
+      return '';
+    }
+
+    return buildWhatsAppMessage(order);
+  }, [order]);
+
+  const canCopySummary = Boolean(order) && Boolean(summaryForCopy) && typeof window !== 'undefined';
 
   if (!order) {
     return (
@@ -92,17 +103,17 @@ export const OrderConfirmationPage = () => {
         <article className="border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.35)] md:p-10">
           <div className="flex items-center gap-3 text-brand-gold">
             <CheckCircle2 size={18} strokeWidth={1.6} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Order Confirmed</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Order Request Received</span>
           </div>
 
           <h1 className="mt-6 font-serif text-5xl italic leading-[0.9] md:text-7xl">
-            Thank you for <br />
-            <span className="text-white/45">your selection.</span>
+            We received <br />
+            <span className="text-white/45">your order request.</span>
           </h1>
 
           <p className="mt-8 max-w-xl text-sm leading-7 text-white/60">
-            Your order details are ready with payment reference. Open one of the contact options
-            below and send the prefilled message so the DOTFUMES team can verify payment.
+            Thank you for choosing Dotfumes. We will review your order and contact you as early as
+            possible through WhatsApp or email for confirmation and delivery coordination.
           </p>
 
           <div className="mt-10 grid gap-4 text-xs uppercase tracking-[0.24em] text-white/50 sm:grid-cols-2">
@@ -134,40 +145,78 @@ export const OrderConfirmationPage = () => {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            <a
-              href={actions?.whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-3 bg-white px-6 py-4 text-[10px] font-bold uppercase tracking-[0.32em] text-black transition-colors hover:bg-brand-gold"
-            >
-              <MessageCircle size={15} strokeWidth={1.6} />
-              Send to WhatsApp
-            </a>
-            <a
-              href={actions?.emailUrl}
-              className="inline-flex items-center justify-center gap-3 border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.32em] text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
-            >
-              <Mail size={15} strokeWidth={1.6} />
-              Send by Email
-            </a>
+            {actions?.whatsappUrl ? (
+              <a
+                href={actions.whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-3 bg-white px-6 py-4 text-[10px] font-bold uppercase tracking-[0.32em] text-black transition-colors hover:bg-brand-gold"
+              >
+                <MessageCircle size={15} strokeWidth={1.6} />
+                Send Order on WhatsApp
+              </a>
+            ) : (
+              <div className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+                WhatsApp support link unavailable
+              </div>
+            )}
+            {actions?.emailUrl ? (
+              <a
+                href={actions.emailUrl}
+                className="inline-flex items-center justify-center gap-3 border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.32em] text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
+              >
+                <Mail size={15} strokeWidth={1.6} />
+                Send by Email
+              </a>
+            ) : (
+              <div className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+                Email support link unavailable
+              </div>
+            )}
           </div>
 
-          <p className="mt-4 text-xs leading-6 text-white/45">
-            WhatsApp and email open with your details prefilled. Please review and tap send to
-            complete confirmation.
+          <div className="mt-4 flex flex-wrap gap-3">
+            <p className="max-w-2xl text-xs leading-6 text-white/45">
+              Your order request has been received. For faster confirmation, open WhatsApp and send
+              the prefilled summary to the Dotfumes team.
+            </p>
+            {canCopySummary ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(summaryForCopy);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2200);
+                  } catch {
+                    setCopied(false);
+                  }
+                }}
+                className="inline-flex items-center gap-2 border border-white/25 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-white transition-colors hover:border-white/50"
+              >
+                {copied ? <Check size={13} strokeWidth={1.6} /> : <Copy size={13} strokeWidth={1.6} />}
+                {copied ? 'Copied' : 'Copy Order Summary'}
+              </button>
+            ) : null}
+          </div>
+
+          <p className="mt-2 text-xs leading-6 text-white/45">
+            {order.customer.email
+              ? 'If you entered an email, a confirmation email has been sent.'
+              : 'No email was provided. You can still use WhatsApp for confirmation.'}
           </p>
 
           <p className="mt-6 text-[10px] uppercase tracking-[0.26em] text-white/40">
             {order.submissionMode === 'google-sheets'
-              ? 'Payment review usually completes within one business day.'
-              : 'Payment verification starts after you send the handoff message.'}
+              ? 'Dotfumes reviews payment proof manually and confirms next steps soon.'
+              : 'Please send the prefilled support message so Dotfumes can confirm your request.'}
           </p>
 
           <Link
             to="/collection"
             className="mt-10 inline-flex border-b border-white/30 pb-1 text-[10px] uppercase tracking-[0.28em] text-white/70 transition-colors hover:text-white"
           >
-            Continue Exploring
+            Continue Shopping
           </Link>
         </article>
 
@@ -179,7 +228,7 @@ export const OrderConfirmationPage = () => {
                 <div>
                   <p className="font-serif text-xl italic">{item.name}</p>
                   <p className="mt-1 text-[9px] uppercase tracking-[0.24em] text-white/45">
-                    Qty {item.quantity}
+                    {item.sku ? `${item.sku} · ` : ''}Qty {item.quantity}
                   </p>
                 </div>
                 <p className="text-sm text-white/70">{formatCurrency(item.lineTotal)}</p>

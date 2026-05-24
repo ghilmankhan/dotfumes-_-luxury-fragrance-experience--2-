@@ -43,6 +43,107 @@ const parseAppsScriptResponse = (raw: string): GoogleAppsScriptOrderResponse => 
   return parsed;
 };
 
+type GoogleSheetsFrontendSettings = {
+  sheetProductDatabase: boolean;
+  hideInactiveProducts: boolean;
+  showOutOfStockProducts: boolean;
+  allowOutOfStockCheckout: boolean;
+  lowStockThreshold: number;
+  currency: string;
+};
+
+type GoogleSheetsProductRow = {
+  productId?: string;
+  sku?: string;
+  slug?: string;
+  name?: string;
+  price?: number;
+  stock?: number;
+  active?: boolean;
+  category?: string;
+  lowStock?: boolean;
+};
+
+type ProductCatalogResponse = {
+  products: GoogleSheetsProductRow[];
+  settings: GoogleSheetsFrontendSettings;
+};
+
+const defaultCatalogSettings: GoogleSheetsFrontendSettings = {
+  sheetProductDatabase: false,
+  hideInactiveProducts: false,
+  showOutOfStockProducts: true,
+  allowOutOfStockCheckout: false,
+  lowStockThreshold: 3,
+  currency: 'USD',
+};
+
+const sanitizeBoolean = (value: unknown, fallback: boolean) => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const next = value.trim().toLowerCase();
+    if (next === 'true' || next === '1' || next === 'yes') {
+      return true;
+    }
+    if (next === 'false' || next === '0' || next === 'no') {
+      return false;
+    }
+  }
+  return fallback;
+};
+
+const sanitizeNumber = (value: unknown, fallback: number) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value.trim());
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return fallback;
+};
+
+const toCatalogResponse = (payload: unknown): ProductCatalogResponse => {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid products response from order service.');
+  }
+
+  const envelope = payload as Record<string, unknown>;
+  const data = (envelope.data && typeof envelope.data === 'object'
+    ? envelope.data
+    : envelope) as Record<string, unknown>;
+
+  const rawProducts = Array.isArray(data.products) ? data.products : [];
+  const rawSettings =
+    data.settings && typeof data.settings === 'object'
+      ? (data.settings as Record<string, unknown>)
+      : {};
+
+  const products = rawProducts
+    .map((row) => (row && typeof row === 'object' ? (row as GoogleSheetsProductRow) : null))
+    .filter((row): row is GoogleSheetsProductRow => Boolean(row));
+
+  const settings: GoogleSheetsFrontendSettings = {
+    sheetProductDatabase: sanitizeBoolean(rawSettings.sheetProductDatabase, false),
+    hideInactiveProducts: sanitizeBoolean(rawSettings.hideInactiveProducts, false),
+    showOutOfStockProducts: sanitizeBoolean(rawSettings.showOutOfStockProducts, true),
+    allowOutOfStockCheckout: sanitizeBoolean(rawSettings.allowOutOfStockCheckout, false),
+    lowStockThreshold: sanitizeNumber(rawSettings.lowStockThreshold, 3),
+    currency:
+      typeof rawSettings.currency === 'string' && rawSettings.currency.trim()
+        ? rawSettings.currency.trim()
+        : 'USD',
+  };
+
+  return { products, settings };
+};
+
 const createTimeoutSignal = () => {
   const controller = new AbortController();
   const timer = window.setTimeout(() => {
@@ -56,6 +157,52 @@ const createTimeoutSignal = () => {
 };
 
 export const isGoogleSheetsBackendEnabled = () => Boolean(appConfig.googleAppsScriptWebAppUrl);
+
+export const fetchProductCatalogFromGoogleSheets = async (): Promise<ProductCatalogResponse> => {
+  if (!appConfig.googleAppsScriptWebAppUrl) {
+    return { products: [], settings: defaultCatalogSettings };
+  }
+
+  const separator = appConfig.googleAppsScriptWebAppUrl.includes('?') ? '&' : '?';
+  const url = `${appConfig.googleAppsScriptWebAppUrl}${separator}action=products`;
+
+  const timeout = createTimeoutSignal();
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: timeout.signal,
+    });
+
+    const raw = await response.text();
+    if (!raw.trim()) {
+      throw new Error('Empty products response from order service.');
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    const catalog = toCatalogResponse(parsed);
+
+    if (!response.ok) {
+      throw new Error('Unable to fetch product inventory right now.');
+    }
+
+    return catalog;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Product inventory request timed out. Please try again.', { cause: error });
+    }
+
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error('Unable to fetch product inventory right now.', { cause: error });
+  } finally {
+    timeout.clear();
+  }
+};
+
+export type { GoogleSheetsFrontendSettings, ProductCatalogResponse, GoogleSheetsProductRow };
 
 export const submitOrderToGoogleSheets = async (params: {
   order: OrderPayload;
@@ -84,7 +231,9 @@ export const submitOrderToGoogleSheets = async (params: {
       city: order.customer.city,
       address: order.customer.address,
       products: order.items,
-      quantitySummary: order.items.map((item) => `${item.name} x${item.quantity}`).join(', '),
+      quantitySummary: order.items
+        .map((item) => `${item.name}${item.sku ? ` (${item.sku})` : ''} x${item.quantity}`)
+        .join(', '),
       subtotal: order.subtotal,
       deliveryFee: order.deliveryFee,
       total: order.total,

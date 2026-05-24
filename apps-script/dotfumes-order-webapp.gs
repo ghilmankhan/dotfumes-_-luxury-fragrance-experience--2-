@@ -120,6 +120,7 @@ function doGet(e) {
 }
 
 function doPost(e) {
+  let stockLock = null;
   try {
     const properties = getPropertiesForPost_();
     const payload = parseIncomingPayload_(e);
@@ -132,6 +133,33 @@ function doPost(e) {
     const now = new Date();
     const orderId = sanitizeText_(order.orderId, 64) || generateOrderId_(now);
     const createdAt = sanitizeText_(order.createdAt, 64) || now.toISOString();
+    const spreadsheet = SpreadsheetApp.openById(properties.SHEET_ID);
+    const settings = readSettings_(spreadsheet, properties);
+    const frontendSettings = resolveSettingsForFrontend_(settings);
+    const sheetProductDatabaseEnabled = frontendSettings.sheetProductDatabase;
+    const allowOutOfStockCheckout = frontendSettings.allowOutOfStockCheckout;
+
+    const stockValidatedProducts = normalizeOrderProductsForStock_(order.products);
+    let stockDecrementPlan = [];
+
+    if (sheetProductDatabaseEnabled) {
+      stockLock = LockService.getScriptLock();
+      stockLock.waitLock(30000);
+
+      const threshold = resolveLowStockThreshold_(settings);
+      const productSheetState = readProductSheetState_(spreadsheet, properties, threshold);
+      const validationResult = validateOrderProductsAgainstSheet_(
+        stockValidatedProducts,
+        productSheetState.rows,
+        allowOutOfStockCheckout,
+      );
+
+      if (!validationResult.ok) {
+        throw new Error(validationResult.message);
+      }
+
+      stockDecrementPlan = validationResult.decrementPlan;
+    }
 
     const uploadedSlip = uploadSlipFile_(slip, orderId, properties.DRIVE_FOLDER_ID);
 
@@ -144,6 +172,7 @@ function doPost(e) {
         {
           orderId,
           customerName: order.customerName,
+          quantitySummary: order.quantitySummary,
           total: order.total,
           paymentMethod: order.paymentMethod,
         },
@@ -175,20 +204,41 @@ function doPost(e) {
       properties,
     );
 
-    sendOwnerNotification_(
-      {
-        orderId,
-        customerName: sanitizeText_(order.customerName, 120),
-        phone: sanitizeText_(order.phone, 50),
-        email: sanitizeText_(order.email, 120),
-        city: sanitizeText_(order.city, 80),
-        address: sanitizeText_(order.address, 250),
-        total: toNumber_(order.total),
-        paymentMethod: sanitizeText_(order.paymentMethod, 50),
-        slipUrl: uploadedSlip.url,
-      },
-      properties.OWNER_EMAIL,
-    );
+    if (sheetProductDatabaseEnabled && stockDecrementPlan.length > 0) {
+      applyStockDecrementPlan_(spreadsheet, properties, stockDecrementPlan, allowOutOfStockCheckout);
+    }
+
+    const notificationOrder = {
+      orderId,
+      customerName: sanitizeText_(order.customerName, 120),
+      phone: sanitizeText_(order.phone, 50),
+      email: sanitizeText_(order.email, 120),
+      city: sanitizeText_(order.city, 80),
+      address: sanitizeText_(order.address, 250),
+      quantitySummary: sanitizeText_(order.quantitySummary, 500),
+      total: toNumber_(order.total),
+      paymentMethod: sanitizeText_(order.paymentMethod, 50),
+      slipUrl: uploadedSlip.url,
+    };
+
+    try {
+      sendOwnerNotification_(notificationOrder, properties.OWNER_EMAIL);
+    } catch (emailError) {
+      Logger.log(`Owner email failed for ${orderId}: ${emailError}`);
+    }
+
+    if (notificationOrder.email) {
+      try {
+        sendCustomerConfirmation_(
+          notificationOrder,
+          notificationOrder.email,
+          properties.BUSINESS_WHATSAPP_NUMBER,
+          properties.OWNER_EMAIL,
+        );
+      } catch (emailError) {
+        Logger.log(`Customer email failed for ${orderId}: ${emailError}`);
+      }
+    }
 
     const whatsappUrl = buildWhatsAppUrl_(
       properties.BUSINESS_WHATSAPP_NUMBER,
@@ -196,6 +246,7 @@ function doPost(e) {
         {
           orderId,
           customerName: sanitizeText_(order.customerName, 120),
+          quantitySummary: sanitizeText_(order.quantitySummary, 500),
           total: toNumber_(order.total),
           paymentMethod: sanitizeText_(order.paymentMethod, 50),
         },
@@ -220,6 +271,14 @@ function doPost(e) {
     );
   } catch (error) {
     return responseError_(error instanceof Error ? error.message : 'Unexpected order processing error.');
+  } finally {
+    if (stockLock) {
+      try {
+        stockLock.releaseLock();
+      } catch (_lockError) {
+        // ignore lock release failures
+      }
+    }
   }
 }
 
@@ -340,6 +399,8 @@ function readProducts_(spreadsheet, props, lowStockThreshold) {
       const price = toNumber_(readCellByKeys_(row, dataset.headerMap, ['price']));
 
       return {
+        productId: readCellByKeys_(row, dataset.headerMap, ['productid']),
+        sku: readCellByKeys_(row, dataset.headerMap, ['productid']),
         slug: readCellByKeys_(row, dataset.headerMap, ['slug']),
         name,
         price,
@@ -413,6 +474,214 @@ function readSettings_(spreadsheet, props) {
   }
 
   return rowsToSettingsObject_(trimmedRows);
+}
+
+function normalizeOrderProductsForStock_(products) {
+  if (!Array.isArray(products)) {
+    return [];
+  }
+
+  return products
+    .map(function (product) {
+      if (!product || typeof product !== 'object') {
+        return null;
+      }
+
+      const quantity = Math.floor(toNumber_(product.quantity));
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        return null;
+      }
+
+      return {
+        id: sanitizeText_(product.id, 120),
+        sku: sanitizeText_(product.sku, 120),
+        slug: sanitizeText_(product.slug, 160),
+        name: sanitizeText_(product.name, 160),
+        quantity: quantity,
+      };
+    })
+    .filter(function (item) {
+      return Boolean(item && item.name);
+    });
+}
+
+function readProductSheetState_(spreadsheet, props, lowStockThreshold) {
+  const sheet = getSheetOrThrow_(spreadsheet, resolveProductsSheetName_(props), 'Products');
+  const dataset = getSheetData_(sheet);
+  assertHeadersExist_(dataset.headerMap, requiredHeadersToKeys_(PRODUCTS_COLUMNS_REQUIRED));
+
+  const rows = dataset.rows
+    .map(function (row, index) {
+      const rowNumber = index + 2;
+      const name = readCellByKeys_(row, dataset.headerMap, ['name']);
+      if (!sanitizeText_(name, 200)) {
+        return null;
+      }
+
+      const stock = Math.max(0, Math.floor(toNumber_(readCellByKeys_(row, dataset.headerMap, ['stock']))));
+
+      return {
+        rowNumber: rowNumber,
+        productId: sanitizeText_(readCellByKeys_(row, dataset.headerMap, ['productid']), 120),
+        slug: sanitizeText_(readCellByKeys_(row, dataset.headerMap, ['slug']), 160),
+        name: sanitizeText_(name, 160),
+        stock: stock,
+        active: parseBoolean_(readCellByKeys_(row, dataset.headerMap, ['active']), true),
+        lowStock: stock <= lowStockThreshold,
+      };
+    })
+    .filter(function (item) {
+      return Boolean(item);
+    });
+
+  return {
+    sheet: sheet,
+    headerMap: dataset.headerMap,
+    rows: rows,
+  };
+}
+
+function buildProductRowLookup_(rows) {
+  const byProductId = {};
+  const bySlug = {};
+  const byName = {};
+
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i];
+    const productId = normalizeHeaderKey_(row.productId);
+    const slug = normalizeHeaderKey_(row.slug);
+    const name = normalizeHeaderKey_(row.name);
+
+    if (productId && byProductId[productId] === undefined) {
+      byProductId[productId] = i;
+    }
+    if (slug && bySlug[slug] === undefined) {
+      bySlug[slug] = i;
+    }
+    if (name && byName[name] === undefined) {
+      byName[name] = i;
+    }
+  }
+
+  return {
+    byProductId: byProductId,
+    bySlug: bySlug,
+    byName: byName,
+  };
+}
+
+function findMatchingProductRowIndex_(orderLine, rows, lookup) {
+  const productIdKey = normalizeHeaderKey_(orderLine.sku || orderLine.id);
+  const slugKey = normalizeHeaderKey_(orderLine.slug);
+  const nameKey = normalizeHeaderKey_(orderLine.name);
+
+  if (productIdKey && lookup.byProductId[productIdKey] !== undefined) {
+    return lookup.byProductId[productIdKey];
+  }
+
+  if (slugKey && lookup.bySlug[slugKey] !== undefined) {
+    return lookup.bySlug[slugKey];
+  }
+
+  if (nameKey && lookup.byName[nameKey] !== undefined) {
+    return lookup.byName[nameKey];
+  }
+
+  return -1;
+}
+
+function validateOrderProductsAgainstSheet_(orderProducts, rows, allowOutOfStockCheckout) {
+  if (!orderProducts.length) {
+    return {
+      ok: false,
+      message: 'Your cart is empty. Please add at least one fragrance.',
+      decrementPlan: [],
+    };
+  }
+
+  const lookup = buildProductRowLookup_(rows);
+  const decrementedByRow = {};
+
+  for (let i = 0; i < orderProducts.length; i += 1) {
+    const line = orderProducts[i];
+    const rowIndex = findMatchingProductRowIndex_(line, rows, lookup);
+
+    if (rowIndex < 0 || !rows[rowIndex]) {
+      return {
+        ok: false,
+        message: `${line.name} is no longer available. Please refresh your selection.`,
+        decrementPlan: [],
+      };
+    }
+
+    const product = rows[rowIndex];
+    if (!product.active) {
+      return {
+        ok: false,
+        message: `${line.name} is currently unavailable. Please update your cart before checkout.`,
+        decrementPlan: [],
+      };
+    }
+
+    const requested = Math.max(1, Math.floor(toNumber_(line.quantity)));
+    const alreadyPlanned = decrementedByRow[rowIndex] || 0;
+    const remaining = Math.max(0, product.stock - alreadyPlanned);
+
+    if (!allowOutOfStockCheckout && requested > remaining) {
+      return {
+        ok: false,
+        message: `Only ${remaining} pieces are currently available for ${line.name}. Please update your cart before checkout.`,
+        decrementPlan: [],
+      };
+    }
+
+    decrementedByRow[rowIndex] = alreadyPlanned + requested;
+  }
+
+  const decrementPlan = Object.keys(decrementedByRow).map(function (key) {
+    const index = Number(key);
+    const quantity = decrementedByRow[key];
+    const product = rows[index];
+    return {
+      rowNumber: product.rowNumber,
+      currentStock: product.stock,
+      decrementBy: quantity,
+      name: product.name,
+    };
+  });
+
+  return {
+    ok: true,
+    message: '',
+    decrementPlan: decrementPlan,
+  };
+}
+
+function applyStockDecrementPlan_(spreadsheet, props, decrementPlan, allowOutOfStockCheckout) {
+  if (!Array.isArray(decrementPlan) || decrementPlan.length === 0) {
+    return;
+  }
+
+  const productsSheet = getSheetOrThrow_(spreadsheet, resolveProductsSheetName_(props), 'Products');
+  const dataset = getSheetData_(productsSheet);
+  const stockIndex = dataset.headerMap.stock;
+
+  if (stockIndex === undefined) {
+    throw new Error('Missing required sheet header: stock');
+  }
+
+  for (let i = 0; i < decrementPlan.length; i += 1) {
+    const line = decrementPlan[i];
+    const currentStock = Math.max(0, Math.floor(toNumber_(line.currentStock)));
+    const decrementBy = Math.max(0, Math.floor(toNumber_(line.decrementBy)));
+    let nextStock = currentStock - decrementBy;
+
+    if (!allowOutOfStockCheckout && nextStock < 0) {
+      nextStock = 0;
+    }
+
+    productsSheet.getRange(line.rowNumber, stockIndex + 1).setValue(nextStock);
+  }
 }
 
 function rowsToSettingsObject_(rows) {
@@ -544,6 +813,11 @@ function parseQuantityText_(text) {
 
 function resolveSettingsForFrontend_(settings) {
   return {
+    sheetProductDatabase: readBooleanSetting_(
+      settings,
+      ['sheetproductdatabase', 'sheet_product_database'],
+      false,
+    ),
     currency: resolveCurrency_(settings),
     lowStockThreshold: resolveLowStockThreshold_(settings),
     hideInactiveProducts: readBooleanSetting_(settings, ['hideinactiveproducts', 'hide_inactive_products'], false),
@@ -765,7 +1039,6 @@ function validatePayload_(payload, properties) {
   const requiredOrderFields = [
     ['customerName', 'Customer name is required.'],
     ['phone', 'Phone is required.'],
-    ['email', 'Email is required.'],
     ['city', 'City is required.'],
     ['address', 'Address is required.'],
     ['paymentMethod', 'Payment method is required.'],
@@ -776,6 +1049,22 @@ function validatePayload_(payload, properties) {
     const errorMessage = requiredOrderFields[i][1];
     if (!sanitizeText_(payload.order[key], 300)) {
       throw new Error(errorMessage);
+    }
+  }
+
+  if (!Array.isArray(payload.order.products) || payload.order.products.length === 0) {
+    throw new Error('At least one product is required.');
+  }
+
+  for (let i = 0; i < payload.order.products.length; i += 1) {
+    const item = payload.order.products[i] || {};
+    const name = sanitizeText_(item.name, 120);
+    const quantity = toNumber_(item.quantity);
+    if (!name) {
+      throw new Error('Every product line must include a product name.');
+    }
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new Error(`Invalid quantity for product: ${name || 'unknown item'}.`);
     }
   }
 
@@ -886,6 +1175,7 @@ function sendOwnerNotification_(order, ownerEmail) {
     `Email: ${order.email}`,
     `City: ${order.city}`,
     `Address: ${order.address}`,
+    `Products: ${sanitizeText_(order.quantitySummary, 500) || 'See sheet row'}`,
     `Payment Method: ${order.paymentMethod}`,
     `Total: ${order.total}`,
     `Slip URL: ${order.slipUrl}`,
@@ -898,10 +1188,58 @@ function sendOwnerNotification_(order, ownerEmail) {
   });
 }
 
+function sendCustomerConfirmation_(order, customerEmail, businessWhatsAppNumber, supportEmail) {
+  const sanitizedCustomerEmail = sanitizeText_(customerEmail, 200);
+  if (!sanitizedCustomerEmail) {
+    return;
+  }
+
+  const normalizedWhatsapp = sanitizeText_(businessWhatsAppNumber, 60).replace(/[^\d]/g, '');
+  const contactLines = [];
+
+  if (normalizedWhatsapp) {
+    contactLines.push(`WhatsApp: https://wa.me/${normalizedWhatsapp}`);
+  }
+  if (sanitizeText_(supportEmail, 200)) {
+    contactLines.push(`Email: ${sanitizeText_(supportEmail, 200)}`);
+  }
+
+  const subject = `Dotfumes Order Received — ${order.orderId}`;
+  const bodyLines = [
+    `Hello ${order.customerName || 'there'},`,
+    '',
+    'Thank you for your Dotfumes order request. We have received it successfully.',
+    '',
+    `Order ID: ${order.orderId}`,
+    `Products: ${sanitizeText_(order.quantitySummary, 500) || 'Shared with support'}`,
+    `Total: $${toNumber_(order.total).toFixed(2)}`,
+    `Payment Method: ${sanitizeText_(order.paymentMethod, 50)}`,
+    '',
+    'What happens next:',
+    '1) Dotfumes reviews your payment proof manually.',
+    '2) We contact you as early as possible for confirmation.',
+    '3) Delivery coordination starts after confirmation.',
+    '',
+    contactLines.length > 0
+      ? `Need help sooner? Contact support:\n${contactLines.join('\n')}`
+      : 'Need help sooner? Reply to this email and the team will assist.',
+    '',
+    'Thank you,',
+    'Dotfumes',
+  ];
+
+  MailApp.sendEmail({
+    to: sanitizedCustomerEmail,
+    subject,
+    body: bodyLines.join('\n'),
+  });
+}
+
 function buildWhatsAppMessage_(order, slipUrl) {
   return [
     `New DOTFUMES Order ${order.orderId}`,
     `Client: ${sanitizeText_(order.customerName, 120)}`,
+    `Products: ${sanitizeText_(order.quantitySummary, 500) || 'See order sheet'}`,
     `Total: $${toNumber_(order.total).toFixed(2)}`,
     `Payment Method: ${sanitizeText_(order.paymentMethod, 50)}`,
     `Slip URL: ${sanitizeText_(slipUrl, 1000)}`,
@@ -925,9 +1263,11 @@ function formatProductsForSheet_(products) {
   return products
     .map(function (product, index) {
       const name = sanitizeText_(product && product.name, 120);
+      const sku = sanitizeText_(product && product.sku, 80);
       const quantity = toNumber_(product && product.quantity);
       const lineTotal = toNumber_(product && product.lineTotal);
-      return `${index + 1}. ${name} x${quantity} ($${lineTotal.toFixed(2)})`;
+      const skuText = sku ? ` [${sku}]` : '';
+      return `${index + 1}. ${name}${skuText} x${quantity} ($${lineTotal.toFixed(2)})`;
     })
     .join(' | ')
     .slice(0, 5000);

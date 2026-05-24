@@ -1,14 +1,34 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { AssetImage } from './AssetImage';
+import { getCartAvailabilityIssues, getCartAvailabilityMessage } from '../lib/validation';
+import { useProductCatalogStore } from '../store/useProductCatalogStore';
 
 export const CartDrawer = () => {
   const drawerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { isOpen, items, closeCart, updateQuantity, removeItem, total } = useCartStore();
+  const allProducts = useProductCatalogStore((state) => state.allProducts);
+  const allowOutOfStockCheckout = useProductCatalogStore(
+    (state) => state.settings.allowOutOfStockCheckout,
+  );
+  const productById = useMemo(
+    () => new Map(allProducts.map((product) => [product.id, product])),
+    [allProducts],
+  );
+  const availabilityIssues = useMemo(
+    () => getCartAvailabilityIssues(items, allProducts),
+    [allProducts, items],
+  );
+  const availabilityIssueByItem = useMemo(
+    () => new Map(availabilityIssues.map((issue) => [issue.itemId, issue])),
+    [availabilityIssues],
+  );
+  const hasUnavailableItems = availabilityIssues.length > 0;
+  const shouldBlockCheckout = hasUnavailableItems && !allowOutOfStockCheckout;
 
   useEffect(() => {
     if (!isOpen) {
@@ -56,6 +76,9 @@ export const CartDrawer = () => {
   }, [closeCart, isOpen]);
 
   const goToCheckout = () => {
+    if (shouldBlockCheckout) {
+      return;
+    }
     closeCart();
     navigate('/checkout');
   };
@@ -102,22 +125,30 @@ export const CartDrawer = () => {
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <ShoppingBag size={48} strokeWidth={1} className="text-neutral-200 mb-6" />
-                  <p className="text-neutral-400 text-sm uppercase tracking-widest">
-                    Your selection is empty
+                  <p className="text-neutral-500 text-sm uppercase tracking-[0.2em]">
+                    Your cart is empty - explore the collection.
                   </p>
-                  <p className="mt-3 max-w-[220px] text-xs leading-6 text-neutral-500">
-                    Explore the DOTFUMES archive and add your fragrance selections here.
+                  <p className="mt-3 max-w-[240px] text-xs leading-6 text-neutral-500">
+                    Choose a fragrance and it will appear here before checkout.
                   </p>
                   <Link
                     to="/collection"
                     onClick={closeCart}
                     className="mt-8 text-xs font-bold uppercase tracking-widest border-b border-black/20 pb-1 hover:border-black transition-all"
                   >
-                    Start Exploring
+                    Explore Collection
                   </Link>
                 </div>
               ) : (
                 <div className="space-y-8">
+                  {hasUnavailableItems ? (
+                    <div className="border border-red-200 bg-red-50 px-4 py-3 text-xs leading-6 text-red-700">
+                      {getCartAvailabilityMessage(availabilityIssues)}
+                      <div className="mt-1">
+                        Some items are no longer available. Please update your cart before checkout.
+                      </div>
+                    </div>
+                  ) : null}
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-6">
                       <div className="w-24 h-32 bg-neutral-50 flex-shrink-0 flex items-center justify-center p-4">
@@ -148,7 +179,7 @@ export const CartDrawer = () => {
                             </button>
                           </div>
                           <p className="text-[10px] uppercase tracking-widest text-neutral-400 mb-4">
-                            {item.category}
+                            {item.category} / {item.sku}
                           </p>
                         </div>
 
@@ -168,7 +199,9 @@ export const CartDrawer = () => {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              disabled={item.quantity >= item.stock}
+                              disabled={
+                                item.quantity >= (productById.get(item.id)?.stock ?? item.stock ?? 0)
+                              }
                               className="p-2 hover:bg-neutral-50 transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
                               aria-label={`Increase ${item.name} quantity`}
                             >
@@ -180,9 +213,14 @@ export const CartDrawer = () => {
                           </span>
                         </div>
                         <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-neutral-400">
-                          {item.quantity >= item.stock
-                            ? 'Maximum stock selected'
-                            : `${item.stock - item.quantity} remaining`}
+                          {availabilityIssueByItem.has(item.id)
+                            ? 'Currently unavailable'
+                            : item.quantity >= (productById.get(item.id)?.stock ?? item.stock ?? 0)
+                              ? 'Maximum stock selected'
+                              : `${Math.max(
+                                  0,
+                                  (productById.get(item.id)?.stock ?? item.stock ?? 0) - item.quantity,
+                                )} remaining`}
                         </p>
                       </div>
                     </div>
@@ -203,12 +241,13 @@ export const CartDrawer = () => {
                 <button
                   type="button"
                   onClick={goToCheckout}
-                  className="w-full bg-brand-black text-white py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-800 transition-all flex items-center justify-center gap-3 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+                  disabled={shouldBlockCheckout}
+                  className="w-full bg-brand-black text-white py-5 text-[11px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-800 transition-all flex items-center justify-center gap-3 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 disabled:hover:bg-neutral-300"
                 >
-                  Proceed to Checkout
+                  Checkout
                 </button>
-                <p className="mt-6 text-[10px] text-center text-neutral-400 uppercase tracking-[0.22em]">
-                  Shipping and taxes calculated at checkout
+                <p className="mt-6 text-[10px] text-center text-neutral-500 uppercase tracking-[0.2em]">
+                  You'll review details before placing the order.
                 </p>
               </div>
             )}

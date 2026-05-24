@@ -23,16 +23,16 @@ const faqs = [
       'Delivery is coordinated after payment verification. Contact support for exact delivery timing in your area.',
   },
   {
-    question: 'Can I hand off my order by WhatsApp or email?',
+    question: 'Can I send my order summary by WhatsApp or email?',
     answer:
-      'Yes. The checkout and confirmation flow provide prefilled WhatsApp and email handoff options for quick communication with the team.',
+      'Yes. After checkout, you can open a prefilled WhatsApp or email summary so support can confirm your order faster.',
   },
 ];
 
 export const FaqPage = () => {
   usePageMeta({
     title: 'FAQ | DOTFUMES',
-    description: 'Answers about checkout, payment slip verification, and order handoff.',
+    description: 'Answers about checkout, payment proof verification, and order confirmation.',
     path: '/faq',
   });
 

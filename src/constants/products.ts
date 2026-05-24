@@ -5,6 +5,7 @@ const productImagePath = (slug: string, filename: string) => `/images/products/$
 export const FEATURED_PRODUCTS: Product[] = [
   {
     id: '1',
+    sku: 'DTF-BD-50ML',
     name: 'Bold Decision',
     slug: 'bold-decision',
     price: 220,
@@ -45,6 +46,7 @@ export const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: '2',
+    sku: 'DTF-SP-50ML',
     name: 'Soft Promise',
     slug: 'soft-promise',
     price: 195,
@@ -85,6 +87,7 @@ export const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: '3',
+    sku: 'DTF-WS-50ML',
     name: 'Wild Silence',
     slug: 'wild-silence',
     price: 185,
@@ -125,6 +128,7 @@ export const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: '4',
+    sku: 'DTF-BH-50ML',
     name: 'Bleu Heat',
     slug: 'bleu-heat',
     price: 205,
@@ -162,6 +166,7 @@ export const FEATURED_PRODUCTS: Product[] = [
   },
   {
     id: '5',
+    sku: 'DTF-FM-50ML',
     name: 'First Meet',
     slug: 'first-meet',
     price: 190,

@@ -23,11 +23,19 @@ export const formatPaymentMethodLabel = (method: PaymentMethod) => {
 
 export const formatOrderItems = (items: OrderPayload['items']) =>
   items
-    .map((item, index) => `${index + 1}. ${item.name} x${item.quantity} - ${formatAmount(item.lineTotal)}`)
+    .map((item, index) => {
+      const sku = item.sku ? ` [${item.sku}]` : '';
+      return `${index + 1}. ${item.name}${sku} x${item.quantity} - ${formatAmount(item.lineTotal)}`;
+    })
     .join('\n');
 
 export const formatQuantitySummary = (items: OrderPayload['items']) =>
-  items.map((item) => `${item.name} x${item.quantity}`).join(', ');
+  items
+    .map((item) => {
+      const sku = item.sku ? ` (${item.sku})` : '';
+      return `${item.name}${sku} x${item.quantity}`;
+    })
+    .join(', ');
 
 export const createOrderId = () => {
   const date = new Date();
@@ -45,14 +53,15 @@ export const createSlipReferenceUrl = (orderId: string, fileName: string) => {
 
 export const buildWhatsAppMessage = (order: OrderPayload) =>
   [
-    `New DOTFUMES Order ${order.orderId}`,
+    `Hello Dotfumes Team, I just placed order request ${order.orderId}.`,
     '',
-    `Client: ${order.customer.fullName}`,
+    `Name: ${order.customer.fullName}`,
     `Email: ${order.customer.email}`,
     `Phone: ${order.customer.phone}`,
-    `Address: ${order.customer.address}, ${order.customer.city}`,
+    `City: ${order.customer.city}`,
+    `Address: ${order.customer.address}`,
     `Payment Method: ${formatPaymentMethodLabel(order.paymentMethod)}`,
-    `Payment Status: ${order.paymentStatus}`,
+    `Slip Uploaded: ${order.slip.referenceUrl ? 'Yes' : 'No'}`,
     '',
     'Order Items:',
     formatOrderItems(order.items),
@@ -61,6 +70,8 @@ export const buildWhatsAppMessage = (order: OrderPayload) =>
     `Delivery Fee: ${formatAmount(order.deliveryFee)}`,
     `Total: ${formatAmount(order.total)}`,
     `Slip URL: ${order.slip.referenceUrl}`,
+    '',
+    'Please confirm my Dotfumes order.',
   ].join('\n');
 
 export const buildOrderPayload = (params: {
@@ -86,6 +97,7 @@ export const buildOrderPayload = (params: {
 
   const items = cartItems.map((item) => ({
     id: item.id,
+    sku: item.sku,
     name: item.name,
     slug: item.slug,
     quantity: item.quantity,
@@ -138,22 +150,35 @@ export const buildOrderPayload = (params: {
 };
 
 export const buildWhatsAppOrderUrl = (order: OrderPayload) => {
+  if (!appConfig.hasConfiguredWhatsAppNumber) {
+    return '';
+  }
+
   const phone = appConfig.clientWhatsAppNumber.replace(/[^\d]/g, '');
+  if (!phone) {
+    return '';
+  }
+
   return `https://wa.me/${phone}?text=${encodeURIComponent(order.whatsappMessage)}`;
 };
 
 export const buildOrderEmailUrl = (order: OrderPayload) => {
-  const subject = `DOTFUMES Order ${order.orderId}`;
+  if (!appConfig.hasConfiguredOrderEmail) {
+    return '';
+  }
+
+  const subject = `Dotfumes Order Request — ${order.orderId}`;
   const fullBody = [
     `Order ID: ${order.orderId}`,
     `Placed At: ${new Date(order.createdAt).toLocaleString()}`,
     '',
-    `Client: ${order.customer.fullName}`,
+    `Name: ${order.customer.fullName}`,
     `Email: ${order.customer.email}`,
     `Phone: ${order.customer.phone}`,
-    `Address: ${order.customer.address}, ${order.customer.city}`,
+    `City: ${order.customer.city}`,
+    `Address: ${order.customer.address}`,
     `Payment Method: ${formatPaymentMethodLabel(order.paymentMethod)}`,
-    `Payment Status: ${order.paymentStatus}`,
+    `Slip Uploaded: ${order.slip.referenceUrl ? 'Yes' : 'No'}`,
     '',
     'Order Items:',
     formatOrderItems(order.items),
@@ -163,7 +188,7 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
     `Total: ${formatAmount(order.total)}`,
     `Slip URL: ${order.slip.referenceUrl}`,
     '',
-    'TODO: Replace this mailto handoff with server-side email dispatch.',
+    'Please confirm this order request and share next steps for delivery coordination.',
   ].join('\n');
 
   const fullUrl = `mailto:${appConfig.clientOrderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(fullBody)}`;
@@ -179,7 +204,7 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
     `Payment: ${formatPaymentMethodLabel(order.paymentMethod)}`,
     `Slip URL: ${order.slip.referenceUrl}`,
     '',
-    'Email body shortened for device compatibility. Use WhatsApp handoff for full detail.',
+    'Please confirm this order request and share next steps.',
   ].join('\n');
 
   return `mailto:${appConfig.clientOrderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(compactBody)}`;

@@ -1,5 +1,7 @@
 export interface Product {
   id: string;
+  sku: string;
+  productId?: string;
   name: string;
   slug: string;
   price: number;
@@ -18,6 +20,8 @@ export interface Product {
     base: string[];
   };
   stock: number;
+  active?: boolean;
+  lowStock?: boolean;
 }
 
 export interface CartItem extends Product {

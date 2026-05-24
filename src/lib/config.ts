@@ -18,10 +18,14 @@ const firstNonEmpty = (...values: Array<string | undefined>) => {
 
 const fallbackWhatsAppNumber = '923001234567';
 const fallbackOrderEmail = 'orders@dotfumes.com';
+const configuredWhatsAppNumber = trimValue(env.VITE_CLIENT_WHATSAPP_NUMBER);
+const configuredOrderEmail = trimValue(env.VITE_CLIENT_ORDER_EMAIL);
 
 export const appConfig = {
-  clientWhatsAppNumber: trimValue(env.VITE_CLIENT_WHATSAPP_NUMBER) || fallbackWhatsAppNumber,
-  clientOrderEmail: trimValue(env.VITE_CLIENT_ORDER_EMAIL) || fallbackOrderEmail,
+  clientWhatsAppNumber: configuredWhatsAppNumber || fallbackWhatsAppNumber,
+  clientOrderEmail: configuredOrderEmail || fallbackOrderEmail,
+  hasConfiguredWhatsAppNumber: Boolean(configuredWhatsAppNumber),
+  hasConfiguredOrderEmail: Boolean(configuredOrderEmail),
   baseUrl: trimValue(env.VITE_BASE_URL),
   googleAppsScriptWebAppUrl: firstNonEmpty(
     env.VITE_GOOGLE_APPS_SCRIPT_WEB_APP_URL,

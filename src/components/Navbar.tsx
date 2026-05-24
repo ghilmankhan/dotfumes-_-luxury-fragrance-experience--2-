@@ -98,7 +98,7 @@ export const Navbar = () => {
           </div>
           <div className="flex items-center gap-8">
             <NavLink to="/collection" isLightNav={isLightNav}>
-              Collections
+              Shop
             </NavLink>
             <NavLink to="/about" isLightNav={isLightNav}>
               The House

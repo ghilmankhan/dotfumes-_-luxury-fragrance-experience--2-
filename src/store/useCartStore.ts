@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product } from '../models/types';
+import { getAvailableStock, isProductOutOfStock } from '../lib/validation';
+import { useProductCatalogStore } from './useProductCatalogStore';
 
 type CartActionResult = {
   ok: boolean;
@@ -26,8 +28,12 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
       addItem: (product, quantity = 1) => {
-        if (product.stock <= 0) {
-          return { ok: false, message: `${product.name} is currently out of stock.` };
+        const latestProduct =
+          useProductCatalogStore.getState().allProducts.find((item) => item.id === product.id) || product;
+        const availableStock = getAvailableStock(latestProduct);
+
+        if (isProductOutOfStock(latestProduct) || latestProduct.active === false) {
+          return { ok: false, message: `${latestProduct.name} is currently out of stock.` };
         }
 
         const currentItems = get().items;
@@ -35,12 +41,12 @@ export const useCartStore = create<CartState>()(
         const requestedQuantity = Math.max(1, Math.floor(quantity));
 
         if (existingItem) {
-          const nextQuantity = Math.min(existingItem.quantity + requestedQuantity, product.stock);
+          const nextQuantity = Math.min(existingItem.quantity + requestedQuantity, availableStock);
 
           if (nextQuantity === existingItem.quantity) {
             return {
               ok: false,
-              message: `${product.name} is limited to ${product.stock} in stock.`,
+              message: `${latestProduct.name} is limited to ${availableStock} in stock.`,
             };
           }
 
@@ -52,15 +58,15 @@ export const useCartStore = create<CartState>()(
 
           return {
             ok: true,
-            message: `${product.name} quantity updated.`,
+            message: `${latestProduct.name} quantity updated.`,
           };
         } else {
-          const initialQuantity = Math.min(requestedQuantity, product.stock);
-          set({ items: [...currentItems, { ...product, quantity: initialQuantity }] });
+          const initialQuantity = Math.min(requestedQuantity, availableStock);
+          set({ items: [...currentItems, { ...latestProduct, quantity: initialQuantity }] });
 
           return {
             ok: true,
-            message: `${product.name} added to your selection.`,
+            message: `${latestProduct.name} added to your selection.`,
           };
         }
       },
@@ -73,10 +79,34 @@ export const useCartStore = create<CartState>()(
           return;
         }
 
+        const targetItem = get().items.find((item) => item.id === productId);
+        if (!targetItem) {
+          return;
+        }
+
+        const latestProduct =
+          useProductCatalogStore.getState().allProducts.find((item) => item.id === productId) || targetItem;
+        const availableStock = getAvailableStock(latestProduct);
+        if (availableStock <= 0) {
+          get().removeItem(productId);
+          return;
+        }
+
+        const nextQuantity = Math.min(Math.floor(quantity), availableStock);
+        if (nextQuantity <= 0) {
+          get().removeItem(productId);
+          return;
+        }
+
         set({
           items: get().items.map((item) =>
             item.id === productId
-              ? { ...item, quantity: Math.min(Math.floor(quantity), item.stock) }
+              ? {
+                  ...item,
+                  quantity: nextQuantity,
+                  stock: availableStock,
+                  ...(latestProduct.active !== undefined ? { active: latestProduct.active } : {}),
+                }
               : item,
           ),
         });

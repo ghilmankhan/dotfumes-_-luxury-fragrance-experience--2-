@@ -15,6 +15,9 @@ export const ContactPage = () => {
   });
 
   const supportEmail = appConfig.clientOrderEmail;
+  const hasWhatsAppSupport = appConfig.hasConfiguredWhatsAppNumber;
+  const hasEmailSupport = appConfig.hasConfiguredOrderEmail;
+  const whatsappDigits = appConfig.clientWhatsAppNumber.replace(/[^\d]/g, '');
   const whatsappNumber = useMemo(
     () => formatWhatsAppNumber(appConfig.clientWhatsAppNumber),
     [],
@@ -54,29 +57,49 @@ export const ContactPage = () => {
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          <a
-            href={`https://wa.me/${appConfig.clientWhatsAppNumber.replace(/[^\d]/g, '')}`}
-            target="_blank"
-            rel="noreferrer"
-            className="border border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
-          >
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">WhatsApp</p>
-            <p className="mt-2 text-sm">{whatsappNumber}</p>
-            <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
-              Fastest route for active orders
-            </p>
-          </a>
+          {hasWhatsAppSupport && whatsappDigits ? (
+            <a
+              href={`https://wa.me/${whatsappDigits}`}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">WhatsApp</p>
+              <p className="mt-2 text-sm">{whatsappNumber}</p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                Fastest route for active orders
+              </p>
+            </a>
+          ) : (
+            <div className="border border-white/20 bg-black/30 px-6 py-5">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">WhatsApp</p>
+              <p className="mt-2 text-sm text-white/80">Shared after order request</p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                Use email for immediate support
+              </p>
+            </div>
+          )}
 
-          <a
-            href={`mailto:${supportEmail}`}
-            className="border border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
-          >
-            <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">Email</p>
-            <p className="mt-2 text-sm">{supportEmail}</p>
-            <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
-              Best for detailed requests
-            </p>
-          </a>
+          {hasEmailSupport ? (
+            <a
+              href={`mailto:${supportEmail}`}
+              className="border border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
+            >
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">Email</p>
+              <p className="mt-2 text-sm">{supportEmail}</p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                Best for detailed requests
+              </p>
+            </a>
+          ) : (
+            <div className="border border-white/20 bg-black/30 px-6 py-5">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">Email</p>
+              <p className="mt-2 text-sm text-white/80">Support email shared on request</p>
+              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                Contact through available channels
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="mt-12 border border-white/10 bg-black/35 px-6 py-6">

@@ -1,8 +1,14 @@
 import { CartItem } from './types';
 
 export type PaymentMethod = 'bank-transfer' | 'easypaisa' | 'jazzcash';
-export type PaymentStatus = 'Pending Verification' | 'Verified' | 'Rejected';
-export type OrderStatus = 'New' | 'Processing' | 'Completed' | 'Cancelled';
+export type PaymentStatus = 'Pending Verification' | 'Payment Pending' | 'Verified' | 'Rejected';
+export type OrderStatus =
+  | 'New'
+  | 'Preparing'
+  | 'Delivered'
+  | 'Cancelled'
+  | 'Processing'
+  | 'Completed';
 export type OrderSubmissionMode = 'frontend-fallback' | 'google-sheets';
 
 export interface CheckoutFormValues {
@@ -17,6 +23,7 @@ export interface CheckoutFormValues {
 
 export interface OrderLineItem {
   id: string;
+  sku?: string;
   name: string;
   slug: string;
   quantity: number;

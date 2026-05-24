@@ -1,9 +1,11 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
-import { FEATURED_PRODUCTS } from '../../constants/products';
+import { useProductCatalogStore } from '../../store/useProductCatalogStore';
 
 export const FeaturedProducts = () => {
+  const products = useProductCatalogStore((state) => state.products);
+
   return (
     <section className="py-32 md:py-56 bg-brand-white px-8 md:px-16 lg:px-24">
       <div className="max-w-[1800px] mx-auto">
@@ -43,7 +45,7 @@ export const FeaturedProducts = () => {
               to="/collection"
               className="group flex flex-col items-end gap-3 text-[10px] uppercase tracking-[0.4em] font-bold text-brand-black/40 hover:text-brand-black transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
             >
-              <span>Explore All Anthology</span>
+              <span>Shop Collection</span>
               <div className="relative w-32 h-px bg-brand-black/10 overflow-hidden">
                 <motion.div
                   initial={{ x: '-100%' }}
@@ -58,7 +60,7 @@ export const FeaturedProducts = () => {
 
         {/* Product Grid - Minimal Museum Spacing */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24">
-          {FEATURED_PRODUCTS.map((product, index) => (
+          {products.map((product, index) => (
             <ProductCard key={product.id} product={product} index={index} />
           ))}
         </div>

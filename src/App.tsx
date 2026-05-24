@@ -28,16 +28,22 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { JournalPage } from './pages/JournalPage';
 import { SustainabilityPage } from './pages/SustainabilityPage';
 import { CareersPage } from './pages/CareersPage';
+import { useProductCatalogStore } from './store/useProductCatalogStore';
 
 export default function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
+  const initCatalog = useProductCatalogStore((state) => state.init);
 
   useEffect(() => {
     if (import.meta.env.DEV && isAdminRoute) {
       console.log('[Router] /admin route matched:', location.pathname);
     }
   }, [isAdminRoute, location.pathname]);
+
+  useEffect(() => {
+    void initCatalog();
+  }, [initCatalog]);
 
   return (
     <SmoothScroll>

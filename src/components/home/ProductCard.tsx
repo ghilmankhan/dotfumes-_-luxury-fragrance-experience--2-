@@ -1,11 +1,12 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ShoppingBag, Eye } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Product } from '../../models/types';
 import { useCartStore } from '../../store/useCartStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AssetImage } from '../AssetImage';
+import { isProductOutOfStock } from '../../lib/validation';
 
 interface ProductCardProps {
   product: Product;
@@ -16,10 +17,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
   const { addItem } = useCartStore();
   const { pushToast } = useToastStore();
   const navigate = useNavigate();
+  const isOutOfStock = isProductOutOfStock(product) || product.active === false;
 
   const quickAdd = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if (isOutOfStock) {
+      pushToast(`${product.name} is currently out of stock.`, 'error');
+      return;
+    }
+
     const result = addItem(product);
     pushToast(result.message, result.ok ? 'success' : 'error');
   };
@@ -63,17 +70,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
             <button
               type="button"
               onClick={quickAdd}
-              className="pointer-events-auto flex items-center gap-3 bg-brand-black text-white px-8 py-4 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-800 transition-all active:scale-95"
+              disabled={isOutOfStock}
+              className="pointer-events-auto flex items-center gap-3 bg-brand-black text-white px-8 py-4 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-800 transition-all active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
             >
               <ShoppingBag size={14} strokeWidth={1} />
-              Add To Order
+              {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
             </button>
-            <span
-              className="pointer-events-auto p-4 bg-white text-brand-black shadow-sm border border-black/5"
-              aria-hidden="true"
+            <Link
+              to={`/product/${product.slug}`}
+              className="pointer-events-auto flex items-center bg-white px-5 text-[10px] font-bold uppercase tracking-[0.25em] text-brand-black shadow-sm border border-black/5 transition-colors hover:bg-neutral-50"
             >
-              <Eye size={16} strokeWidth={1} />
-            </span>
+              View Perfume
+            </Link>
           </div>
         </div>
       </div>
@@ -101,27 +109,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
 
         <div className="w-full flex items-center justify-between border-t border-black/5 pt-6">
           <span className="text-xl font-serif italic text-brand-black">${product.price}.00</span>
-          <span className="text-[9px] uppercase tracking-[0.3em] text-brand-black/20 font-bold">
-            100ml Edition
+          <span className="text-[9px] uppercase tracking-[0.3em] text-brand-black/28 font-bold">
+            {product.sku}
           </span>
         </div>
 
-        <div className="mt-5 grid w-full grid-cols-[1fr_auto] gap-3 md:hidden">
+        <div className="mt-5 grid w-full grid-cols-2 gap-3 md:hidden">
+          <Link
+            to={`/product/${product.slug}`}
+            className="flex items-center justify-center border border-black/10 px-4 text-[10px] font-bold uppercase tracking-[0.22em] text-brand-black transition-colors hover:border-black/30 hover:bg-black/5"
+            aria-label={`View ${product.name}`}
+          >
+            View Perfume
+          </Link>
           <button
             type="button"
             onClick={quickAdd}
-            className="flex items-center justify-center gap-3 bg-brand-black px-5 py-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white"
+            disabled={isOutOfStock}
+            className="flex items-center justify-center gap-3 bg-brand-black px-5 py-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
           >
             <ShoppingBag size={14} strokeWidth={1.2} />
-            Quick Add
+            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
           </button>
-          <Link
-            to={`/product/${product.slug}`}
-            className="flex items-center justify-center border border-black/10 px-4 text-brand-black"
-            aria-label={`View ${product.name}`}
-          >
-            <Eye size={16} strokeWidth={1.2} />
-          </Link>
         </div>
       </div>
     </motion.div>

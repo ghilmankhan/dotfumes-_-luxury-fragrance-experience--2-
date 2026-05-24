@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { FEATURED_PRODUCTS } from '../constants/products';
 import { ProductCard } from '../components/home/ProductCard';
 import { Product } from '../models/types';
 import { AssetImage } from '../components/AssetImage';
 import { COLLECTION_IMAGES } from '../constants/images';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useProductCatalogStore } from '../store/useProductCatalogStore';
 
 type CategoryFilter = 'All' | Product['category'];
 
 const filters: CategoryFilter[] = ['All', 'Unisex', 'Women', 'Men'];
 
 export const CollectionPage = () => {
+  const productsCatalog = useProductCatalogStore((state) => state.products);
   usePageMeta({
     title: 'Collection | DOTFUMES',
     description: 'Explore the full DOTFUMES fragrance archive across men, women, and unisex scents.',
@@ -27,11 +28,11 @@ export const CollectionPage = () => {
 
   const products = useMemo(() => {
     if (activeFilter === 'All') {
-      return FEATURED_PRODUCTS;
+      return productsCatalog;
     }
 
-    return FEATURED_PRODUCTS.filter((product) => product.category === activeFilter);
-  }, [activeFilter]);
+    return productsCatalog.filter((product) => product.category === activeFilter);
+  }, [activeFilter, productsCatalog]);
 
   return (
     <section className="min-h-screen bg-brand-white text-brand-black">
@@ -86,11 +87,11 @@ export const CollectionPage = () => {
           <div className="mb-14 flex flex-col gap-10 md:mb-24 md:flex-row md:items-end md:justify-between">
             <div className="max-w-3xl">
               <span className="text-[10px] font-bold uppercase tracking-[0.55em] text-brand-gold">
-                Product Cutouts
+                Shop Perfumes
               </span>
               <h2 className="mt-8 font-serif text-5xl italic leading-[0.92] tracking-tight md:text-7xl">
-                Clean objects, <br />
-                <span className="text-neutral-300">cinematic souls.</span>
+                Pick your scent, <br />
+                <span className="text-neutral-300">then continue to checkout.</span>
               </h2>
               <p className="mt-6 text-[11px] uppercase tracking-[0.2em] text-black/52">
                 Manual review, payment-proof verification, and WhatsApp or email support included.

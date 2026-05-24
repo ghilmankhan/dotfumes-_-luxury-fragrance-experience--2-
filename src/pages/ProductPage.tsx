@@ -1,19 +1,26 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Minus, Plus, ShoppingBag, ShieldCheck, Truck, Leaf } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { FEATURED_PRODUCTS } from '../constants/products';
 import { AssetImage } from '../components/AssetImage';
 import { useCartStore } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { formatCurrency } from '../lib/order';
+import { getAvailableStock, isProductOutOfStock } from '../lib/validation';
+import { useProductCatalogStore } from '../store/useProductCatalogStore';
 
 export const ProductPage = () => {
   const { slug } = useParams();
-  const product = FEATURED_PRODUCTS.find((item) => item.slug === slug);
+  const navigate = useNavigate();
+  const allProducts = useProductCatalogStore((state) => state.allProducts);
+  const product = allProducts.find((item) => item.slug === slug);
   const [quantity, setQuantity] = useState(1);
   const { addItem, openCart } = useCartStore();
   const { pushToast } = useToastStore();
+  const availableStock = product ? getAvailableStock(product) : 0;
+  const isOutOfStock = product ? isProductOutOfStock(product) || product.active === false : true;
+  const maxSelectableQuantity = Math.max(1, availableStock);
+  const selectedQuantity = Math.max(1, Math.min(quantity, maxSelectableQuantity));
 
   usePageMeta(
     product
@@ -51,10 +58,7 @@ export const ProductPage = () => {
         '@type': 'Offer',
         priceCurrency: 'USD',
         price: product.price,
-        availability:
-          product.stock > 0
-            ? 'https://schema.org/InStock'
-            : 'https://schema.org/OutOfStock',
+        availability: availableStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       },
       category: `Luxury Perfume ${product.category}`,
     });
@@ -63,11 +67,11 @@ export const ProductPage = () => {
     return () => {
       document.head.removeChild(script);
     };
-  }, [product]);
+  }, [availableStock, product]);
 
   const relatedProducts = useMemo(
-    () => FEATURED_PRODUCTS.filter((item) => item.slug !== slug).slice(0, 2),
-    [slug],
+    () => allProducts.filter((item) => item.slug !== slug).slice(0, 2),
+    [allProducts, slug],
   );
 
   if (!product) {
@@ -86,10 +90,27 @@ export const ProductPage = () => {
   }
 
   const addToCart = () => {
-    const result = addItem(product, quantity);
+    if (isOutOfStock) {
+      pushToast(`${product.name} is currently out of stock.`, 'error');
+      return;
+    }
+
+    const result = addItem(product, selectedQuantity);
     pushToast(result.message, result.ok ? 'success' : 'error');
     if (result.ok) {
       openCart();
+    }
+  };
+  const buyNow = () => {
+    if (isOutOfStock) {
+      pushToast(`${product.name} is currently out of stock.`, 'error');
+      return;
+    }
+
+    const result = addItem(product, selectedQuantity);
+    pushToast(result.message, result.ok ? 'success' : 'error');
+    if (result.ok) {
+      navigate('/checkout');
     }
   };
 
@@ -100,7 +121,7 @@ export const ProductPage = () => {
   ];
 
   return (
-    <section className="min-h-screen bg-brand-white text-brand-black">
+    <section className="min-h-screen bg-brand-white pb-28 text-brand-black md:pb-0">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
         <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
@@ -120,7 +141,7 @@ export const ProductPage = () => {
             Collection
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-[0.45em] text-brand-gold">
-            {product.category} / 100ml
+            {product.category} / 100ml / {product.sku}
           </span>
           <h1 className="mt-7 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
             {product.name}
@@ -140,16 +161,21 @@ export const ProductPage = () => {
             <div className="flex w-fit items-center border border-black/10" aria-label="Quantity selector">
               <button
                 type="button"
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                onClick={() => setQuantity((value) => Math.max(1, Math.min(selectedQuantity, value) - 1))}
                 className="p-4 transition-colors hover:bg-black/5 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
                 aria-label="Decrease quantity"
               >
                 <Minus size={14} strokeWidth={1.4} />
               </button>
-              <span className="w-12 text-center text-sm">{quantity}</span>
+              <span className="w-12 text-center text-sm">{selectedQuantity}</span>
               <button
                 type="button"
-                onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
+                onClick={() =>
+                  setQuantity((value) =>
+                    Math.min(maxSelectableQuantity, Math.max(1, Math.min(selectedQuantity, value)) + 1),
+                  )
+                }
+                disabled={isOutOfStock || selectedQuantity >= availableStock}
                 className="p-4 transition-colors hover:bg-black/5 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
                 aria-label="Increase quantity"
               >
@@ -159,21 +185,32 @@ export const ProductPage = () => {
             <button
               type="button"
               onClick={addToCart}
+              disabled={isOutOfStock}
               className="inline-flex flex-1 items-center justify-center gap-3 bg-brand-black px-8 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:bg-neutral-800 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
             >
               <ShoppingBag size={15} strokeWidth={1.3} />
-              Add / {formatCurrency(product.price)}
+              {availableStock > 0
+                ? `Add to Cart • ${formatCurrency(product.price)}`
+                : 'Out of Stock'}
+            </button>
+            <button
+              type="button"
+              onClick={buyNow}
+              disabled={isOutOfStock}
+              className="inline-flex items-center justify-center border border-black/20 px-8 py-5 text-[10px] font-bold uppercase tracking-[0.28em] text-black transition-colors hover:border-black hover:bg-black/5 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            >
+              Buy Now
             </button>
           </div>
 
           <p className="mt-5 text-[10px] uppercase tracking-[0.22em] text-black/58">
-            {product.stock} pieces available
+            {availableStock > 0 ? `${availableStock} pieces available` : 'Currently out of stock'}
           </p>
 
           <div className="mt-5 border border-black/10 bg-black/[0.02] px-4 py-4">
             <p className="text-[10px] uppercase tracking-[0.24em] text-black/65">
-              Authentic DOTFUMES selection with manual order support. Payment proof is uploaded
-              securely at checkout, then delivery is coordinated after verification.
+              Authentic DOTFUMES selection with manual order support. After checkout and payment
+              proof review, confirmation and delivery coordination continue on WhatsApp or email.
             </p>
           </div>
 
@@ -252,6 +289,41 @@ export const ProductPage = () => {
               </Link>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 p-3 shadow-[0_-14px_45px_rgba(0,0,0,0.12)] backdrop-blur md:hidden">
+        <div className="mx-auto max-w-md">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="truncate font-serif text-xl italic">{product.name}</p>
+            <p className="shrink-0 text-sm uppercase tracking-[0.16em] text-black/65">
+              {formatCurrency(product.price)}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={addToCart}
+              disabled={isOutOfStock}
+              className="inline-flex items-center justify-center gap-2 bg-brand-black px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-white"
+            >
+              <ShoppingBag size={14} strokeWidth={1.3} />
+              {availableStock > 0 ? 'Add to Cart' : 'Out of Stock'}
+            </button>
+            <button
+              type="button"
+              onClick={buyNow}
+              disabled={isOutOfStock}
+              className="inline-flex items-center justify-center border border-black/20 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-black"
+            >
+              Buy Now
+            </button>
+          </div>
+          {isOutOfStock ? (
+            <p className="mt-3 text-center text-[10px] uppercase tracking-[0.2em] text-red-700">
+              This fragrance is currently unavailable.
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

@@ -5,15 +5,20 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
 import { AssetImage } from '../components/AssetImage';
-import { CheckoutErrors, validateCartQuantities, validateCheckoutForm } from '../lib/validation';
+import {
+  CheckoutErrors,
+  getCartAvailabilityIssues,
+  getCartAvailabilityMessage,
+  validateCheckoutForm,
+} from '../lib/validation';
 import { formatCurrency } from '../lib/order';
 import { saveLatestOrder } from '../lib/storage';
 import { CheckoutFormValues, PaymentMethod } from '../models/order';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { createOrderSubmissionService } from '../services/orderSubmissionService';
 import { createSlipPreviewUrl, revokeSlipPreviewUrl } from '../lib/paymentSlip';
-import { FEATURED_PRODUCTS } from '../constants/products';
 import { isGoogleSheetsBackendEnabled } from '../lib/googleSheetsBackend';
+import { useProductCatalogStore } from '../store/useProductCatalogStore';
 
 const initialValues: CheckoutFormValues = {
   firstName: '',
@@ -56,7 +61,19 @@ export const CheckoutPage = () => {
   const [slipPreviewUrl, setSlipPreviewUrl] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const reduceMotion = useReducedMotion();
-  const orderSubmissionService = useMemo(() => createOrderSubmissionService(), []);
+  const allProducts = useProductCatalogStore((state) => state.allProducts);
+  const allowOutOfStockCheckout = useProductCatalogStore(
+    (state) => state.settings.allowOutOfStockCheckout,
+  );
+  const refreshCatalog = useProductCatalogStore((state) => state.refresh);
+  const orderSubmissionService = useMemo(
+    () =>
+      createOrderSubmissionService({
+        products: allProducts,
+        allowOutOfStockCheckout,
+      }),
+    [allProducts, allowOutOfStockCheckout],
+  );
   const googleSheetsEnabled = isGoogleSheetsBackendEnabled();
 
   usePageMeta({
@@ -74,6 +91,18 @@ export const CheckoutPage = () => {
   }, [slipPreviewUrl]);
 
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
+  const availabilityIssues = useMemo(
+    () => getCartAvailabilityIssues(items, allProducts),
+    [allProducts, items],
+  );
+  const availabilityIssueByItem = useMemo(
+    () => new Map(availabilityIssues.map((issue) => [issue.itemId, issue])),
+    [availabilityIssues],
+  );
+  const latestProductById = useMemo(
+    () => new Map(allProducts.map((product) => [product.id, product])),
+    [allProducts],
+  );
 
   const clearError = (key: keyof CheckoutErrors) => {
     setErrors((previous) => {
@@ -130,12 +159,9 @@ export const CheckoutPage = () => {
       setSubmitError('');
     }
 
-    const staleItems = items.filter(
-      (item) => !FEATURED_PRODUCTS.some((product) => product.id === item.id),
-    );
-    if (staleItems.length > 0) {
-      const names = staleItems.map((item) => item.name).join(', ');
-      const message = `One or more fragrances are no longer available: ${names}. Please refresh your selection.`;
+    const cartAvailabilityIssues = getCartAvailabilityIssues(items, allProducts);
+    if (!allowOutOfStockCheckout && cartAvailabilityIssues.length > 0) {
+      const message = getCartAvailabilityMessage(cartAvailabilityIssues);
       setErrors({ cart: message });
       pushToast('Please review your selection before checkout.', 'error');
       return;
@@ -144,13 +170,6 @@ export const CheckoutPage = () => {
     if (items.length === 0) {
       setErrors({ cart: 'Your cart is empty. Please add at least one fragrance.' });
       pushToast('Your selection is empty.', 'error');
-      return;
-    }
-
-    const quantityError = validateCartQuantities(items);
-    if (quantityError) {
-      setErrors({ cart: quantityError });
-      pushToast(quantityError, 'error');
       return;
     }
 
@@ -176,6 +195,7 @@ export const CheckoutPage = () => {
       });
       saveLatestOrder(result.order);
       clearCart();
+      void refreshCatalog();
       pushToast(result.message, result.mode === 'google-sheets' ? 'success' : 'neutral');
       navigate('/order-confirmation');
     } catch (error) {
@@ -202,13 +222,25 @@ export const CheckoutPage = () => {
             <span className="text-neutral-300">Your Order.</span>
           </h1>
           <p className="mt-8 max-w-xl text-sm leading-7 text-black/65">
-            Finalize your details, choose a payment method, and upload your payment slip to
-            complete your DOTFUMES order confirmation request.
+            Submit your details, choose your payment method, and upload payment proof so Dotfumes can
+            review your order request.
           </p>
           <p className="mt-3 max-w-xl text-sm leading-7 text-black/60">
-            After placing your order, WhatsApp and email open prefilled details so you can send
-            confirmation quickly.
+            After submission, you can send a prefilled WhatsApp or email summary for faster
+            confirmation.
           </p>
+
+          <div className="mt-8 grid gap-2 sm:grid-cols-3" aria-label="Checkout steps">
+            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
+              1. Your Details
+            </div>
+            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
+              2. Payment Proof
+            </div>
+            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
+              3. Review &amp; Submit
+            </div>
+          </div>
         </div>
 
         <form
@@ -251,7 +283,7 @@ export const CheckoutPage = () => {
 
           <div className="space-y-8">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
-              Customer Details
+              1. Your Details
             </h2>
             <div className="grid gap-5 md:grid-cols-2">
               <CheckoutInput
@@ -271,13 +303,14 @@ export const CheckoutPage = () => {
                 autoComplete="family-name"
               />
               <CheckoutInput
-                label="Email"
+                label="Email (optional)"
                 name="email"
                 value={values.email}
                 onChange={(value) => setField('email', value)}
                 error={errors.email}
                 type="email"
                 autoComplete="email"
+                required={false}
               />
               <CheckoutInput
                 label="Phone"
@@ -311,7 +344,7 @@ export const CheckoutPage = () => {
 
           <div className="space-y-7">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
-              Payment Method
+              2. Payment Method
             </h2>
 
             <div className="grid gap-3">
@@ -365,7 +398,7 @@ export const CheckoutPage = () => {
 
           <div className="space-y-4">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
-              Payment Slip Upload
+              2. Payment Proof Upload
             </h2>
 
             <label className="block cursor-pointer border border-dashed border-black/20 bg-white px-5 py-8 transition-colors hover:border-brand-gold">
@@ -435,14 +468,14 @@ export const CheckoutPage = () => {
               <ShieldCheck size={16} className="mt-1 text-brand-gold" />
               {googleSheetsEnabled ? (
                 <p>
-                  Your order details and payment proof are reviewed manually before confirmation.
-                  After confirmation, open WhatsApp to send the prefilled confirmation message to the
-                  Dotfumes team.
+                  Your order request and payment proof are received first, then reviewed manually by
+                  Dotfumes. The team will contact you as early as possible for confirmation and
+                  delivery coordination.
                 </p>
               ) : (
                 <p>
-                  Your order details and payment proof are prepared for manual support confirmation.
-                  Please send the prefilled WhatsApp or email message to complete confirmation.
+                  Your order request is prepared and saved locally. Use the prefilled WhatsApp or
+                  email summary on the next page so Dotfumes can confirm your order quickly.
                 </p>
               )}
             </div>
@@ -455,24 +488,28 @@ export const CheckoutPage = () => {
             <ol className="mt-4 space-y-2 text-sm leading-6 text-black/65">
               <li>1. Submit your order details and payment slip.</li>
               <li>2. Dotfumes reviews your payment proof manually.</li>
-              <li>3. Your order is confirmed and coordinated through WhatsApp or email.</li>
-              <li>4. Support can assist if you need help after submission.</li>
+              <li>3. Dotfumes contacts you by WhatsApp or email for confirmation.</li>
+              <li>4. Delivery coordination starts right after confirmation.</li>
             </ol>
           </div>
 
           <button
             type="submit"
-            disabled={isSubmitting || items.length === 0}
+            disabled={
+              isSubmitting ||
+              items.length === 0 ||
+              (!allowOutOfStockCheckout && availabilityIssues.length > 0)
+            }
             className="w-full bg-brand-black px-8 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
           >
             {isSubmitting
               ? googleSheetsEnabled
                 ? 'Submitting Order'
                 : 'Preparing Order'
-              : 'Place Order'}
+              : 'Place Order Request'}
           </button>
           <p className="text-center text-[10px] uppercase tracking-[0.2em] text-black/58">
-            Manual verification keeps your handoff accurate before delivery coordination.
+            Your order request is sent now. Dotfumes will contact you as early as possible.
           </p>
         </form>
 
@@ -505,7 +542,7 @@ export const CheckoutPage = () => {
                       <div>
                         <p className="font-serif text-xl italic">{item.name}</p>
                         <p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-black/55">
-                          {formatCurrency(item.price)}
+                          {formatCurrency(item.price)} / {item.sku}
                         </p>
                       </div>
                       <button
@@ -531,6 +568,9 @@ export const CheckoutPage = () => {
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={
+                          item.quantity >= (latestProductById.get(item.id)?.stock ?? item.stock ?? 0)
+                        }
                         className="p-2"
                         aria-label={`Increase ${item.name}`}
                       >
@@ -538,7 +578,9 @@ export const CheckoutPage = () => {
                       </button>
                     </div>
                     <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-black/55">
-                      Stock: {item.stock}
+                      {availabilityIssueByItem.has(item.id)
+                        ? 'Currently unavailable'
+                        : `Stock: ${latestProductById.get(item.id)?.stock ?? item.stock}`}
                     </p>
                   </div>
                 </div>
@@ -570,6 +612,7 @@ const CheckoutInput = ({
   error,
   type = 'text',
   autoComplete,
+  required = true,
 }: {
   label: string;
   name: string;
@@ -578,11 +621,12 @@ const CheckoutInput = ({
   error: string | undefined;
   type?: string;
   autoComplete?: string;
+  required?: boolean;
 }) => (
   <label className="block">
     <span className="text-[11px] uppercase tracking-[0.28em] text-black/60">{label}</span>
     <input
-      required
+      required={required}
       name={name}
       type={type}
       value={value}
