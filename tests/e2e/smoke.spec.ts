@@ -245,6 +245,26 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('dialog', { name: 'Shopping cart' })).toBeVisible();
   });
 
+  test('mobile cart drawer keeps product details readable and checkout tappable while toast is visible', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/product/bold-decision');
+    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+
+    const drawer = page.getByRole('dialog', { name: 'Shopping cart' });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole('link', { name: 'Bold Decision' })).toBeVisible();
+    await expect(drawer.getByLabel(/Decrease Bold Decision quantity/i)).toBeVisible();
+    await expect(drawer.getByLabel(/Increase Bold Decision quantity/i)).toBeVisible();
+    await expect(drawer.getByText('Subtotal', { exact: true })).toBeVisible();
+    await expect(drawer.getByRole('button', { name: 'Checkout' })).toBeVisible();
+    await expect(page.getByText(/added to your selection/i)).toBeVisible();
+
+    await drawer.getByRole('button', { name: 'Checkout' }).click();
+    await expect(page).toHaveURL(/\/checkout$/);
+  });
+
   test('add to cart from product page opens cart with product', async ({ page }) => {
     await page.goto('/product/bold-decision');
     await page.getByRole('button', { name: /Add to Cart/i }).click();

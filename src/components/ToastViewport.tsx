@@ -2,15 +2,22 @@ import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { useToastStore } from '../store/useToastStore';
 import { cn } from '../lib/utils';
+import { useCartStore } from '../store/useCartStore';
 
 export const ToastViewport = () => {
   const { toasts, dismissToast } = useToastStore();
+  const isCartOpen = useCartStore((state) => state.isOpen);
 
   return (
     <div
       aria-live="polite"
       aria-atomic="true"
-      className="fixed bottom-5 right-5 z-[140] flex w-[calc(100%-2.5rem)] max-w-sm flex-col gap-3"
+      className={cn(
+        'pointer-events-none fixed z-[140] flex flex-col gap-3',
+        isCartOpen
+          ? 'left-4 right-4 top-[calc(0.75rem+env(safe-area-inset-top))] sm:left-5 sm:right-auto sm:w-full sm:max-w-sm'
+          : 'left-4 right-4 top-[calc(0.75rem+env(safe-area-inset-top))] sm:left-auto sm:right-5 sm:top-auto sm:bottom-[calc(1.25rem+env(safe-area-inset-bottom))] sm:w-[calc(100%-2.5rem)] sm:max-w-sm',
+      )}
     >
       <AnimatePresence>
         {toasts.map((toast) => (
@@ -25,6 +32,7 @@ export const ToastViewport = () => {
               toast.tone === 'success' && 'border-brand-gold/35',
               toast.tone === 'error' && 'border-red-400/40',
               toast.tone === 'neutral' && 'border-white/10',
+              'pointer-events-auto',
             )}
           >
             <p className="text-[11px] uppercase leading-6 tracking-[0.24em] text-white/78">
