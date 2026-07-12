@@ -1,7 +1,10 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { AssetImage } from '../AssetImage';
 import { FEATURED_PRODUCTS } from '../../constants/products';
+import { eyebrowLabelSm } from '../../styles/tokens/typography';
+import { cn } from '../../lib/utils';
+import { easing, duration } from '../../styles/tokens/motion';
 
 const INGREDIENTS = [
   {
@@ -40,6 +43,18 @@ export const SignatureExperience = () => {
   const x = useTransform(scrollYProgress, [0.1, 0.9], ['5%', '-35%']);
   const rotate = useTransform(scrollYProgress, [0, 1], [2, -2]);
 
+  // Below md, the scroll-linked x transform never travels far enough to reveal
+  // the last card (its range is a fixed % of track width, not viewport-aware),
+  // so mobile gets native horizontal swipe instead of the scroll-jacked parallax.
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const updateMatch = () => setIsMobileViewport(mediaQuery.matches);
+    updateMatch();
+    mediaQuery.addEventListener('change', updateMatch);
+    return () => mediaQuery.removeEventListener('change', updateMatch);
+  }, []);
+
   return (
     <section
       ref={containerRef}
@@ -68,37 +83,40 @@ export const SignatureExperience = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1, ease: easing.cinematic }}
           className="font-serif text-6xl md:text-[120px] italic tracking-tighter max-w-5xl leading-[0.85]"
         >
           Worlds of <br /> <span className="text-white/20">Scent Memory.</span>
         </motion.h2>
       </div>
 
-      <div className="relative z-20">
-        <motion.div style={{ x }} className="flex gap-12 md:gap-24 px-8 md:px-16 lg:px-24">
+      <div className="relative z-20 overflow-x-auto md:overflow-visible [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <motion.div
+          style={isMobileViewport ? {} : { x }}
+          className="flex gap-12 md:gap-24 px-8 md:px-16 lg:px-24 snap-x snap-mandatory md:snap-none"
+        >
           {INGREDIENTS.map((item, index) => (
             <motion.div
               key={item.name}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.2, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-shrink-0 w-[350px] md:w-[600px] h-full"
+              transition={{ duration: duration.cinematic, delay: index * 0.15, ease: easing.cinematic }}
+              className="flex-shrink-0 w-[350px] md:w-[600px] h-full snap-start md:snap-align-none"
             >
-              <div className="aspect-[3/4] bg-neutral-900 overflow-hidden mb-12 group relative shadow-[0_40px_80px_rgba(0,0,0,0.4)]">
+              <div className="aspect-[3/4] bg-neutral-900 overflow-hidden mb-12 group relative shadow-xl">
                 <motion.div style={{ rotate }} className="w-full h-full">
                   <AssetImage
                     src={item.image}
                     alt={item.name}
                     wrapperClassName="h-full w-full bg-neutral-950"
-                    className="h-full w-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[3s] ease-out opacity-70 group-hover:opacity-90"
+                    className="h-full w-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.8s] ease-[cubic-bezier(0.16,1,0.3,1)] opacity-70 group-hover:opacity-90"
                   />
                 </motion.div>
 
                 {/* Mood Tag */}
                 <div className="absolute top-8 right-8 bg-black/40 backdrop-blur-md px-6 py-2 border border-white/10">
-                  <span className="text-[9px] uppercase tracking-[0.3em] font-bold italic text-brand-gold">
+                  <span className={cn(eyebrowLabelSm, 'italic text-brand-gold')}>
                     {item.mood}
                   </span>
                 </div>
@@ -123,10 +141,10 @@ export const SignatureExperience = () => {
                   <motion.div
                     initial={{ x: '-100%' }}
                     whileHover={{ x: '100%' }}
-                    transition={{ duration: 0.8 }}
+                    transition={{ duration: duration.slow }}
                     className="h-px w-32 bg-brand-gold/40"
                   />
-                  <span className="text-[9px] uppercase tracking-[0.3em] font-bold mt-3 inline-block">
+                  <span className={cn(eyebrowLabelSm, 'mt-3 inline-block')}>
                     Discover Origin
                   </span>
                 </div>

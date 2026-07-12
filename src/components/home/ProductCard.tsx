@@ -7,6 +7,10 @@ import { useCartStore } from '../../store/useCartStore';
 import { useToastStore } from '../../store/useToastStore';
 import { AssetImage } from '../AssetImage';
 import { isProductOutOfStock } from '../../lib/validation';
+import { Button, LinkButton } from '../ui/primitives/Button';
+import { eyebrowLabel, headingLg } from '../../styles/tokens/typography';
+import { cn } from '../../lib/utils';
+import { easing } from '../../styles/tokens/motion';
 
 interface ProductCardProps {
   product: Product;
@@ -14,7 +18,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
-  const { addItem } = useCartStore();
+  const { addItem, openCart } = useCartStore();
   const { pushToast } = useToastStore();
   const navigate = useNavigate();
   const isOutOfStock = isProductOutOfStock(product) || product.active === false;
@@ -29,6 +33,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
 
     const result = addItem(product);
     pushToast(result.message, result.ok ? 'success' : 'error');
+    if (result.ok) {
+      openCart();
+    }
   };
 
   return (
@@ -36,7 +43,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 1, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 1, delay: index * 0.1, ease: easing.cinematic }}
       className="group relative flex flex-col bg-brand-white p-4 md:p-8"
     >
       <div
@@ -54,7 +61,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
       >
         <motion.div
           whileHover={{ scale: 1.02 }}
-          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.5, ease: easing.cinematic }}
           className="relative w-full h-full flex items-center justify-center"
         >
           <AssetImage
@@ -65,30 +72,32 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
           />
         </motion.div>
 
-        <div className="pointer-events-none invisible absolute inset-0 z-20 hidden translate-y-8 items-center justify-center opacity-0 transition-all duration-700 ease-[0.16,1,0.3,1] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 md:flex">
-          <div className="flex gap-4 p-2 bg-white/40 backdrop-blur-xl border border-white/20 shadow-2xl">
-            <button
-              type="button"
+        <div className="pointer-events-none invisible absolute inset-0 z-20 hidden translate-y-8 items-center justify-center opacity-0 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 md:flex">
+          <div className="flex gap-4 p-2 bg-white/40 backdrop-blur-xl border border-white/20 shadow-lg">
+            <Button
+              variant="primary"
               onClick={quickAdd}
               disabled={isOutOfStock}
-              className="pointer-events-auto flex items-center gap-3 bg-brand-black text-white px-8 py-4 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-neutral-800 transition-all active:scale-95 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+              className="pointer-events-auto tracking-[0.4em]"
             >
               <ShoppingBag size={14} strokeWidth={1} />
               {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-            </button>
-            <Link
+            </Button>
+            <LinkButton
               to={`/product/${product.slug}`}
-              className="pointer-events-auto flex items-center bg-white px-5 text-[10px] font-bold uppercase tracking-[0.25em] text-brand-black shadow-sm border border-black/5 transition-colors hover:bg-neutral-50"
+              variant="outline"
+              onClick={(event) => event.stopPropagation()}
+              className="pointer-events-auto bg-white px-5 tracking-[0.25em] shadow-sm border-black/5 hover:bg-neutral-50"
             >
               View Perfume
-            </Link>
+            </LinkButton>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col items-start px-2">
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-brand-gold font-bold italic">
+          <span className={cn(eyebrowLabel, 'text-[9px] md:text-[10px] text-brand-gold italic')}>
             {product.category}
           </span>
           <div className="w-8 h-px bg-brand-gold/10" />
@@ -98,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
           to={`/product/${product.slug}`}
           className="focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
         >
-          <h3 className="font-serif text-3xl md:text-4xl tracking-tighter text-brand-black mb-3 italic transition-colors hover:text-brand-gold">
+          <h3 className={cn(headingLg, 'text-brand-black mb-3 transition-colors hover:text-brand-gold')}>
             {product.name}
           </h3>
         </Link>
@@ -115,22 +124,23 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
         </div>
 
         <div className="mt-5 grid w-full grid-cols-2 gap-3 md:hidden">
-          <Link
+          <LinkButton
             to={`/product/${product.slug}`}
-            className="flex items-center justify-center border border-black/10 px-4 text-[10px] font-bold uppercase tracking-[0.22em] text-brand-black transition-colors hover:border-black/30 hover:bg-black/5"
+            variant="outline"
+            className="tracking-[0.22em]"
             aria-label={`View ${product.name}`}
           >
             View Perfume
-          </Link>
-          <button
-            type="button"
+          </LinkButton>
+          <Button
+            variant="primary"
             onClick={quickAdd}
             disabled={isOutOfStock}
-            className="flex items-center justify-center gap-3 bg-brand-black px-5 py-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="px-5 py-4 tracking-[0.28em]"
           >
             <ShoppingBag size={14} strokeWidth={1.2} />
             {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-          </button>
+          </Button>
         </div>
       </div>
     </motion.div>

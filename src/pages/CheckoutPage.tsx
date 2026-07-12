@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, Upload, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Upload, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useCartStore } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
@@ -19,6 +19,14 @@ import { createOrderSubmissionService } from '../services/orderSubmissionService
 import { createSlipPreviewUrl, revokeSlipPreviewUrl } from '../lib/paymentSlip';
 import { isGoogleSheetsBackendEnabled } from '../lib/googleSheetsBackend';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
+import { cn } from '../lib/utils';
+import { CartLineItem } from '../components/cart/CartLineItem';
+import { easing, duration } from '../styles/tokens/motion';
+import { Button } from '../components/ui/primitives/Button';
+import { Card } from '../components/ui/primitives/Card';
+import { Grid } from '../components/ui/layout/Grid';
+import { Stack } from '../components/ui/layout/Stack';
+import { Input } from '../components/ui/primitives/Input';
 
 const initialValues: CheckoutFormValues = {
   firstName: '',
@@ -48,8 +56,40 @@ const paymentOptions: Array<{ value: PaymentMethod; label: string; note: string 
   },
 ];
 
+// Order matches the visual top-to-bottom form order, so the first match is the first invalid field on screen.
+const errorFieldOrder: Array<keyof CheckoutErrors> = [
+  'cart',
+  'firstName',
+  'lastName',
+  'email',
+  'phone',
+  'address',
+  'city',
+  'paymentMethod',
+  'slip',
+];
+
+const scrollToFirstError = (errs: CheckoutErrors) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const firstKey = errorFieldOrder.find((key) => errs[key]);
+  if (!firstKey) {
+    return;
+  }
+  const target =
+    firstKey === 'cart' ? document.getElementById('checkout-cart-error') : document.getElementsByName(firstKey)[0];
+  if (!target) {
+    return;
+  }
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (target instanceof HTMLElement) {
+    window.setTimeout(() => target.focus({ preventScroll: true }), 400);
+  }
+};
+
 export const CheckoutPage = () => {
-  const { items, total, updateQuantity, removeItem, clearCart } = useCartStore();
+  const { items, total, updateQuantity, clearCart } = useCartStore();
   const { pushToast } = useToastStore();
   const navigate = useNavigate();
 
@@ -60,6 +100,7 @@ export const CheckoutPage = () => {
   const [slipFile, setSlipFile] = useState<File | null>(null);
   const [slipPreviewUrl, setSlipPreviewUrl] = useState('');
   const [honeypot, setHoneypot] = useState('');
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const reduceMotion = useReducedMotion();
   const allProducts = useProductCatalogStore((state) => state.allProducts);
   const allowOutOfStockCheckout = useProductCatalogStore(
@@ -103,6 +144,14 @@ export const CheckoutPage = () => {
     () => new Map(allProducts.map((product) => [product.id, product])),
     [allProducts],
   );
+  const detailsStepComplete = Boolean(
+    values.firstName.trim() &&
+      values.lastName.trim() &&
+      values.phone.trim() &&
+      values.address.trim() &&
+      values.city.trim(),
+  );
+  const paymentStepComplete = Boolean(values.paymentMethod && slipFile);
 
   const clearError = (key: keyof CheckoutErrors) => {
     setErrors((previous) => {
@@ -162,13 +211,17 @@ export const CheckoutPage = () => {
     const cartAvailabilityIssues = getCartAvailabilityIssues(items, allProducts);
     if (!allowOutOfStockCheckout && cartAvailabilityIssues.length > 0) {
       const message = getCartAvailabilityMessage(cartAvailabilityIssues);
-      setErrors({ cart: message });
+      const cartErrors: CheckoutErrors = { cart: message };
+      setErrors(cartErrors);
+      scrollToFirstError(cartErrors);
       pushToast('Please review your selection before checkout.', 'error');
       return;
     }
 
     if (items.length === 0) {
-      setErrors({ cart: 'Your cart is empty. Please add at least one fragrance.' });
+      const cartErrors: CheckoutErrors = { cart: 'Your cart is empty. Please add at least one fragrance.' };
+      setErrors(cartErrors);
+      scrollToFirstError(cartErrors);
       pushToast('Your selection is empty.', 'error');
       return;
     }
@@ -177,6 +230,7 @@ export const CheckoutPage = () => {
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0 || !slipFile) {
+      scrollToFirstError(nextErrors);
       pushToast('Please complete the highlighted checkout details.', 'error');
       return;
     }
@@ -230,32 +284,57 @@ export const CheckoutPage = () => {
             confirmation.
           </p>
 
-          <div className="mt-8 grid gap-2 sm:grid-cols-3" aria-label="Checkout steps">
-            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
+          <Grid cols={{ sm: 2 }} gap={2} className="mt-8" aria-label="Checkout progress">
+            <Card
+              variant="light"
+              className={cn(
+                'flex items-center gap-2 px-4 py-3 text-[10px] uppercase tracking-[0.22em] transition-colors',
+                detailsStepComplete
+                  ? 'border-brand-gold/50 bg-brand-gold/10 text-brand-black'
+                  : 'bg-white/70 text-black/65',
+              )}
+            >
+              {detailsStepComplete ? (
+                <CheckCircle2 size={13} className="shrink-0 text-brand-gold" />
+              ) : (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" aria-hidden="true" />
+              )}
               1. Your Details
-            </div>
-            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
-              2. Payment Proof
-            </div>
-            <div className="border border-black/10 bg-white/70 px-4 py-3 text-[10px] uppercase tracking-[0.22em] text-black/65">
-              3. Review &amp; Submit
-            </div>
-          </div>
+            </Card>
+            <Card
+              variant="light"
+              className={cn(
+                'flex items-center gap-2 px-4 py-3 text-[10px] uppercase tracking-[0.22em] transition-colors',
+                paymentStepComplete
+                  ? 'border-brand-gold/50 bg-brand-gold/10 text-brand-black'
+                  : 'bg-white/70 text-black/65',
+              )}
+            >
+              {paymentStepComplete ? (
+                <CheckCircle2 size={13} className="shrink-0 text-brand-gold" />
+              ) : (
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" aria-hidden="true" />
+              )}
+              2. Payment &amp; Proof
+            </Card>
+          </Grid>
         </div>
 
         <form
           onSubmit={submitOrder}
-          className="order-3 space-y-12 lg:col-start-1 lg:row-start-2 lg:order-2"
+          className="order-2 space-y-12 lg:col-start-1 lg:row-start-2 lg:order-2"
           noValidate
         >
           <AnimatePresence mode="wait">
             {errors.cart ? (
               <motion.div
                 key="cart-error"
+                id="checkout-cart-error"
+                tabIndex={-1}
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.24, ease: 'easeOut' }}
+                transition={{ duration: duration.fast, ease: easing.standard }}
                 className="flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 role="alert"
               >
@@ -271,7 +350,7 @@ export const CheckoutPage = () => {
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.24, ease: 'easeOut' }}
+                transition={{ duration: duration.fast, ease: easing.standard }}
                 className="flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
                 role="alert"
               >
@@ -285,7 +364,7 @@ export const CheckoutPage = () => {
             <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
               1. Your Details
             </h2>
-            <div className="grid gap-5 md:grid-cols-2">
+            <Grid cols={{ md: 2 }} gap={5}>
               <CheckoutInput
                 label="First name"
                 name="firstName"
@@ -339,7 +418,7 @@ export const CheckoutPage = () => {
                 error={errors.city}
                 autoComplete="address-level2"
               />
-            </div>
+            </Grid>
           </div>
 
           <div className="space-y-7">
@@ -347,7 +426,12 @@ export const CheckoutPage = () => {
               2. Payment Method
             </h2>
 
-            <div className="grid gap-3">
+            <Stack
+              gap={3}
+              className={cn(
+                errors.paymentMethod && 'ring-1 ring-red-300 ring-offset-4 ring-offset-brand-white',
+              )}
+            >
               {paymentOptions.map((option) => {
                 const selected = values.paymentMethod === option.value;
 
@@ -379,7 +463,7 @@ export const CheckoutPage = () => {
                   </label>
                 );
               })}
-            </div>
+            </Stack>
             {errors.paymentMethod ? <FieldError message={errors.paymentMethod} /> : null}
           </div>
 
@@ -398,12 +482,18 @@ export const CheckoutPage = () => {
 
           <div className="space-y-4">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
-              2. Payment Proof Upload
+              Payment Proof Upload
             </h2>
 
-            <label className="block cursor-pointer border border-dashed border-black/20 bg-white px-5 py-8 transition-colors hover:border-brand-gold">
+            <label
+              className={cn(
+                'block cursor-pointer border border-dashed bg-white px-5 py-8 transition-colors hover:border-brand-gold',
+                errors.slip ? 'border-red-300 bg-red-50/40' : 'border-black/20',
+              )}
+            >
               <input
                 type="file"
+                name="slip"
                 accept="image/png,image/jpeg,image/webp,application/pdf"
                 className="sr-only"
                 onChange={onSlipChange}
@@ -432,7 +522,7 @@ export const CheckoutPage = () => {
                   initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  transition={{ duration: 0.3, ease: easing.standard }}
                   className="border border-black/10 p-4"
                 >
                   <p className="text-[10px] uppercase tracking-[0.28em] text-black/60">Slip Preview</p>
@@ -451,19 +541,19 @@ export const CheckoutPage = () => {
                   <p className="mt-3 text-xs text-black/70">
                     {slipFile.name} · {(slipFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
                     onClick={removeSlip}
-                    className="mt-3 text-xs uppercase tracking-[0.2em] text-black/60 underline decoration-black/30 underline-offset-2 hover:text-black"
+                    className="mt-3 flex min-h-11 items-center px-2 py-2 normal-case tracking-normal text-xs uppercase tracking-[0.2em] text-black/60 underline decoration-black/30 underline-offset-2 hover:text-black md:min-h-0 md:px-0 md:py-0"
                   >
                     Remove slip
-                  </button>
+                  </Button>
                 </motion.div>
               ) : null}
             </AnimatePresence>
           </div>
 
-          <div className="border border-black/10 bg-brand-ivory px-5 py-4 text-xs leading-6 text-black/60">
+          <Card variant="light" className="bg-brand-ivory px-5 py-4 text-xs leading-6 text-black/60">
             <div className="flex items-start gap-3">
               <ShieldCheck size={16} className="mt-1 text-brand-gold" />
               {googleSheetsEnabled ? (
@@ -479,9 +569,9 @@ export const CheckoutPage = () => {
                 </p>
               )}
             </div>
-          </div>
+          </Card>
 
-          <div className="border border-black/10 bg-white px-5 py-4">
+          <Card variant="light" className="px-5 py-4">
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-black/65">
               What Happens Next
             </p>
@@ -491,29 +581,33 @@ export const CheckoutPage = () => {
               <li>3. Dotfumes contacts you by WhatsApp or email for confirmation.</li>
               <li>4. Delivery coordination starts right after confirmation.</li>
             </ol>
-          </div>
+          </Card>
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            loading={isSubmitting}
             disabled={
-              isSubmitting ||
-              items.length === 0 ||
-              (!allowOutOfStockCheckout && availabilityIssues.length > 0)
+              items.length === 0 || (!allowOutOfStockCheckout && availabilityIssues.length > 0)
             }
-            className="w-full bg-brand-black px-8 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="w-full px-8 py-5 tracking-[0.35em]"
           >
             {isSubmitting
               ? googleSheetsEnabled
                 ? 'Submitting Order'
                 : 'Preparing Order'
               : 'Place Order Request'}
-          </button>
+          </Button>
           <p className="text-center text-[10px] uppercase tracking-[0.2em] text-black/58">
             Your order request is sent now. Dotfumes will contact you as early as possible.
           </p>
         </form>
 
-        <aside className="order-2 h-fit border border-black/10 bg-white p-6 shadow-[0_28px_80px_rgba(0,0,0,0.05)] lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28">
+        <Card
+          as="aside"
+          variant="light"
+          className="order-3 h-fit p-6 shadow-md lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28"
+        >
           <h2 className="font-serif text-3xl italic">Your Selection</h2>
           <div className="mt-8 space-y-6">
             {items.length === 0 ? (
@@ -523,67 +617,30 @@ export const CheckoutPage = () => {
                 </p>
                 <Link
                   to="/collection"
-                  className="mt-7 inline-flex border-b border-black/20 pb-1 text-[10px] uppercase tracking-[0.3em]"
+                  className="mt-7 inline-flex border-b border-black/20 pb-1 text-[10px] uppercase tracking-[0.3em] focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
                 >
                   Explore Collection
                 </Link>
               </div>
             ) : (
               items.map((item) => (
-                <div key={item.id} className="flex gap-5 border-b border-black/5 pb-6">
-                  <AssetImage
-                    src={item.images.front}
-                    alt={item.name}
-                    wrapperClassName="h-28 w-20 shrink-0 bg-neutral-50"
-                    className="h-full w-full object-contain"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-serif text-xl italic">{item.name}</p>
-                        <p className="mt-2 text-[10px] uppercase tracking-[0.22em] text-black/55">
-                          {formatCurrency(item.price)} / {item.sku}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.id)}
-                        className="p-1 text-black/50 transition-colors hover:text-red-500"
-                        aria-label={`Remove ${item.name}`}
-                      >
-                        <Trash2 size={15} strokeWidth={1.4} />
-                      </button>
-                    </div>
-
-                    <div className="mt-5 flex w-fit items-center border border-black/10">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-2"
-                        aria-label={`Decrease ${item.name}`}
-                      >
-                        <Minus size={12} strokeWidth={1.4} />
-                      </button>
-                      <span className="w-8 text-center text-xs">{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        disabled={
-                          item.quantity >= (latestProductById.get(item.id)?.stock ?? item.stock ?? 0)
-                        }
-                        className="p-2"
-                        aria-label={`Increase ${item.name}`}
-                      >
-                        <Plus size={12} strokeWidth={1.4} />
-                      </button>
-                    </div>
-                    <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-black/55">
-                      {availabilityIssueByItem.has(item.id)
-                        ? 'Currently unavailable'
-                        : `Stock: ${latestProductById.get(item.id)?.stock ?? item.stock}`}
-                    </p>
-                  </div>
-                </div>
+                <CartLineItem
+                  key={item.id}
+                  item={item}
+                  variant="checkout"
+                  stock={latestProductById.get(item.id)?.stock ?? item.stock}
+                  isUnavailable={availabilityIssueByItem.has(item.id)}
+                  isPendingRemove={pendingRemoveId === item.id}
+                  onRequestRemove={() => setPendingRemoveId(item.id)}
+                  onConfirmRemove={() => {
+                    updateQuantity(item.id, 0);
+                    setPendingRemoveId(null);
+                    pushToast(`${item.name} removed from your selection.`, 'neutral');
+                  }}
+                  onCancelRemove={() => setPendingRemoveId(null)}
+                  onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
+                  priceLabel={formatCurrency(item.price)}
+                />
               ))
             )}
           </div>
@@ -598,7 +655,7 @@ export const CheckoutPage = () => {
               <span className="font-serif text-3xl italic">{formatCurrency(total())}</span>
             </div>
           </div>
-        </aside>
+        </Card>
       </div>
     </section>
   );
@@ -625,18 +682,17 @@ const CheckoutInput = ({
 }) => (
   <label className="block">
     <span className="text-[11px] uppercase tracking-[0.28em] text-black/60">{label}</span>
-    <input
+    <Input
+      variant="light"
+      error={Boolean(error)}
       required={required}
       name={name}
       type={type}
       value={value}
       autoComplete={autoComplete}
-      aria-invalid={Boolean(error)}
       aria-describedby={error ? `${name}-error` : undefined}
       onChange={(event) => onChange(event.target.value)}
-      className={`mt-3 w-full border bg-white px-4 py-4 text-sm outline-none transition-colors focus:border-brand-gold ${
-        error ? 'border-red-300' : 'border-black/10'
-      }`}
+      className="mt-3 py-4"
     />
     {error ? <FieldError message={error} id={`${name}-error`} /> : null}
   </label>

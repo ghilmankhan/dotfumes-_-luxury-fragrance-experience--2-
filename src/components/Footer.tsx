@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Instagram, Twitter, Facebook } from 'lucide-react';
 import { useToastStore } from '../store/useToastStore';
+import { Button } from './ui/primitives/Button';
+import { Grid } from './ui/layout/Grid';
 
 export const Footer = () => {
   const { pushToast } = useToastStore();
@@ -18,7 +20,7 @@ export const Footer = () => {
         </div>
 
         {/* Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-12 md:gap-24">
+        <Grid cols={{ base: 2, md: 3 }} gap={12} className="md:gap-24">
           <FooterGroup
             title="Archives"
             links={[
@@ -46,7 +48,7 @@ export const Footer = () => {
               { label: 'FAQ', to: '/faq' },
             ]}
           />
-        </div>
+        </Grid>
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-white/5 py-8">
@@ -58,30 +60,30 @@ export const Footer = () => {
 
       <div className="max-w-7xl mx-auto pt-4 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex gap-8">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={socialNotice}
-            className="text-white/40 hover:text-white transition-colors"
+            className="flex h-11 w-11 items-center justify-center p-0 normal-case tracking-normal md:h-auto md:w-auto md:px-2 md:py-2"
             aria-label="Instagram (opening soon)"
           >
             <Instagram size={18} strokeWidth={1.5} />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
             onClick={socialNotice}
-            className="text-white/40 hover:text-white transition-colors"
+            className="flex h-11 w-11 items-center justify-center p-0 normal-case tracking-normal md:h-auto md:w-auto md:px-2 md:py-2"
             aria-label="Twitter (opening soon)"
           >
             <Twitter size={18} strokeWidth={1.5} />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
             onClick={socialNotice}
-            className="text-white/40 hover:text-white transition-colors"
+            className="flex h-11 w-11 items-center justify-center p-0 normal-case tracking-normal md:h-auto md:w-auto md:px-2 md:py-2"
             aria-label="Facebook (opening soon)"
           >
             <Facebook size={18} strokeWidth={1.5} />
-          </button>
+          </Button>
           <span className="self-center text-[10px] uppercase tracking-[0.2em] text-white/45">
             Opening soon
           </span>
@@ -95,13 +97,13 @@ export const Footer = () => {
         <div className="flex gap-6">
           <Link
             to="/privacy"
-            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors"
+            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
           >
             Privacy
           </Link>
           <Link
             to="/terms"
-            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors"
+            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
           >
             Terms
           </Link>
@@ -126,7 +128,7 @@ const FooterGroup = ({ title, links }: { title: string; links: FooterLink[] }) =
           {link.to ? (
             <Link
               to={link.to}
-              className="text-white/60 text-[11px] uppercase tracking-[0.16em] hover:text-white transition-colors"
+              className="text-white/60 text-[11px] uppercase tracking-[0.16em] hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
             >
               {link.label}
             </Link>

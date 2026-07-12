@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { LinkButton } from '../components/ui/primitives/Button';
 
 export const NotFoundPage = () => {
   usePageMeta({
@@ -23,18 +23,20 @@ export const NotFoundPage = () => {
         </p>
 
         <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-          <Link
+          <LinkButton
             to="/"
-            className="inline-flex w-fit border border-brand-gold/40 px-9 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:bg-brand-gold hover:text-black"
+            variant="secondary"
+            className="w-fit px-9 py-5 tracking-[0.35em]"
           >
             Return Home
-          </Link>
-          <Link
+          </LinkButton>
+          <LinkButton
             to="/collection"
-            className="inline-flex w-fit border border-white/20 px-9 py-5 text-[10px] font-bold uppercase tracking-[0.35em] text-white transition-colors hover:border-white hover:bg-white hover:text-black"
+            variant="outline"
+            className="w-fit border-white/20 px-9 py-5 tracking-[0.35em] text-white hover:border-white hover:bg-white hover:text-black"
           >
             Explore Collection
-          </Link>
+          </LinkButton>
         </div>
       </div>
     </section>

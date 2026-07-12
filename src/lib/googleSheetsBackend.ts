@@ -1,5 +1,6 @@
 import { appConfig } from './config';
 import { OrderPayload, GoogleAppsScriptOrderResponse } from '../models/order';
+import { parseBoolean, parseNumber } from './normalize';
 
 const ORDER_REQUEST_TIMEOUT_MS = 22000;
 
@@ -78,37 +79,6 @@ const defaultCatalogSettings: GoogleSheetsFrontendSettings = {
   currency: 'USD',
 };
 
-const sanitizeBoolean = (value: unknown, fallback: boolean) => {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  if (typeof value === 'string') {
-    const next = value.trim().toLowerCase();
-    if (next === 'true' || next === '1' || next === 'yes') {
-      return true;
-    }
-    if (next === 'false' || next === '0' || next === 'no') {
-      return false;
-    }
-  }
-  return fallback;
-};
-
-const sanitizeNumber = (value: unknown, fallback: number) => {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const parsed = Number(value.trim());
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-  }
-
-  return fallback;
-};
-
 const toCatalogResponse = (payload: unknown): ProductCatalogResponse => {
   if (!payload || typeof payload !== 'object') {
     throw new Error('Invalid products response from order service.');
@@ -130,11 +100,11 @@ const toCatalogResponse = (payload: unknown): ProductCatalogResponse => {
     .filter((row): row is GoogleSheetsProductRow => Boolean(row));
 
   const settings: GoogleSheetsFrontendSettings = {
-    sheetProductDatabase: sanitizeBoolean(rawSettings.sheetProductDatabase, false),
-    hideInactiveProducts: sanitizeBoolean(rawSettings.hideInactiveProducts, false),
-    showOutOfStockProducts: sanitizeBoolean(rawSettings.showOutOfStockProducts, true),
-    allowOutOfStockCheckout: sanitizeBoolean(rawSettings.allowOutOfStockCheckout, false),
-    lowStockThreshold: sanitizeNumber(rawSettings.lowStockThreshold, 3),
+    sheetProductDatabase: parseBoolean(rawSettings.sheetProductDatabase, false),
+    hideInactiveProducts: parseBoolean(rawSettings.hideInactiveProducts, false),
+    showOutOfStockProducts: parseBoolean(rawSettings.showOutOfStockProducts, true),
+    allowOutOfStockCheckout: parseBoolean(rawSettings.allowOutOfStockCheckout, false),
+    lowStockThreshold: parseNumber(rawSettings.lowStockThreshold, 3),
     currency:
       typeof rawSettings.currency === 'string' && rawSettings.currency.trim()
         ? rawSettings.currency.trim()

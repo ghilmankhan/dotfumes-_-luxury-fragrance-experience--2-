@@ -22,11 +22,13 @@ export const useToastStore = create<ToastState>((set) => ({
       toasts: [...state.toasts, { id, message, tone }].slice(-3),
     }));
 
+    const duration = tone === 'error' || message.length > 80 ? 6000 : 3600;
+
     window.setTimeout(() => {
       set((state) => ({
         toasts: state.toasts.filter((toast) => toast.id !== id),
       }));
-    }, 3600);
+    }, duration);
   },
   dismissToast: (id) =>
     set((state) => ({

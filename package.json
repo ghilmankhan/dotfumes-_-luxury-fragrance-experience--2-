@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "tsx scripts/generate-skill-map.ts",
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "prebuild": "tsx scripts/generate-skill-map.ts",
     "build": "vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",

@@ -1,0 +1,47 @@
+{
+  "dashboard sheets api fetch": {
+    "activeSkills": [
+      "apps-script"
+    ],
+    "status": "success"
+  },
+  "orders zustand client state": {
+    "activeSkills": [
+      "zustand-5"
+    ],
+    "status": "success"
+  },
+  "products ui redesign typography": {
+    "activeSkills": [
+      "frontend-design",
+      "zustand-5",
+      "tailwind-css",
+      "typescript"
+    ],
+    "status": "success"
+  },
+  "settings ts-expect-error fix types": {
+    "activeSkills": [
+      "typescript"
+    ],
+    "status": "success"
+  },
+  "hook composition best practices": {
+    "activeSkills": [
+      "react-patterns"
+    ],
+    "status": "success"
+  },
+  "slow render bundle size audit": {
+    "activeSkills": [
+      "react-performance"
+    ],
+    "status": "success"
+  },
+  "react 19 refs as props no manual memoization": {
+    "activeSkills": [
+      "react-19"
+    ],
+    "status": "success"
+  }
+}

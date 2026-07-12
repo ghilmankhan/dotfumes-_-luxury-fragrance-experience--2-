@@ -6,6 +6,9 @@ import { AssetImage } from '../components/AssetImage';
 import { COLLECTION_IMAGES } from '../constants/images';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
+import { Button } from '../components/ui/primitives/Button';
+import { EmptyState } from '../components/ui/feedback/EmptyState';
+import { cn } from '../lib/utils';
 
 type CategoryFilter = 'All' | Product['category'];
 
@@ -100,18 +103,19 @@ export const CollectionPage = () => {
 
             <div className="flex flex-wrap gap-2" aria-label="Filter collection">
               {filters.map((filter) => (
-                <button
+                <Button
                   key={filter}
-                  type="button"
+                  variant="ghost"
                   onClick={() => setActiveFilter(filter)}
-                  className={`border px-5 py-3 text-[10px] uppercase tracking-[0.28em] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold ${
+                  className={cn(
+                    'border px-5 py-3 font-normal normal-case tracking-[0.28em] text-[10px]',
                     activeFilter === filter
-                      ? 'border-brand-black bg-brand-black text-white'
-                      : 'border-black/10 text-black/50 hover:border-black/30 hover:text-black'
-                  }`}
+                      ? 'border-brand-black bg-brand-black text-white hover:text-white'
+                      : 'border-black/10 text-black/50 hover:border-black/30 hover:text-black',
+                  )}
                 >
                   {filter}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -126,11 +130,7 @@ export const CollectionPage = () => {
               ))}
             </motion.div>
           ) : (
-            <div className="border border-black/10 py-24 text-center">
-              <p className="text-[11px] uppercase tracking-[0.35em] text-black/45">
-                No fragrances currently match this archive.
-              </p>
-            </div>
+            <EmptyState title="No fragrances currently match this archive." />
           )}
         </div>
       </div>

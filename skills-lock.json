@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "apps-script": {
+      "source": "ArtyMcLabin/ClaudeCode-global-config",
+      "sourceType": "github",
+      "skillPath": "skills/apps-script/SKILL.md",
+      "computedHash": "5f24b779b91916520531816f75d6dfa27008f54842d8b9cf09acefcb94f0e86a"
+    },
+    "frontend-design": {
+      "source": "anthropics/claude-code",
+      "sourceType": "github",
+      "skillPath": "plugins/frontend-design/skills/frontend-design/SKILL.md",
+      "computedHash": "3e0be122a3db8206b6d0d6b07cca898b5c75fb9b7b2101abe143fb2851734d2e"
+    },
+    "tailwind-css": {
+      "source": "freekmurze/dotfiles",
+      "sourceType": "github",
+      "skillPath": "config/claude/skills/tailwind-css/SKILL.md",
+      "computedHash": "5c2175a661d7fece48ba83e6caa3289f4274ba75d8f1e915b78e5fbf35dc9f71"
+    },
+    "typescript": {
+      "source": "lobehub/lobehub",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/typescript/SKILL.md",
+      "computedHash": "95dd0e42e5e2bc55e67ec37d879b21136663fd20e18c7966fb9fe6ecd02b5540"
+    },
+    "zustand-5": {
+      "source": "prowler-cloud/prowler",
+      "sourceType": "github",
+      "skillPath": "skills/zustand-5/SKILL.md",
+      "computedHash": "08871c0f38a9d3366fdb4aada1b9b10f29744d8ae15ecba7972f3c10dde1ac34"
+    }
+  }
+}

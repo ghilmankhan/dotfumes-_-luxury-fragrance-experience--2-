@@ -1,25 +1,13 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useCallback, useMemo, useState } from 'react';
 import { appConfig } from '../lib/config';
 import { usePageMeta } from '../hooks/usePageMeta';
-
-type AdminOrder = {
-  orderId: string;
-  createdAt: string;
-  customerName: string;
-  total: number;
-  paymentStatus: string;
-  orderStatus: string;
-  slipUrl: string;
-};
-
-type AdminProductStock = {
-  slug: string;
-  name: string;
-  price: number;
-  stock: number;
-  active: boolean;
-  category: string;
-};
+import { Button } from '../components/ui/primitives/Button';
+import { Card } from '../components/ui/primitives/Card';
+import { Input } from '../components/ui/primitives/Input';
+import { Grid } from '../components/ui/layout/Grid';
+import { ensureArray, isRecord, parseNumber, parseText } from '../lib/normalize';
+import { MetricCard, TableSkeleton, DataSection, OrdersTable, ProductTable } from '../components/admin';
+import type { AdminOrder, AdminProductStock } from '../components/admin';
 
 type AdminMetricSummary = {
   totalOrders: number;
@@ -51,7 +39,6 @@ type DashboardApiResponse = {
   data?: unknown;
 };
 
-type JsonObject = Record<string, unknown>;
 type DashboardAction = 'dashboard' | 'orders' | 'products' | 'settings';
 
 const DEFAULT_ADMIN_ERROR =
@@ -84,25 +71,6 @@ const normalizeDashboardErrorMessage = (input: string) => {
 
   return input;
 };
-
-const parseNumber = (value: unknown): number => {
-  const asNumber = Number(value);
-  return Number.isFinite(asNumber) ? asNumber : 0;
-};
-
-const parseText = (value: unknown, fallback = ''): string => {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
-
-  const text = String(value).trim();
-  return text || fallback;
-};
-
-const isRecord = (value: unknown): value is JsonObject =>
-  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-
-const ensureArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
 const normalizeOrder = (raw: unknown): AdminOrder | null => {
   if (!isRecord(raw)) {
@@ -317,24 +285,6 @@ export const AdminPage = () => {
     robots: 'noindex,nofollow',
   });
 
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('[AdminPage] mounted');
-      console.log('[AdminPage] backend URL exists:', urlValidation.exists);
-      console.log('[AdminPage] backend URL valid:', urlValidation.valid);
-      console.log('[AdminPage] admin password exists:', hasAdminPassword);
-      console.log('[AdminPage] admin token exists:', hasAdminReadToken);
-    }
-  }, [hasAdminPassword, hasAdminReadToken, urlValidation.exists, urlValidation.valid]);
-
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log(
-        `[AdminPage] auth state: ${isAuthenticated ? 'authenticated' : 'password-required'}`,
-      );
-    }
-  }, [isAuthenticated]);
-
   const loadDashboard = useCallback(async () => {
     if (!urlValidation.exists || !appConfig.googleAppsScriptWebAppUrl) {
       setDashboardError(
@@ -477,8 +427,11 @@ export const AdminPage = () => {
   if (!isAuthenticated) {
     return (
       <section className="min-h-screen bg-brand-black px-6 pb-20 pt-28 text-white md:px-12">
-        <div className="mx-auto max-w-md border border-white/15 bg-black/30 p-7 md:p-8">
+        <Card variant="dark" className="mx-auto max-w-md border-white/15 bg-black/30 p-7 md:p-8">
           <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold">DOTFUMES Admin</p>
+          <p className="mt-3 inline-block border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-amber-200">
+            Client-side preview dashboard — not production-auth secured
+          </p>
           <h1 className="mt-6 font-serif text-4xl italic leading-tight">Secure Access</h1>
           <p className="mt-4 text-sm leading-7 text-white/65">
             Enter the admin password to access the operational control room.
@@ -487,7 +440,8 @@ export const AdminPage = () => {
           <form onSubmit={handleUnlock} className="mt-8 space-y-4" noValidate>
             <label className="block">
               <span className="text-[11px] uppercase tracking-[0.25em] text-white/45">Password</span>
-              <input
+              <Input
+                variant="dark"
                 type="password"
                 value={password}
                 onChange={(event) => {
@@ -496,7 +450,7 @@ export const AdminPage = () => {
                     setAuthError('');
                   }
                 }}
-                className="mt-2 w-full border border-white/20 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-brand-gold"
+                className="mt-2"
                 autoComplete="current-password"
                 required
               />
@@ -508,14 +462,15 @@ export const AdminPage = () => {
               </p>
             ) : null}
 
-            <button
+            <Button
               type="submit"
-              className="w-full border border-brand-gold/60 bg-brand-gold px-4 py-3 text-[10px] font-bold uppercase tracking-[0.3em] text-black transition-colors hover:bg-white"
+              variant="secondary"
+              className="w-full border-brand-gold/60 bg-brand-gold text-black tracking-[0.3em] hover:bg-white hover:text-black"
             >
               Unlock Dashboard
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       </section>
     );
   }
@@ -526,37 +481,41 @@ export const AdminPage = () => {
   return (
     <section className="min-h-screen bg-brand-white px-6 pb-20 pt-20 text-brand-black md:px-12">
       <div className="mx-auto max-w-7xl space-y-8">
-        <header className="border border-black/10 bg-white p-6 md:p-8">
+        <Card as="header" className="p-6 md:p-8">
           <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold">DOTFUMES Admin</p>
+          <p className="mt-3 inline-block border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-amber-700">
+            Client-side preview dashboard — not production-auth secured
+          </p>
           <h1 className="mt-5 font-serif text-4xl italic leading-tight md:text-5xl">Control Room</h1>
           <p className="mt-3 text-sm text-black/60">
             Read-only operational dashboard for orders, payments, and stock visibility.
           </p>
-        </header>
+        </Card>
 
         <div className="flex flex-wrap items-center gap-4">
-          <button
-            type="button"
+          <Button
+            variant="outline"
             onClick={() => {
               void loadDashboard();
             }}
-            disabled={isLoading}
-            className="border border-black/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.28em] text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            loading={isLoading}
+            className="border-black/20 tracking-[0.28em] text-black hover:bg-black hover:text-white hover:border-black/20"
           >
             {isLoading ? 'Refreshing...' : 'Refresh Dashboard'}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => {
               setIsAuthenticated(false);
               setPassword('');
               setDashboard(null);
               setDashboardError('');
             }}
-            className="border border-black/20 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.28em] text-black/75 transition-colors hover:bg-black hover:text-white"
+            disabled={isLoading}
+            className="border-black/20 tracking-[0.28em] text-black/75 hover:bg-black hover:text-white hover:border-black/20"
           >
             Lock Admin
-          </button>
+          </Button>
         </div>
 
         {dashboardError ? (
@@ -565,171 +524,83 @@ export const AdminPage = () => {
           </div>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Total Orders" value={summary ? String(summary.totalOrders) : '--'} />
-          <MetricCard
-            label="Total Revenue"
-            value={summary ? `${currency} ${summary.totalRevenue.toFixed(2)}` : '--'}
-          />
-          <MetricCard
-            label="Pending Payments"
-            value={summary ? String(summary.pendingPayments) : '--'}
-          />
-          <MetricCard
-            label="Verified Payments"
-            value={summary ? String(summary.verifiedPayments) : '--'}
-          />
-          <MetricCard label="New Orders" value={summary ? String(summary.newOrders) : '--'} />
-          <MetricCard
-            label="Delivered Orders"
-            value={summary ? String(summary.deliveredOrders) : '--'}
-          />
-          <MetricCard
-            label="Best Selling Perfume"
-            value={dashboard?.bestSellingPerfume?.name || 'N/A'}
-          />
-          <MetricCard
-            label="Units Sold"
-            value={dashboard?.bestSellingPerfume ? String(dashboard.bestSellingPerfume.unitsSold) : '0'}
-          />
-        </div>
+        {isLoading && !dashboard ? (
+          <Grid cols={{ md: 2, xl: 4 }} aria-label="Loading dashboard metrics">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-[72px] animate-pulse border border-black/10 bg-black/[0.03] p-4"
+              />
+            ))}
+          </Grid>
+        ) : (
+          <Grid cols={{ md: 2, xl: 4 }}>
+            <MetricCard label="Total Orders" value={summary ? String(summary.totalOrders) : '--'} />
+            <MetricCard
+              label="Total Revenue"
+              value={summary ? `${currency} ${summary.totalRevenue.toFixed(2)}` : '--'}
+            />
+            <MetricCard
+              label="Pending Payments"
+              value={summary ? String(summary.pendingPayments) : '--'}
+            />
+            <MetricCard
+              label="Verified Payments"
+              value={summary ? String(summary.verifiedPayments) : '--'}
+            />
+            <MetricCard label="New Orders" value={summary ? String(summary.newOrders) : '--'} />
+            <MetricCard
+              label="Delivered Orders"
+              value={summary ? String(summary.deliveredOrders) : '--'}
+            />
+            <MetricCard
+              label="Best Selling Perfume"
+              value={dashboard?.bestSellingPerfume?.name || 'N/A'}
+            />
+            <MetricCard
+              label="Units Sold"
+              value={
+                dashboard?.bestSellingPerfume ? String(dashboard.bestSellingPerfume.unitsSold) : '0'
+              }
+            />
+          </Grid>
+        )}
 
         <DataSection title="Payment Verification Queue">
-          <OrdersTable orders={dashboard?.paymentVerificationQueue ?? []} emptyLabel="No pending verification orders." />
+          {isLoading && !dashboard ? (
+            <TableSkeleton />
+          ) : (
+            <OrdersTable orders={dashboard?.paymentVerificationQueue ?? []} emptyLabel="No pending verification orders." />
+          )}
         </DataSection>
 
         <DataSection title="Recent Orders">
-          <OrdersTable orders={dashboard?.recentOrders ?? []} emptyLabel="No recent orders found." />
+          {isLoading && !dashboard ? (
+            <TableSkeleton />
+          ) : (
+            <OrdersTable orders={dashboard?.recentOrders ?? []} emptyLabel="No recent orders found." />
+          )}
         </DataSection>
 
         <DataSection title="Low Stock Products">
-          <ProductTable
-            products={dashboard?.lowStockProducts ?? []}
-            emptyLabel="No products are currently below the low-stock threshold."
-          />
+          {isLoading && !dashboard ? (
+            <TableSkeleton />
+          ) : (
+            <ProductTable
+              products={dashboard?.lowStockProducts ?? []}
+              emptyLabel="No products are currently below the low-stock threshold."
+            />
+          )}
         </DataSection>
 
         <DataSection title="Product Stock Table">
-          <ProductTable products={dashboard?.productStock ?? []} emptyLabel="No product rows found." />
+          {isLoading && !dashboard ? (
+            <TableSkeleton />
+          ) : (
+            <ProductTable products={dashboard?.productStock ?? []} emptyLabel="No product rows found." />
+          )}
         </DataSection>
       </div>
     </section>
-  );
-};
-
-const MetricCard = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) => {
-  return (
-    <article className="border border-black/10 bg-white p-4">
-      <p className="text-[10px] uppercase tracking-[0.18em] text-black/55">{label}</p>
-      <p className="mt-2 text-lg font-medium text-black">{value}</p>
-    </article>
-  );
-};
-
-const DataSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <section className="space-y-3">
-    <h2 className="text-[11px] uppercase tracking-[0.3em] text-black/55">{title}</h2>
-    <div className="overflow-x-auto border border-black/10 bg-white">{children}</div>
-  </section>
-);
-
-const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; emptyLabel: string }) => {
-  return (
-    <table className="min-w-full border-collapse text-left text-sm">
-      <thead>
-        <tr className="border-b border-black/10 bg-black/[0.02] text-[10px] uppercase tracking-[0.16em] text-black/60">
-          <th className="px-4 py-3 font-semibold">Order ID</th>
-          <th className="px-4 py-3 font-semibold">Created</th>
-          <th className="px-4 py-3 font-semibold">Customer</th>
-          <th className="px-4 py-3 font-semibold">Total</th>
-          <th className="px-4 py-3 font-semibold">Payment</th>
-          <th className="px-4 py-3 font-semibold">Status</th>
-          <th className="px-4 py-3 font-semibold">Slip</th>
-        </tr>
-      </thead>
-      <tbody>
-        {orders.length === 0 ? (
-          <tr>
-            <td className="px-4 py-6 text-black/55" colSpan={7}>
-              {emptyLabel}
-            </td>
-          </tr>
-        ) : (
-          orders.map((order) => (
-            <tr key={`${order.orderId}-${order.createdAt}`} className="border-b border-black/5">
-              <td className="px-4 py-4 font-medium">{order.orderId}</td>
-              <td className="px-4 py-4">{order.createdAt || '—'}</td>
-              <td className="px-4 py-4">{order.customerName}</td>
-              <td className="px-4 py-4">${order.total.toFixed(2)}</td>
-              <td className="px-4 py-4">{order.paymentStatus}</td>
-              <td className="px-4 py-4">{order.orderStatus}</td>
-              <td className="px-4 py-4">
-                {order.slipUrl ? (
-                  <a
-                    href={order.slipUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-black underline underline-offset-4"
-                  >
-                    View Slip
-                  </a>
-                ) : (
-                  <span className="text-black/45">Unavailable</span>
-                )}
-              </td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  );
-};
-
-const ProductTable = ({
-  products,
-  emptyLabel,
-}: {
-  products: AdminProductStock[];
-  emptyLabel: string;
-}) => {
-  return (
-    <table className="min-w-full border-collapse text-left text-sm">
-      <thead>
-        <tr className="border-b border-black/10 bg-black/[0.02] text-[10px] uppercase tracking-[0.16em] text-black/60">
-          <th className="px-4 py-3 font-semibold">Name</th>
-          <th className="px-4 py-3 font-semibold">Slug</th>
-          <th className="px-4 py-3 font-semibold">Category</th>
-          <th className="px-4 py-3 font-semibold">Price</th>
-          <th className="px-4 py-3 font-semibold">Stock</th>
-          <th className="px-4 py-3 font-semibold">Active</th>
-        </tr>
-      </thead>
-      <tbody>
-        {products.length === 0 ? (
-          <tr>
-            <td className="px-4 py-6 text-black/55" colSpan={6}>
-              {emptyLabel}
-            </td>
-          </tr>
-        ) : (
-          products.map((product) => (
-            <tr key={`${product.slug || product.name}-${product.stock}`} className="border-b border-black/5">
-              <td className="px-4 py-4 font-medium">{product.name}</td>
-              <td className="px-4 py-4">{product.slug || '—'}</td>
-              <td className="px-4 py-4">{product.category}</td>
-              <td className="px-4 py-4">${product.price.toFixed(2)}</td>
-              <td className="px-4 py-4">{product.stock}</td>
-              <td className="px-4 py-4">{product.active ? 'Yes' : 'No'}</td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
   );
 };

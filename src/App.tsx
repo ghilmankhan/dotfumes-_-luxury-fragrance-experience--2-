@@ -9,7 +9,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
 import { ToastViewport } from './components/ToastViewport';
 import { ScrollToTop } from './components/ScrollToTop';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { CollectionPage } from './pages/CollectionPage';
@@ -17,7 +17,6 @@ import { ProductPage } from './pages/ProductPage';
 import { AboutPage } from './pages/AboutPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
-import { AdminPage } from './pages/AdminPage';
 import { ShippingPage } from './pages/ShippingPage';
 import { ReturnsPage } from './pages/ReturnsPage';
 import { ContactPage } from './pages/ContactPage';
@@ -30,16 +29,12 @@ import { SustainabilityPage } from './pages/SustainabilityPage';
 import { CareersPage } from './pages/CareersPage';
 import { useProductCatalogStore } from './store/useProductCatalogStore';
 
+const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
+
 export default function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
   const initCatalog = useProductCatalogStore((state) => state.init);
-
-  useEffect(() => {
-    if (import.meta.env.DEV && isAdminRoute) {
-      console.log('[Router] /admin route matched:', location.pathname);
-    }
-  }, [isAdminRoute, location.pathname]);
 
   useEffect(() => {
     void initCatalog();
@@ -62,8 +57,22 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/*" element={<AdminPage />} />
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={null}>
+                <AdminPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin/*"
+            element={
+              <Suspense fallback={null}>
+                <AdminPage />
+              </Suspense>
+            }
+          />
           <Route path="/shipping" element={<ShippingPage />} />
           <Route path="/returns" element={<ReturnsPage />} />
           <Route path="/contact" element={<ContactPage />} />

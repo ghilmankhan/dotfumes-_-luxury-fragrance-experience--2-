@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { AssetImage } from '../components/AssetImage';
+import { LinkButton } from '../components/ui/primitives/Button';
+import { Grid } from '../components/ui/layout/Grid';
 import { COLLECTION_IMAGES } from '../constants/images';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -31,12 +32,13 @@ export const AboutPage = () => {
             Dotfumes composes fragrances as quiet scenes: mineral air, warm skin, polished woods,
             and the pause before a room remembers you.
           </p>
-          <Link
+          <LinkButton
             to="/collection"
-            className="mt-12 inline-flex w-fit border border-brand-gold/35 px-9 py-5 text-[10px] uppercase tracking-[0.38em] text-white transition-colors hover:bg-brand-gold hover:text-black"
+            variant="secondary"
+            className="mt-12 w-fit px-9 py-5 tracking-[0.38em]"
           >
             Explore Collection
-          </Link>
+          </LinkButton>
         </div>
 
         <div className="relative min-h-[70vh] overflow-hidden">
@@ -53,7 +55,7 @@ export const AboutPage = () => {
       </div>
 
       <div id="ethics" className="border-t border-white/10 px-6 py-24 md:px-16 lg:px-24">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-3">
+        <Grid cols={{ md: 3 }} gap={12} className="mx-auto max-w-6xl">
           {[
             [
               'Slow Extraction',
@@ -73,7 +75,7 @@ export const AboutPage = () => {
               <p className="mt-5 text-sm leading-7 text-white/45">{copy}</p>
             </article>
           ))}
-        </div>
+        </Grid>
       </div>
     </section>
   );

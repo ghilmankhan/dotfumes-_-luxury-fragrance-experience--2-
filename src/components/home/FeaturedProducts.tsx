@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ProductCard } from './ProductCard';
 import { useProductCatalogStore } from '../../store/useProductCatalogStore';
+import { easing, duration } from '../../styles/tokens/motion';
 
 export const FeaturedProducts = () => {
   const products = useProductCatalogStore((state) => state.products);
@@ -28,7 +29,7 @@ export const FeaturedProducts = () => {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: duration.cinematic, ease: easing.cinematic }}
               className="font-serif text-5xl md:text-8xl text-brand-black leading-[0.9] tracking-tighter"
             >
               Curated for the <br />{' '}
@@ -50,7 +51,7 @@ export const FeaturedProducts = () => {
                 <motion.div
                   initial={{ x: '-100%' }}
                   whileHover={{ x: '100%' }}
-                  transition={{ duration: 0.8 }}
+                  transition={{ duration: duration.slow }}
                   className="absolute inset-0 bg-brand-black"
                 />
               </div>

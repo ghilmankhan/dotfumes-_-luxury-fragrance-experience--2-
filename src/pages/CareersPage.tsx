@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { Card } from '../components/ui/primitives/Card';
+import { Container } from '../components/ui/layout/Container';
+import { LinkButton } from '../components/ui/primitives/Button';
 
 const roles = [
   'Retail partnerships and customer support',
@@ -16,7 +18,7 @@ export const CareersPage = () => {
 
   return (
     <section className="min-h-screen bg-brand-black text-white">
-      <div className="mx-auto w-full max-w-6xl px-6 pb-24 pt-36 md:px-16">
+      <Container size="lg" className="pb-24 pt-36">
         <p className="text-[11px] font-bold uppercase tracking-[0.42em] text-brand-gold">The House</p>
         <h1 className="mt-8 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
           Careers
@@ -26,7 +28,7 @@ export const CareersPage = () => {
           of interest with the team.
         </p>
 
-        <div className="mt-12 border border-white/10 bg-white/[0.02] p-6">
+        <Card variant="dark" className="mt-12 p-6">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/90">
             Current focus areas
           </h2>
@@ -41,20 +43,21 @@ export const CareersPage = () => {
           <p className="mt-7 text-[10px] uppercase tracking-[0.2em] text-white/48">
             Openings are reviewed based on active business needs.
           </p>
-        </div>
+        </Card>
 
-        <div className="mt-12 border border-white/10 bg-black/35 px-6 py-6 sm:flex sm:items-center sm:justify-between">
+        <Card variant="dark" className="mt-12 bg-black/35 px-6 py-6 sm:flex sm:items-center sm:justify-between">
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/72">
             Send your profile and portfolio to begin a conversation.
           </p>
-          <Link
+          <LinkButton
             to="/contact"
-            className="mt-5 inline-flex border border-brand-gold/45 px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] transition-colors hover:bg-brand-gold hover:text-black sm:mt-0"
+            variant="secondary"
+            className="mt-5 text-[11px] tracking-[0.22em] sm:mt-0"
           >
             Contact Dotfumes
-          </Link>
-        </div>
-      </div>
+          </LinkButton>
+        </Card>
+      </Container>
     </section>
   );
 };

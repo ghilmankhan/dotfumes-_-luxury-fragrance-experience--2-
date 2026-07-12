@@ -1,5 +1,6 @@
 import { Product } from '../models/types';
 
+// This file acts as demo + fallback catalog used for Sheets merge base.
 const productImagePath = (slug: string, filename: string) => `/images/products/${slug}/${filename}`;
 
 export const FEATURED_PRODUCTS: Product[] = [

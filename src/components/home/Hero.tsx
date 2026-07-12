@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState, type FocusEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Link } from 'react-router-dom';
 import { FEATURED_PRODUCTS } from '../../constants/products';
+import { Button, LinkButton } from '../ui/primitives/Button';
+import { cn } from '../../lib/utils';
+import { eyebrowLabel, headingXl } from '../../styles/tokens/typography';
+import { easing } from '../../styles/tokens/motion';
 
 type HeroSlide = {
   slug: string;
@@ -135,14 +138,37 @@ const HERO_SLIDES: HeroSlide[] = [
   },
 ];
 
+const TOUCH_RESUME_AFTER_MS = 10000;
+
 export const Hero = () => {
   const prefersReducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [slideFallbacks, setSlideFallbacks] = useState<Record<string, boolean>>({});
+  const touchResumeTimeoutRef = useRef<number | null>(null);
 
   const activeSlide = HERO_SLIDES[activeIndex];
   const autoRotateMs = 7000;
+
+  // Mobile has no hover/blur to resume on, so touching the slide pauses it and
+  // a fresh inactivity timer (reset on every touch) resumes it instead.
+  const handleTouchStart = () => {
+    setIsPaused(true);
+    if (touchResumeTimeoutRef.current) {
+      window.clearTimeout(touchResumeTimeoutRef.current);
+    }
+    touchResumeTimeoutRef.current = window.setTimeout(() => {
+      setIsPaused(false);
+    }, TOUCH_RESUME_AFTER_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (touchResumeTimeoutRef.current) {
+        window.clearTimeout(touchResumeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion || isPaused) {
@@ -192,6 +218,7 @@ export const Hero = () => {
       onMouseLeave={() => setIsPaused(false)}
       onFocusCapture={() => setIsPaused(true)}
       onBlurCapture={handleBlurCapture}
+      onTouchStart={handleTouchStart}
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -199,7 +226,7 @@ export const Hero = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: prefersReducedMotion ? 0.01 : 1.1, ease: 'easeOut' }}
+          transition={{ duration: prefersReducedMotion ? 0.01 : 1.1, ease: easing.standard }}
           className="absolute inset-0"
         >
           <img
@@ -247,7 +274,7 @@ export const Hero = () => {
 
       <main className="relative z-30 mx-auto flex min-h-[92svh] w-full max-w-[1760px] flex-col justify-between px-6 pb-10 pt-28 md:min-h-screen md:px-16 md:pb-14 md:pt-36 lg:px-24">
         <div className="max-w-[720px]">
-          <p className="mb-5 inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.46em] text-brand-gold md:mb-7">
+          <p className={cn(eyebrowLabel, 'mb-5 inline-flex items-center gap-3 tracking-[0.46em] text-brand-gold md:mb-7')}>
             <span>{activeSlide.eyebrow}</span>
             <span
               className={`h-px w-10 bg-gradient-to-r ${activeSlide.accentClassName} md:w-14`}
@@ -261,9 +288,9 @@ export const Hero = () => {
               initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
-              transition={{ duration: prefersReducedMotion ? 0.01 : 0.6, ease: 'easeOut' }}
+              transition={{ duration: prefersReducedMotion ? 0.01 : 0.6, ease: easing.standard }}
             >
-              <h1 className="font-serif text-[2.55rem] italic leading-[0.9] tracking-[-0.035em] text-white sm:text-[3.3rem] md:text-[5rem] lg:text-[5.6rem]">
+              <h1 className={headingXl}>
                 <span className="block">{activeSlide.headlineLine1}</span>
                 <span className="block text-white/80">{activeSlide.headlineLine2}</span>
               </h1>
@@ -284,18 +311,19 @@ export const Hero = () => {
 
         <div className="mt-10 flex flex-col gap-6 md:mt-0">
           <div className="flex flex-wrap gap-3">
-            <Link
+            <LinkButton
               to={activeSlide.primaryCtaRoute}
-              className="inline-flex items-center justify-center border border-brand-gold/45 bg-brand-gold/18 px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.32em] text-white transition hover:border-brand-gold hover:bg-brand-gold hover:text-black md:px-8 md:py-4 md:text-[11px]"
+              variant="secondary"
+              className="font-semibold md:text-[11px]"
             >
               {activeSlide.primaryCtaLabel}
-            </Link>
-            <Link
+            </LinkButton>
+            <LinkButton
               to={activeSlide.secondaryCtaRoute}
-              className="inline-flex items-center justify-center border border-white/25 bg-black/25 px-6 py-3 text-[10px] font-semibold uppercase tracking-[0.32em] text-white transition hover:border-white/60 hover:bg-white/12 md:px-8 md:py-4 md:text-[11px]"
+              className="border border-white/25 bg-black/25 px-6 py-3 font-semibold text-white hover:border-white/60 hover:bg-white/12 hover:text-white md:px-8 md:py-4 md:text-[11px]"
             >
               {activeSlide.secondaryCtaLabel}
-            </Link>
+            </LinkButton>
           </div>
 
           <p className="max-w-[640px] text-[11px] uppercase tracking-[0.2em] text-white/68">
@@ -313,45 +341,46 @@ export const Hero = () => {
             {HERO_SLIDES.map((slide, index) => {
               const isActive = index === activeIndex;
               return (
-                <button
+                <Button
                   key={slide.slug}
-                  type="button"
+                  variant="ghost"
                   role="tab"
                   aria-selected={isActive}
                   aria-controls={`hero-slide-${slide.slug}`}
                   aria-label={`Show ${slide.name} hero`}
                   onClick={() => setActiveIndex(index)}
-                  className={`shrink-0 border px-3 py-2 text-[10px] uppercase tracking-[0.22em] transition md:px-4 md:text-[11px] ${
+                  className={cn(
+                    'shrink-0 border px-3 py-2 font-normal normal-case tracking-[0.22em] text-[10px] transition md:px-4 md:text-[11px]',
                     isActive
-                      ? 'border-brand-gold bg-brand-gold/20 text-white'
-                      : 'border-white/20 bg-black/25 text-white/72 hover:border-white/45 hover:text-white'
-                  }`}
+                      ? 'border-brand-gold bg-brand-gold/20 text-white hover:text-white'
+                      : 'border-white/20 bg-black/25 text-white/72 hover:border-white/45 hover:text-white',
+                  )}
                 >
                   {slide.name}
-                </button>
+                </Button>
               );
             })}
           </div>
 
           <div className="hidden items-center gap-3 self-start md:flex md:self-auto">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={() =>
                 setActiveIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)
               }
-              className="h-10 w-10 border border-white/22 bg-black/22 text-white/85 transition hover:border-white/55 hover:text-white"
+              className="h-10 w-10 border border-white/22 bg-black/22 p-0 normal-case tracking-normal text-white/85 hover:border-white/55 hover:text-white"
               aria-label="Show previous fragrance slide"
             >
               ‹
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length)}
-              className="h-10 w-10 border border-white/22 bg-black/22 text-white/85 transition hover:border-white/55 hover:text-white"
+              className="h-10 w-10 border border-white/22 bg-black/22 p-0 normal-case tracking-normal text-white/85 hover:border-white/55 hover:text-white"
               aria-label="Show next fragrance slide"
             >
               ›
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -361,7 +390,7 @@ export const Hero = () => {
             className={`h-full bg-gradient-to-r ${activeSlide.accentClassName}`}
             initial={{ width: 0 }}
             animate={{ width: slideProgressWidth }}
-            transition={{ duration: prefersReducedMotion ? 0.1 : 0.5, ease: 'easeOut' }}
+            transition={{ duration: prefersReducedMotion ? 0.1 : 0.5, ease: easing.standard }}
           />
         </div>
       </main>
