@@ -7,6 +7,8 @@ import { cn } from '../lib/utils';
 import { Modal } from './ui/primitives/Modal';
 import { Button } from './ui/primitives/Button';
 import { easing, duration } from '../styles/tokens/motion';
+import { tracking } from '../styles/tokens/typography';
+import { touchTarget } from '../styles/tokens/interactive';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -46,7 +48,8 @@ export const Navbar = () => {
         <div className="flex-1 hidden lg:flex items-center gap-12">
           <div
             className={cn(
-              'text-[10px] tracking-[0.4em] uppercase',
+              'text-[10px] uppercase',
+              tracking.wider,
               isLightNav ? 'text-black/45' : 'text-white/40',
             )}
           >
@@ -80,13 +83,14 @@ export const Navbar = () => {
             variant="ghost"
             onClick={openCart}
             className={cn(
-              'relative min-h-11 min-w-11 p-2 normal-case tracking-normal transition-colors duration-300 md:min-h-0 md:min-w-0',
+              'relative p-2 normal-case tracking-normal transition-colors duration-300',
+              touchTarget,
               isLightNav ? 'text-black/70 hover:text-black' : 'text-white/60 hover:text-white',
             )}
             aria-label={`Open cart with ${cartCount} item${cartCount === 1 ? '' : 's'}`}
           >
             <div className="flex items-center gap-3">
-              <span className="text-[10px] tracking-[0.2em] uppercase hidden md:block">
+              <span className={cn('text-[10px] uppercase hidden md:block', tracking.normal)}>
                 Cart ({cartCount})
               </span>
               <ShoppingBag size={18} strokeWidth={1} />
@@ -97,7 +101,8 @@ export const Navbar = () => {
             variant="ghost"
             onClick={() => setIsMenuOpen(true)}
             className={cn(
-              'lg:hidden min-h-11 min-w-11 p-2 normal-case tracking-normal transition-colors md:min-h-0 md:min-w-0',
+              'lg:hidden p-2 normal-case tracking-normal transition-colors',
+              touchTarget,
               isLightNav ? 'text-black/70 hover:text-black' : 'text-white/70 hover:text-white',
             )}
             aria-label="Open navigation menu"
@@ -124,7 +129,10 @@ export const Navbar = () => {
           <Button
             variant="ghost"
             onClick={() => setIsMenuOpen(false)}
-            className="min-h-11 min-w-11 p-2 normal-case tracking-normal text-white/60 hover:text-white"
+            className={cn(
+              'p-2 normal-case tracking-normal text-white/60 hover:text-white',
+              touchTarget,
+            )}
             aria-label="Close navigation menu"
           >
             <X size={22} strokeWidth={1} />
@@ -187,7 +195,8 @@ const NavLink = ({
       to={to}
       className={({ isActive }) =>
         cn(
-          'text-[10px] uppercase tracking-[0.3em] transition-colors duration-300',
+          'text-[10px] uppercase transition-colors duration-300',
+          tracking.wide,
           isLightNav
             ? isActive
               ? 'text-black'

@@ -8,9 +8,10 @@ import { useToastStore } from '../../store/useToastStore';
 import { AssetImage } from '../AssetImage';
 import { isProductOutOfStock } from '../../lib/validation';
 import { Button, LinkButton } from '../ui/primitives/Button';
-import { eyebrowLabel, headingLg } from '../../styles/tokens/typography';
+import { eyebrowLabel, eyebrowLabelSm, bodyCopy, headingLg, tracking } from '../../styles/tokens/typography';
 import { cn } from '../../lib/utils';
 import { easing } from '../../styles/tokens/motion';
+import { focusRing } from '../../styles/tokens/interactive';
 
 interface ProductCardProps {
   product: Product;
@@ -56,7 +57,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
             navigate(`/product/${product.slug}`);
           }
         }}
-        className="relative aspect-square w-full mb-10 overflow-hidden flex items-center justify-center bg-[#FDFDFD] shadow-[inset_0_0_80px_rgba(0,0,0,0.02)] md:mb-12 cursor-pointer focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+        className={cn(
+          'relative aspect-square w-full mb-10 overflow-hidden flex items-center justify-center bg-brand-white shadow-[inset_0_0_80px_rgba(0,0,0,0.02)] md:mb-12 cursor-pointer',
+          focusRing,
+        )}
         aria-label={`View ${product.name}`}
       >
         <motion.div
@@ -78,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
               variant="primary"
               onClick={quickAdd}
               disabled={isOutOfStock}
-              className="pointer-events-auto tracking-[0.4em]"
+              className={cn('pointer-events-auto', tracking.wider)}
             >
               <ShoppingBag size={14} strokeWidth={1} />
               {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
@@ -105,20 +109,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
 
         <Link
           to={`/product/${product.slug}`}
-          className="focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+          className={focusRing}
         >
           <h3 className={cn(headingLg, 'text-brand-black mb-3 transition-colors hover:text-brand-gold')}>
             {product.name}
           </h3>
         </Link>
 
-        <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400 mb-8 max-w-[280px] font-light leading-loose">
+        <p className={cn(bodyCopy, 'text-neutral-400 mb-8 max-w-[280px]')}>
           {product.shortDescription}
         </p>
 
         <div className="w-full flex items-center justify-between border-t border-black/5 pt-6">
           <span className="text-xl font-serif italic text-brand-black">${product.price}.00</span>
-          <span className="text-[9px] uppercase tracking-[0.3em] text-brand-black/28 font-bold">
+          <span className={cn(eyebrowLabelSm, 'text-brand-black/28')}>
             {product.sku}
           </span>
         </div>

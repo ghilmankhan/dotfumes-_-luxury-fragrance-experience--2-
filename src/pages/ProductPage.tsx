@@ -12,6 +12,8 @@ import { Button, LinkButton } from '../components/ui/primitives/Button';
 import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
 import { Stack } from '../components/ui/layout/Stack';
+import { tracking } from '../styles/tokens/typography';
+import { cn } from '../lib/utils';
 
 export const ProductPage = () => {
   const { slug } = useParams();
@@ -212,7 +214,7 @@ export const ProductPage = () => {
             </Button>
           </div>
 
-          <p className="mt-4 text-[10px] uppercase tracking-[0.2em] text-black/45">
+          <p className={cn('mt-4 text-[10px] uppercase text-black/45', tracking.normal)}>
             Add to Cart opens your cart to review first. Buy Now skips ahead straight to checkout.
           </p>
           <p className="mt-3 text-[10px] uppercase tracking-[0.22em] text-black/58">
@@ -332,7 +334,7 @@ export const ProductPage = () => {
             </Button>
           </Grid>
           {isOutOfStock ? (
-            <p className="mt-3 text-center text-[10px] uppercase tracking-[0.2em] text-red-700">
+            <p className={cn('mt-3 text-center text-[10px] uppercase text-red-700', tracking.normal)}>
               This fragrance is currently unavailable.
             </p>
           ) : (
@@ -347,7 +349,7 @@ export const ProductPage = () => {
 };
 
 const TrustBadge = ({ icon, label }: { icon: ReactNode; label: string }) => (
-  <div className="flex items-center gap-2 border border-black/10 px-3 py-3 text-[10px] uppercase tracking-[0.2em] text-black/62">
+  <div className={cn('flex items-center gap-2 border border-black/10 px-3 py-3 text-[10px] uppercase text-black/62', tracking.normal)}>
     <span className="text-black/70">{icon}</span>
     <span>{label}</span>
   </div>

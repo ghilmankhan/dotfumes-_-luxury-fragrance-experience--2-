@@ -4,6 +4,8 @@ import { Card } from '../components/ui/primitives/Card';
 import { Container } from '../components/ui/layout/Container';
 import { Grid } from '../components/ui/layout/Grid';
 import { appConfig } from '../lib/config';
+import { tracking } from '../styles/tokens/typography';
+import { cn } from '../lib/utils';
 
 const formatWhatsAppNumber = (rawNumber: string) => {
   const normalized = rawNumber.replace(/[^\d]/g, '');
@@ -110,7 +112,7 @@ export const ContactPage = () => {
         </Grid>
 
         <Card variant="dark" className="mt-12 bg-black/35 px-6 py-6">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-white/72">
+          <p className={cn('text-[11px] uppercase text-white/72', tracking.normal)}>
             Manual payment verification is part of every order. Delivery coordination begins after
             confirmation.
           </p>

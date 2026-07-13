@@ -14,3 +14,6 @@ export { easing, duration } from './motion';
 
 export { typography } from './typography';
 export type { TypographyToken } from './typography';
+
+export { interactive } from './interactive';
+export type { InteractiveToken } from './interactive';

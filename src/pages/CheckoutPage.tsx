@@ -22,6 +22,8 @@ import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import { cn } from '../lib/utils';
 import { CartLineItem } from '../components/cart/CartLineItem';
 import { easing, duration } from '../styles/tokens/motion';
+import { tracking } from '../styles/tokens/typography';
+import { focusRing } from '../styles/tokens/interactive';
 import { Button } from '../components/ui/primitives/Button';
 import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
@@ -361,7 +363,7 @@ export const CheckoutPage = () => {
           </AnimatePresence>
 
           <div className="space-y-8">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
+            <h2 className={cn('text-[11px] font-bold uppercase text-black/60', tracking.wide)}>
               1. Your Details
             </h2>
             <Grid cols={{ md: 2 }} gap={5}>
@@ -422,7 +424,7 @@ export const CheckoutPage = () => {
           </div>
 
           <div className="space-y-7">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
+            <h2 className={cn('text-[11px] font-bold uppercase text-black/60', tracking.wide)}>
               2. Payment Method
             </h2>
 
@@ -481,7 +483,7 @@ export const CheckoutPage = () => {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.3em] text-black/60">
+            <h2 className={cn('text-[11px] font-bold uppercase text-black/60', tracking.wide)}>
               Payment Proof Upload
             </h2>
 
@@ -598,7 +600,7 @@ export const CheckoutPage = () => {
                 : 'Preparing Order'
               : 'Place Order Request'}
           </Button>
-          <p className="text-center text-[10px] uppercase tracking-[0.2em] text-black/58">
+          <p className={cn('text-center text-[10px] uppercase text-black/58', tracking.normal)}>
             Your order request is sent now. Dotfumes will contact you as early as possible.
           </p>
         </form>
@@ -617,7 +619,11 @@ export const CheckoutPage = () => {
                 </p>
                 <Link
                   to="/collection"
-                  className="mt-7 inline-flex border-b border-black/20 pb-1 text-[10px] uppercase tracking-[0.3em] focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+                  className={cn(
+                    'mt-7 inline-flex border-b border-black/20 pb-1 text-[10px] uppercase',
+                    tracking.wide,
+                    focusRing,
+                  )}
                 >
                   Explore Collection
                 </Link>

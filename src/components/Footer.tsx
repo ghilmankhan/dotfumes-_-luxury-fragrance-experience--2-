@@ -3,6 +3,9 @@ import { Instagram, Twitter, Facebook } from 'lucide-react';
 import { useToastStore } from '../store/useToastStore';
 import { Button } from './ui/primitives/Button';
 import { Grid } from './ui/layout/Grid';
+import { tracking } from '../styles/tokens/typography';
+import { focusRing } from '../styles/tokens/interactive';
+import { cn } from '../lib/utils';
 
 export const Footer = () => {
   const { pushToast } = useToastStore();
@@ -13,7 +16,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-16 mb-24">
         {/* Brand Info */}
         <div className="max-w-xs">
-          <h2 className="font-serif text-3xl tracking-[0.4em] uppercase mb-8">Dotfumes</h2>
+          <h2 className={cn('font-serif text-3xl uppercase mb-8', tracking.wider)}>Dotfumes</h2>
           <p className="text-brand-gray text-sm leading-relaxed uppercase tracking-[0.22em] font-light">
             An artisanal archive of silence. Curated in Paris, captured in Grasse.
           </p>
@@ -52,7 +55,7 @@ export const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-white/5 py-8">
-        <p className="text-center text-[11px] uppercase tracking-[0.2em] text-white/55">
+        <p className={cn('text-center text-[11px] uppercase text-white/55', tracking.normal)}>
           Manual payment verification with WhatsApp and email support. Delivery is coordinated after
           confirmation.
         </p>
@@ -84,12 +87,12 @@ export const Footer = () => {
           >
             <Facebook size={18} strokeWidth={1.5} />
           </Button>
-          <span className="self-center text-[10px] uppercase tracking-[0.2em] text-white/45">
+          <span className={cn('self-center text-[10px] uppercase text-white/45', tracking.normal)}>
             Opening soon
           </span>
         </div>
 
-        <div className="text-[11px] uppercase tracking-[0.2em] text-white/45 text-center">
+        <div className={cn('text-[11px] uppercase text-white/45 text-center', tracking.normal)}>
           © 2026 Dotfumes. All rights reserved. <br className="md:hidden" /> Designed for the
           refined palette.
         </div>
@@ -97,13 +100,19 @@ export const Footer = () => {
         <div className="flex gap-6">
           <Link
             to="/privacy"
-            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            className={cn(
+              'text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors',
+              focusRing,
+            )}
           >
             Privacy
           </Link>
           <Link
             to="/terms"
-            className="text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+            className={cn(
+              'text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors',
+              focusRing,
+            )}
           >
             Terms
           </Link>
@@ -128,7 +137,10 @@ const FooterGroup = ({ title, links }: { title: string; links: FooterLink[] }) =
           {link.to ? (
             <Link
               to={link.to}
-              className="text-white/60 text-[11px] uppercase tracking-[0.16em] hover:text-white transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+              className={cn(
+                'text-white/60 text-[11px] uppercase tracking-[0.16em] hover:text-white transition-colors',
+                focusRing,
+              )}
             >
               {link.label}
             </Link>

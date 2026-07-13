@@ -21,9 +21,22 @@ export const eyebrowLabelSm = 'text-[9px] uppercase tracking-[0.3em] font-bold';
 // Body copy pattern for supporting paragraph text.
 export const bodyCopy = 'text-[11px] uppercase tracking-[0.2em] font-light leading-loose';
 
+// Standalone tracking-only class strings for call sites that need to override
+// just the letter-spacing of a Button/element without pulling in a full
+// heading or eyebrow pattern. Values mirror the tracking already baked into
+// the heading/eyebrow constants above — no new visual values introduced.
+// Full class strings (not raw em values) so Tailwind's JIT scanner can find
+// them statically — a template-literal interpolation like
+// `tracking-[${x}]` would not be picked up by the build.
+export const tracking = {
+  normal: 'tracking-[0.2em]', // matches bodyCopy
+  wide: 'tracking-[0.3em]', // matches eyebrowLabelSm
+  wider: 'tracking-[0.4em]', // matches eyebrowLabel
+} as const;
+
 // Grouped namespace for token-system consumers (e.g. docs pages) that want
 // `typography.headingXl` instead of a named import. Re-exports the same
-// six constants above — no additional values, no new visual scale.
+// constants above — no additional values, no new visual scale.
 export const typography = {
   headingXl,
   headingLg,
@@ -31,6 +44,7 @@ export const typography = {
   eyebrowLabel,
   eyebrowLabelSm,
   bodyCopy,
+  tracking,
 } as const;
 
 export type TypographyToken = keyof typeof typography;

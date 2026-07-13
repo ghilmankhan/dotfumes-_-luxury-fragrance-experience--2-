@@ -2,11 +2,9 @@ import React, { forwardRef } from 'react';
 import { Link, type LinkProps } from 'react-router-dom';
 import { cn } from '../../../lib/utils';
 import { Spinner } from '../feedback/Spinner';
+import { focusRing } from '../../../styles/tokens/interactive';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger';
-
-const focusRing =
-  'focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold';
 
 const baseClasses =
   'inline-flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.32em] transition-all active:scale-95 disabled:cursor-not-allowed';

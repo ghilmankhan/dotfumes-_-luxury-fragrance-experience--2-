@@ -16,6 +16,8 @@ import { Button, LinkButton, buttonClasses } from '../components/ui/primitives/B
 import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
 import { easing, duration } from '../styles/tokens/motion';
+import { tracking } from '../styles/tokens/typography';
+import { cn } from '../lib/utils';
 
 export const OrderConfirmationPage = () => {
   const order = readLatestOrder();
@@ -58,7 +60,7 @@ export const OrderConfirmationPage = () => {
           transition={{ duration: 0.42, ease: easing.standard }}
           className="mx-auto w-full max-w-4xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-8 shadow-lg md:p-10"
         >
-          <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-brand-gold">
+          <p className={cn('text-[10px] font-bold uppercase text-brand-gold', tracking.wider)}>
             Order Archive
           </p>
           <h1 className="mt-6 font-serif text-5xl italic leading-[0.9] md:text-7xl">
@@ -74,21 +76,30 @@ export const OrderConfirmationPage = () => {
             <LinkButton
               to="/checkout"
               variant="outline"
-              className="border-white/20 px-6 py-4 tracking-[0.3em] text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold"
+              className={cn(
+                'border-white/20 px-6 py-4 text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold',
+                tracking.wide,
+              )}
             >
               Return to Checkout
             </LinkButton>
             <LinkButton
               to="/collection"
               variant="outline"
-              className="border-white/20 px-6 py-4 tracking-[0.3em] text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold"
+              className={cn(
+                'border-white/20 px-6 py-4 text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold',
+                tracking.wide,
+              )}
             >
               Explore Collection
             </LinkButton>
             <LinkButton
               to="/contact"
               variant="outline"
-              className="border-white/20 px-6 py-4 tracking-[0.3em] text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold"
+              className={cn(
+                'border-white/20 px-6 py-4 text-white hover:border-brand-gold hover:bg-transparent hover:text-brand-gold',
+                tracking.wide,
+              )}
             >
               Contact Support
             </LinkButton>
@@ -114,11 +125,16 @@ export const OrderConfirmationPage = () => {
         >
           <div className="flex items-center gap-3 text-brand-gold">
             <CheckCircle2 size={18} strokeWidth={1.6} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.4em]">Order Request Received</span>
+            <span className={cn('text-[10px] font-bold uppercase', tracking.wider)}>Order Request Received</span>
           </div>
 
           {order.submissionMode !== 'google-sheets' ? (
-            <p className="mt-4 inline-block border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-amber-200">
+            <p
+              className={cn(
+                'mt-4 inline-block border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[10px] uppercase text-amber-200',
+                tracking.normal,
+              )}
+            >
               Order stored locally only — not yet synced to backend system
             </p>
           ) : null}
@@ -176,7 +192,12 @@ export const OrderConfirmationPage = () => {
                 Send Order on WhatsApp
               </a>
             ) : (
-              <div className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+              <div
+                className={cn(
+                  'inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase text-white/60',
+                  tracking.normal,
+                )}
+              >
                 WhatsApp support link unavailable
               </div>
             )}
@@ -192,7 +213,12 @@ export const OrderConfirmationPage = () => {
                 Send by Email
               </a>
             ) : (
-              <div className="inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+              <div
+                className={cn(
+                  'inline-flex items-center justify-center border border-white/20 px-6 py-4 text-[10px] font-bold uppercase text-white/60',
+                  tracking.normal,
+                )}
+              >
                 Email support link unavailable
               </div>
             )}
@@ -261,15 +287,15 @@ export const OrderConfirmationPage = () => {
 
           <div className="mt-7 border-t border-white/10 pt-5">
             <div className="mb-2 flex items-end justify-between">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-white/45">Subtotal</p>
+              <p className={cn('text-[9px] uppercase text-white/45', tracking.wide)}>Subtotal</p>
               <p className="text-sm text-white/65">{formatCurrency(order.subtotal)}</p>
             </div>
             <div className="mb-3 flex items-end justify-between">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-white/45">Delivery</p>
+              <p className={cn('text-[9px] uppercase text-white/45', tracking.wide)}>Delivery</p>
               <p className="text-sm text-white/65">{formatCurrency(order.deliveryFee)}</p>
             </div>
             <div className="flex items-end justify-between">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-white/45">Total</p>
+              <p className={cn('text-[9px] uppercase text-white/45', tracking.wide)}>Total</p>
               <p className="font-serif text-3xl italic">{formatCurrency(order.total)}</p>
             </div>
           </div>

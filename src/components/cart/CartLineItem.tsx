@@ -5,6 +5,8 @@ import { AssetImage } from '../AssetImage';
 import { Button } from '../ui/primitives/Button';
 import { Card } from '../ui/primitives/Card';
 import { cn } from '../../lib/utils';
+import { tracking } from '../../styles/tokens/typography';
+import { focusRing, touchTarget } from '../../styles/tokens/interactive';
 
 type CartLineItemProps = {
   item: CartItem;
@@ -97,14 +99,20 @@ export const CartLineItem = ({
               <Link
                 to={`/product/${item.slug}`}
                 onClick={onNameClick}
-                className="font-serif text-base leading-tight text-neutral-900 transition-colors hover:text-brand-gold md:text-lg focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+                className={cn(
+                  'font-serif text-base leading-tight text-neutral-900 transition-colors hover:text-brand-gold md:text-lg',
+                  focusRing,
+                )}
               >
                 {item.name}
               </Link>
               <Button
                 variant="ghost"
                 onClick={onRequestRemove}
-                className="shrink-0 min-h-11 min-w-11 rounded-full p-2 normal-case tracking-normal text-neutral-500 hover:bg-neutral-100 hover:text-red-600 md:min-h-0 md:min-w-0"
+                className={cn(
+                  'shrink-0 rounded-full p-2 normal-case tracking-normal text-neutral-500 hover:bg-neutral-100 hover:text-red-600',
+                  touchTarget,
+                )}
                 aria-label={`Remove ${item.name}`}
               >
                 <Trash2 size={16} strokeWidth={1.5} />
@@ -177,7 +185,10 @@ export const CartLineItem = ({
           <Button
             variant="ghost"
             onClick={onRequestRemove}
-            className="min-h-11 min-w-11 p-1 normal-case tracking-normal text-black/50 hover:text-red-500 md:min-h-0 md:min-w-0"
+            className={cn(
+              'p-1 normal-case tracking-normal text-black/50 hover:text-red-500',
+              touchTarget,
+            )}
             aria-label={`Remove ${item.name}`}
           >
             <Trash2 size={15} strokeWidth={1.4} />
@@ -188,7 +199,10 @@ export const CartLineItem = ({
           <Button
             variant="ghost"
             onClick={handleDecrement}
-            className="min-h-11 min-w-11 p-2 normal-case tracking-normal text-black hover:text-black md:min-h-0 md:min-w-0"
+            className={cn(
+              'p-2 normal-case tracking-normal text-black hover:text-black',
+              touchTarget,
+            )}
             aria-label={`Decrease ${item.name}`}
           >
             <Minus size={12} strokeWidth={1.4} />
@@ -198,7 +212,10 @@ export const CartLineItem = ({
             variant="ghost"
             onClick={handleIncrement}
             disabled={atMaxStock}
-            className="min-h-11 min-w-11 p-2 normal-case tracking-normal text-black hover:text-black md:min-h-0 md:min-w-0"
+            className={cn(
+              'p-2 normal-case tracking-normal text-black hover:text-black',
+              touchTarget,
+            )}
             aria-label={`Increase ${item.name}`}
           >
             <Plus size={12} strokeWidth={1.4} />
@@ -207,7 +224,7 @@ export const CartLineItem = ({
         {isPendingRemove ? (
           removeConfirm
         ) : (
-          <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-black/55">
+          <p className={cn('mt-3 text-[10px] uppercase text-black/55', tracking.normal)}>
             {isUnavailable ? 'Currently unavailable' : `Stock: ${stock}`}
           </p>
         )}
