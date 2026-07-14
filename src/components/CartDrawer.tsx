@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { X, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCartStore } from '../store/useCartStore';
+import { useCartStore, selectCartTotal } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
-import { getCartAvailabilityIssues, getCartAvailabilityMessage } from '../lib/validation';
-import { useProductCatalogStore } from '../store/useProductCatalogStore';
+import { useCartAvailability } from '../hooks/useCartAvailability';
 import { Modal } from './ui/primitives/Modal';
 import { Button } from './ui/primitives/Button';
 import { EmptyState } from './ui/feedback/EmptyState';
@@ -15,27 +14,43 @@ import { focusRing, touchTarget } from '../styles/tokens/interactive';
 
 export const CartDrawer = () => {
   const navigate = useNavigate();
-  const { isOpen, items, closeCart, updateQuantity, total } = useCartStore();
-  const { pushToast } = useToastStore();
+  const isOpen = useCartStore((s) => s.isOpen);
+  const items = useCartStore((s) => s.items);
+  const closeCart = useCartStore((s) => s.closeCart);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const decrementOrRemove = useCartStore((s) => s.decrementOrRemove);
+  const total = useCartStore(selectCartTotal);
+  const pushToast = useToastStore((s) => s.pushToast);
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
-  const allProducts = useProductCatalogStore((state) => state.allProducts);
-  const allowOutOfStockCheckout = useProductCatalogStore(
-    (state) => state.settings.allowOutOfStockCheckout,
+  const {
+    productById,
+    availabilityIssueByItem,
+    hasUnavailableItems,
+    shouldBlockCheckout,
+    availabilityMessage,
+  } = useCartAvailability();
+
+  const handleRequestRemove = useCallback((id: string) => setPendingRemoveId(id), []);
+  const handleCancelRemove = useCallback(() => setPendingRemoveId(null), []);
+  const handleConfirmRemove = useCallback(
+    (id: string) => {
+      const item = items.find((cartItem) => cartItem.id === id);
+      updateQuantity(id, 0);
+      setPendingRemoveId(null);
+      if (item) {
+        pushToast(`${item.name} removed from cart.`, 'neutral');
+      }
+    },
+    [items, updateQuantity, pushToast],
   );
-  const productById = useMemo(
-    () => new Map(allProducts.map((product) => [product.id, product])),
-    [allProducts],
+  const handleUpdateQuantity = useCallback(
+    (id: string, quantity: number) => updateQuantity(id, quantity),
+    [updateQuantity],
   );
-  const availabilityIssues = useMemo(
-    () => getCartAvailabilityIssues(items, allProducts),
-    [allProducts, items],
+  const handleDecrement = useCallback(
+    (id: string) => decrementOrRemove(id),
+    [decrementOrRemove],
   );
-  const availabilityIssueByItem = useMemo(
-    () => new Map(availabilityIssues.map((issue) => [issue.itemId, issue])),
-    [availabilityIssues],
-  );
-  const hasUnavailableItems = availabilityIssues.length > 0;
-  const shouldBlockCheckout = hasUnavailableItems && !allowOutOfStockCheckout;
 
   const goToCheckout = () => {
     if (shouldBlockCheckout) {
@@ -97,7 +112,7 @@ export const CartDrawer = () => {
                 <div className="space-y-6 md:space-y-8">
                   {hasUnavailableItems ? (
                     <div className="border border-red-200 bg-red-50 px-4 py-3 text-xs leading-6 text-red-700">
-                      {getCartAvailabilityMessage(availabilityIssues)}
+                      {availabilityMessage}
                       <div className="mt-1">
                         Some items are no longer available. Please update your cart before checkout.
                       </div>
@@ -111,14 +126,11 @@ export const CartDrawer = () => {
                       stock={productById.get(item.id)?.stock ?? item.stock ?? 0}
                       isUnavailable={availabilityIssueByItem.has(item.id)}
                       isPendingRemove={pendingRemoveId === item.id}
-                      onRequestRemove={() => setPendingRemoveId(item.id)}
-                      onConfirmRemove={() => {
-                        updateQuantity(item.id, 0);
-                        setPendingRemoveId(null);
-                        pushToast(`${item.name} removed from cart.`, 'neutral');
-                      }}
-                      onCancelRemove={() => setPendingRemoveId(null)}
-                      onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
+                      onRequestRemove={handleRequestRemove}
+                      onConfirmRemove={handleConfirmRemove}
+                      onCancelRemove={handleCancelRemove}
+                      onUpdateQuantity={handleUpdateQuantity}
+                      onDecrement={handleDecrement}
                       onNameClick={closeCart}
                     />
                   ))}
@@ -132,7 +144,7 @@ export const CartDrawer = () => {
                   <span className={cn('text-[10px] uppercase text-neutral-500', tracking.wide)}>
                     Subtotal
                   </span>
-                  <span className="text-2xl font-serif tracking-tight text-neutral-900">${total()}.00</span>
+                  <span className="text-2xl font-serif tracking-tight text-neutral-900">${total}.00</span>
                 </div>
 
                 <Button

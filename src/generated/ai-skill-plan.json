@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-07-13T19:48:40.309Z",
+  "pages": [
+    {
+      "page": "AboutPage",
+      "file": "src/pages/AboutPage.tsx",
+      "skills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "AdminPage",
+      "file": "src/pages/AdminPage.tsx",
+      "skills": [
+        "accessibility",
+        "code-complexity",
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "CareersPage",
+      "file": "src/pages/CareersPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "CheckoutPage",
+      "file": "src/pages/CheckoutPage.tsx",
+      "skills": [
+        "accessibility",
+        "animation",
+        "code-complexity",
+        "hook composition",
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "CollectionPage",
+      "file": "src/pages/CollectionPage.tsx",
+      "skills": [
+        "accessibility",
+        "animation",
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "ContactPage",
+      "file": "src/pages/ContactPage.tsx",
+      "skills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "FaqPage",
+      "file": "src/pages/FaqPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "HomePage",
+      "file": "src/pages/HomePage.tsx",
+      "skills": []
+    },
+    {
+      "page": "JournalPage",
+      "file": "src/pages/JournalPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "NotFoundPage",
+      "file": "src/pages/NotFoundPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "OrderConfirmationPage",
+      "file": "src/pages/OrderConfirmationPage.tsx",
+      "skills": [
+        "animation",
+        "code-complexity",
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "PrivacyPage",
+      "file": "src/pages/PrivacyPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "ProductPage",
+      "file": "src/pages/ProductPage.tsx",
+      "skills": [
+        "accessibility",
+        "code-complexity",
+        "hook composition",
+        "performance-memoization"
+      ]
+    },
+    {
+      "page": "ReturnsPage",
+      "file": "src/pages/ReturnsPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "ShippingPage",
+      "file": "src/pages/ShippingPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "SustainabilityPage",
+      "file": "src/pages/SustainabilityPage.tsx",
+      "skills": []
+    },
+    {
+      "page": "TermsPage",
+      "file": "src/pages/TermsPage.tsx",
+      "skills": []
+    }
+  ]
+}

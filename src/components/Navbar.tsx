@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { ShoppingBag, Menu, X } from 'lucide-react';
 import { Link, NavLink as RouterNavLink, useLocation } from 'react-router-dom';
-import { useCartStore } from '../store/useCartStore';
+import { useCartStore, selectCartCount } from '../store/useCartStore';
 import { cn } from '../lib/utils';
 import { Modal } from './ui/primitives/Modal';
 import { Button } from './ui/primitives/Button';
@@ -15,7 +15,8 @@ export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const { openCart, items } = useCartStore();
+  const openCart = useCartStore((s) => s.openCart);
+  const cartCount = useCartStore(selectCartCount);
   const isLightRoute = location.pathname === '/checkout' || location.pathname.startsWith('/product/');
   const useSolidNav = isScrolled || isLightRoute;
   const isLightNav = isLightRoute;
@@ -27,8 +28,6 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <>

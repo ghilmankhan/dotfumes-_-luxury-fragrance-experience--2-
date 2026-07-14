@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { CartItem } from '../../models/types';
@@ -14,15 +15,16 @@ type CartLineItemProps = {
   stock: number;
   isUnavailable: boolean;
   isPendingRemove: boolean;
-  onRequestRemove: () => void;
-  onConfirmRemove: () => void;
+  onRequestRemove: (id: string) => void;
+  onConfirmRemove: (id: string) => void;
   onCancelRemove: () => void;
-  onUpdateQuantity: (quantity: number) => void;
+  onUpdateQuantity: (id: string, quantity: number) => void;
+  onDecrement: (id: string) => void;
   onNameClick?: () => void;
   priceLabel?: string;
 };
 
-export const CartLineItem = ({
+export const CartLineItem = memo(function CartLineItem({
   item,
   variant,
   stock,
@@ -32,20 +34,23 @@ export const CartLineItem = ({
   onConfirmRemove,
   onCancelRemove,
   onUpdateQuantity,
+  onDecrement,
   onNameClick,
   priceLabel,
-}: CartLineItemProps) => {
+}: CartLineItemProps) {
   const atMaxStock = item.quantity >= stock;
 
   const handleDecrement = () => {
     if (item.quantity <= 1) {
-      onRequestRemove();
+      onRequestRemove(item.id);
       return;
     }
-    onUpdateQuantity(item.quantity - 1);
+    onDecrement(item.id);
   };
 
-  const handleIncrement = () => onUpdateQuantity(item.quantity + 1);
+  const handleIncrement = () => onUpdateQuantity(item.id, item.quantity + 1);
+  const handleRequestRemove = () => onRequestRemove(item.id);
+  const handleConfirmRemove = () => onConfirmRemove(item.id);
 
   const removeConfirm = (
     <div
@@ -59,7 +64,7 @@ export const CartLineItem = ({
         <Button
           variant="danger"
           className="px-3 py-1.5 text-[9px] tracking-[0.16em]"
-          onClick={onConfirmRemove}
+          onClick={handleConfirmRemove}
         >
           Remove
         </Button>
@@ -108,7 +113,7 @@ export const CartLineItem = ({
               </Link>
               <Button
                 variant="ghost"
-                onClick={onRequestRemove}
+                onClick={handleRequestRemove}
                 className={cn(
                   'shrink-0 rounded-full p-2 normal-case tracking-normal text-neutral-500 hover:bg-neutral-100 hover:text-red-600',
                   touchTarget,
@@ -184,7 +189,7 @@ export const CartLineItem = ({
           </div>
           <Button
             variant="ghost"
-            onClick={onRequestRemove}
+            onClick={handleRequestRemove}
             className={cn(
               'p-1 normal-case tracking-normal text-black/50 hover:text-red-500',
               touchTarget,
@@ -231,4 +236,4 @@ export const CartLineItem = ({
       </div>
     </div>
   );
-};
+});

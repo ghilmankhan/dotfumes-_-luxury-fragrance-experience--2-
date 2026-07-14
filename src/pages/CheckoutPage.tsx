@@ -1,9 +1,10 @@
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Upload, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useCartStore } from '../store/useCartStore';
+import { useCartStore, selectCartCount, selectCartTotal } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
+import { useCartAvailability } from '../hooks/useCartAvailability';
 import { AssetImage } from '../components/AssetImage';
 import {
   CheckoutErrors,
@@ -91,8 +92,13 @@ const scrollToFirstError = (errs: CheckoutErrors) => {
 };
 
 export const CheckoutPage = () => {
-  const { items, total, updateQuantity, clearCart } = useCartStore();
-  const { pushToast } = useToastStore();
+  const items = useCartStore((s) => s.items);
+  const totalItems = useCartStore(selectCartCount);
+  const total = useCartStore(selectCartTotal);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const decrementOrRemove = useCartStore((s) => s.decrementOrRemove);
+  const clearCart = useCartStore((s) => s.clearCart);
+  const pushToast = useToastStore((s) => s.pushToast);
   const navigate = useNavigate();
 
   const [values, setValues] = useState<CheckoutFormValues>(initialValues);
@@ -103,6 +109,27 @@ export const CheckoutPage = () => {
   const [slipPreviewUrl, setSlipPreviewUrl] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const handleRequestRemove = useCallback((id: string) => setPendingRemoveId(id), []);
+  const handleCancelRemove = useCallback(() => setPendingRemoveId(null), []);
+  const handleConfirmRemove = useCallback(
+    (id: string) => {
+      const item = items.find((cartItem) => cartItem.id === id);
+      updateQuantity(id, 0);
+      setPendingRemoveId(null);
+      if (item) {
+        pushToast(`${item.name} removed from your selection.`, 'neutral');
+      }
+    },
+    [items, updateQuantity, pushToast],
+  );
+  const handleUpdateQuantity = useCallback(
+    (id: string, quantity: number) => updateQuantity(id, quantity),
+    [updateQuantity],
+  );
+  const handleDecrement = useCallback(
+    (id: string) => decrementOrRemove(id),
+    [decrementOrRemove],
+  );
   const reduceMotion = useReducedMotion();
   const allProducts = useProductCatalogStore((state) => state.allProducts);
   const allowOutOfStockCheckout = useProductCatalogStore(
@@ -133,19 +160,11 @@ export const CheckoutPage = () => {
     };
   }, [slipPreviewUrl]);
 
-  const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
-  const availabilityIssues = useMemo(
-    () => getCartAvailabilityIssues(items, allProducts),
-    [allProducts, items],
-  );
-  const availabilityIssueByItem = useMemo(
-    () => new Map(availabilityIssues.map((issue) => [issue.itemId, issue])),
-    [availabilityIssues],
-  );
-  const latestProductById = useMemo(
-    () => new Map(allProducts.map((product) => [product.id, product])),
-    [allProducts],
-  );
+  const {
+    productById: latestProductById,
+    availabilityIssues,
+    availabilityIssueByItem,
+  } = useCartAvailability();
   const detailsStepComplete = Boolean(
     values.firstName.trim() &&
       values.lastName.trim() &&
@@ -637,14 +656,11 @@ export const CheckoutPage = () => {
                   stock={latestProductById.get(item.id)?.stock ?? item.stock}
                   isUnavailable={availabilityIssueByItem.has(item.id)}
                   isPendingRemove={pendingRemoveId === item.id}
-                  onRequestRemove={() => setPendingRemoveId(item.id)}
-                  onConfirmRemove={() => {
-                    updateQuantity(item.id, 0);
-                    setPendingRemoveId(null);
-                    pushToast(`${item.name} removed from your selection.`, 'neutral');
-                  }}
-                  onCancelRemove={() => setPendingRemoveId(null)}
-                  onUpdateQuantity={(quantity) => updateQuantity(item.id, quantity)}
+                  onRequestRemove={handleRequestRemove}
+                  onConfirmRemove={handleConfirmRemove}
+                  onCancelRemove={handleCancelRemove}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onDecrement={handleDecrement}
                   priceLabel={formatCurrency(item.price)}
                 />
               ))
@@ -658,7 +674,7 @@ export const CheckoutPage = () => {
             </div>
             <div className="flex items-end justify-between">
               <span className="text-[10px] uppercase tracking-[0.35em] text-black/55">Subtotal</span>
-              <span className="font-serif text-3xl italic">{formatCurrency(total())}</span>
+              <span className="font-serif text-3xl italic">{formatCurrency(total)}</span>
             </div>
           </div>
         </Card>

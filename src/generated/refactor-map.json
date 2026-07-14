@@ -1,0 +1,179 @@
+{
+  "generatedAt": "2026-07-13T19:48:40.311Z",
+  "entries": [
+    {
+      "file": "src/pages/AdminPage.tsx",
+      "priority": "high",
+      "score": 26,
+      "reasons": [
+        "console.log left in source",
+        "Inline arrow function passed directly as a prop (re-created every render)",
+        "File is 607 lines (threshold 300); consider splitting"
+      ],
+      "suggestedSkills": [
+        "code-complexity",
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/components/home/Hero.tsx",
+      "priority": "high",
+      "score": 13,
+      "reasons": [
+        "Inline style={{...}} object; prefer a token/utility class",
+        "Inline arrow function passed directly as a prop (re-created every render)",
+        "File is 406 lines (threshold 300); consider splitting"
+      ],
+      "suggestedSkills": [
+        "code-complexity",
+        "design-tokens",
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/components/Navbar.tsx",
+      "priority": "high",
+      "score": 8,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/pages/ProductPage.tsx",
+      "priority": "medium",
+      "score": 5,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)",
+        "File is 357 lines (threshold 300); consider splitting"
+      ],
+      "suggestedSkills": [
+        "code-complexity",
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/styles/tokens/colors.ts",
+      "priority": "medium",
+      "score": 5,
+      "reasons": [
+        "Hardcoded hex color literal; prefer a design token"
+      ],
+      "suggestedSkills": [
+        "design-tokens"
+      ]
+    },
+    {
+      "file": "src/docs/ui/Modal.docs.tsx",
+      "priority": "medium",
+      "score": 3,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/pages/CheckoutPage.tsx",
+      "priority": "medium",
+      "score": 3,
+      "reasons": [
+        "File is 728 lines (threshold 300); consider splitting"
+      ],
+      "suggestedSkills": [
+        "code-complexity"
+      ]
+    },
+    {
+      "file": "src/pages/OrderConfirmationPage.tsx",
+      "priority": "medium",
+      "score": 3,
+      "reasons": [
+        "File is 324 lines (threshold 300); consider splitting"
+      ],
+      "suggestedSkills": [
+        "code-complexity"
+      ]
+    },
+    {
+      "file": "src/components/home/BrandStory.tsx",
+      "priority": "low",
+      "score": 2,
+      "reasons": [
+        "Inline style={{...}} object; prefer a token/utility class"
+      ],
+      "suggestedSkills": [
+        "design-tokens"
+      ]
+    },
+    {
+      "file": "src/pages/CollectionPage.tsx",
+      "priority": "low",
+      "score": 2,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/components/ToastViewport.tsx",
+      "priority": "low",
+      "score": 1,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/components/home/ProductCard.tsx",
+      "priority": "low",
+      "score": 1,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/components/home/SignatureExperience.tsx",
+      "priority": "low",
+      "score": 1,
+      "reasons": [
+        "Inline style={{...}} object; prefer a token/utility class"
+      ],
+      "suggestedSkills": [
+        "design-tokens"
+      ]
+    },
+    {
+      "file": "src/pages/AboutPage.tsx",
+      "priority": "low",
+      "score": 1,
+      "reasons": [
+        "Inline arrow function passed directly as a prop (re-created every render)"
+      ],
+      "suggestedSkills": [
+        "performance-memoization"
+      ]
+    },
+    {
+      "file": "src/services/orderSubmissionService.ts",
+      "priority": "low",
+      "score": 1,
+      "reasons": [
+        "Unresolved TODO/FIXME comment"
+      ],
+      "suggestedSkills": [
+        "code-complexity"
+      ]
+    }
+  ]
+}

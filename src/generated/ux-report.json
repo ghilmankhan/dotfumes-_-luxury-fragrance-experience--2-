@@ -1,0 +1,702 @@
+{
+  "generatedAt": "2026-07-13T19:48:40.310Z",
+  "totalIssues": 65,
+  "files": [
+    {
+      "file": "src/components/Navbar.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 101
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 118
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 130
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 142
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 146
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 151
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 156
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 168
+        }
+      ]
+    },
+    {
+      "file": "src/components/ToastViewport.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "file": "src/components/home/BrandStory.tsx",
+      "issues": [
+        {
+          "rule": "inline-style-object",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Inline style={{...}} object; prefer a token/utility class",
+          "line": 30
+        },
+        {
+          "rule": "inline-style-object",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Inline style={{...}} object; prefer a token/utility class",
+          "line": 126
+        }
+      ]
+    },
+    {
+      "file": "src/components/home/Hero.tsx",
+      "issues": [
+        {
+          "rule": "inline-style-object",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Inline style={{...}} object; prefer a token/utility class",
+          "line": 236
+        },
+        {
+          "rule": "inline-style-object",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Inline style={{...}} object; prefer a token/utility class",
+          "line": 253
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 217
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 218
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 219
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 241
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 258
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 351
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 368
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 378
+        },
+        {
+          "rule": "large-file",
+          "severity": "medium",
+          "skill": "code-complexity",
+          "message": "File is 406 lines (threshold 300); consider splitting",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "file": "src/components/home/ProductCard.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "file": "src/components/home/SignatureExperience.tsx",
+      "issues": [
+        {
+          "rule": "inline-style-object",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Inline style={{...}} object; prefer a token/utility class",
+          "line": 108
+        }
+      ]
+    },
+    {
+      "file": "src/docs/ui/Modal.docs.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 22
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 27
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "file": "src/pages/AboutPage.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "file": "src/pages/AdminPage.tsx",
+      "issues": [
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 323
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 324
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 325
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 326
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 327
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 328
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 329
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 330
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 331
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 332
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 333
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 334
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 361
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 377
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 378
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 379
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 394
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 395
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 396
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 397
+        },
+        {
+          "rule": "console-log",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "console.log left in source",
+          "line": 398
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 498
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 508
+        },
+        {
+          "rule": "large-file",
+          "severity": "medium",
+          "skill": "code-complexity",
+          "message": "File is 607 lines (threshold 300); consider splitting",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "file": "src/pages/CheckoutPage.tsx",
+      "issues": [
+        {
+          "rule": "large-file",
+          "severity": "medium",
+          "skill": "code-complexity",
+          "message": "File is 728 lines (threshold 300); consider splitting",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "file": "src/pages/CollectionPage.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 49
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 109
+        }
+      ]
+    },
+    {
+      "file": "src/pages/OrderConfirmationPage.tsx",
+      "issues": [
+        {
+          "rule": "large-file",
+          "severity": "medium",
+          "skill": "code-complexity",
+          "message": "File is 324 lines (threshold 300); consider splitting",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "file": "src/pages/ProductPage.tsx",
+      "issues": [
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 175
+        },
+        {
+          "rule": "inline-jsx-handler",
+          "severity": "low",
+          "skill": "performance-memoization",
+          "message": "Inline arrow function passed directly as a prop (re-created every render)",
+          "line": 184
+        },
+        {
+          "rule": "large-file",
+          "severity": "medium",
+          "skill": "code-complexity",
+          "message": "File is 357 lines (threshold 300); consider splitting",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "file": "src/services/orderSubmissionService.ts",
+      "issues": [
+        {
+          "rule": "todo-fixme",
+          "severity": "low",
+          "skill": "code-complexity",
+          "message": "Unresolved TODO/FIXME comment",
+          "line": 105
+        }
+      ]
+    },
+    {
+      "file": "src/styles/tokens/colors.ts",
+      "issues": [
+        {
+          "rule": "hardcoded-hex-color",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Hardcoded hex color literal; prefer a design token",
+          "line": 6
+        },
+        {
+          "rule": "hardcoded-hex-color",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Hardcoded hex color literal; prefer a design token",
+          "line": 7
+        },
+        {
+          "rule": "hardcoded-hex-color",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Hardcoded hex color literal; prefer a design token",
+          "line": 8
+        },
+        {
+          "rule": "hardcoded-hex-color",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Hardcoded hex color literal; prefer a design token",
+          "line": 9
+        },
+        {
+          "rule": "hardcoded-hex-color",
+          "severity": "low",
+          "skill": "design-tokens",
+          "message": "Hardcoded hex color literal; prefer a design token",
+          "line": 10
+        }
+      ]
+    }
+  ],
+  "healingGeneratedAt": "2026-07-13T19:48:40.580Z",
+  "healingIssueCount": 18,
+  "healingIssues": [
+    {
+      "id": "issue-1",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/App.tsx",
+      "line": 32,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-2",
+      "rule": "confusing-conditional-flow",
+      "category": "ux",
+      "severity": "low",
+      "file": "src/components/Navbar.tsx",
+      "line": 41,
+      "message": "Nested ternary expression may produce a confusing UI flow."
+    },
+    {
+      "id": "issue-3",
+      "rule": "rerender-risk-inline-handler-in-memo",
+      "category": "perf",
+      "severity": "medium",
+      "file": "src/components/cart/CartLineItem.tsx",
+      "line": 43,
+      "message": "Component is wrapped in memo() but passes inline arrow functions as props, defeating memoization."
+    },
+    {
+      "id": "issue-4",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/lib/googleSheetsBackend.ts",
+      "line": 142,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-5",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/lib/skills/skillGuard.ts",
+      "line": 49,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-6",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/pages/AdminPage.tsx",
+      "line": 347,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-7",
+      "rule": "confusing-conditional-flow",
+      "category": "ux",
+      "severity": "low",
+      "file": "src/pages/AdminPage.tsx",
+      "line": 478,
+      "message": "Nested ternary expression may produce a confusing UI flow."
+    },
+    {
+      "id": "issue-8",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/pages/CheckoutPage.tsx",
+      "line": 262,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-9",
+      "rule": "confusing-conditional-flow",
+      "category": "ux",
+      "severity": "low",
+      "file": "src/pages/CheckoutPage.tsx",
+      "line": 617,
+      "message": "Nested ternary expression may produce a confusing UI flow."
+    },
+    {
+      "id": "issue-10",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/pages/OrderConfirmationPage.tsx",
+      "line": 237,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-11",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/services/orderSubmissionService.ts",
+      "line": 67,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-12",
+      "rule": "confusing-conditional-flow",
+      "category": "ux",
+      "severity": "low",
+      "file": "src/services/orderSubmissionService.ts",
+      "line": 18,
+      "message": "Nested ternary expression may produce a confusing UI flow."
+    },
+    {
+      "id": "issue-13",
+      "rule": "missing-feedback-state",
+      "category": "ux",
+      "severity": "medium",
+      "file": "src/store/useProductCatalogStore.ts",
+      "line": 145,
+      "message": "Async operation has no visible success/error/loading feedback."
+    },
+    {
+      "id": "issue-14",
+      "rule": "confusing-conditional-flow",
+      "category": "ux",
+      "severity": "low",
+      "file": "src/store/useProductCatalogStore.ts",
+      "line": 107,
+      "message": "Nested ternary expression may produce a confusing UI flow."
+    },
+    {
+      "id": "issue-15",
+      "rule": "duplicate-ui-pattern",
+      "category": "ui",
+      "severity": "medium",
+      "file": "src/pages/PrivacyPage.tsx",
+      "line": 1,
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/SustainabilityPage.tsx."
+    },
+    {
+      "id": "issue-16",
+      "rule": "duplicate-ui-pattern",
+      "category": "ui",
+      "severity": "medium",
+      "file": "src/pages/SustainabilityPage.tsx",
+      "line": 1,
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/PrivacyPage.tsx."
+    },
+    {
+      "id": "issue-17",
+      "rule": "duplicate-ui-pattern",
+      "category": "ui",
+      "severity": "medium",
+      "file": "src/pages/ReturnsPage.tsx",
+      "line": 1,
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/ShippingPage.tsx."
+    },
+    {
+      "id": "issue-18",
+      "rule": "duplicate-ui-pattern",
+      "category": "ui",
+      "severity": "medium",
+      "file": "src/pages/ShippingPage.tsx",
+      "line": 1,
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/ReturnsPage.tsx."
+    }
+  ]
+}

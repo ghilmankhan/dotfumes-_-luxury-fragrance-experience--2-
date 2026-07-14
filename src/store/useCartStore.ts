@@ -15,11 +15,11 @@ interface CartState {
   addItem: (product: Product, quantity?: number) => CartActionResult;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  decrementOrRemove: (productId: string) => void;
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
   clearCart: () => void;
-  total: () => number;
 }
 
 export const useCartStore = create<CartState>()(
@@ -111,13 +111,23 @@ export const useCartStore = create<CartState>()(
           ),
         });
       },
+      decrementOrRemove: (productId) => {
+        const targetItem = get().items.find((item) => item.id === productId);
+        if (!targetItem) {
+          return;
+        }
+
+        if (targetItem.quantity <= 1) {
+          get().removeItem(productId);
+          return;
+        }
+
+        get().updateQuantity(productId, targetItem.quantity - 1);
+      },
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
       clearCart: () => set({ items: [] }),
-      total: () => {
-        return get().items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-      },
     }),
     {
       name: 'dotfumes-cart',
@@ -127,3 +137,9 @@ export const useCartStore = create<CartState>()(
     },
   ),
 );
+
+export const selectCartCount = (state: CartState) =>
+  state.items.reduce((sum, item) => sum + item.quantity, 0);
+
+export const selectCartTotal = (state: CartState) =>
+  state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);

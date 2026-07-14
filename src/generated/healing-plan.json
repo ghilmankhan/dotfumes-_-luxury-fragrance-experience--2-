@@ -1,0 +1,170 @@
+{
+  "generatedAt": "2026-07-13T19:48:40.581Z",
+  "totalIssues": 18,
+  "autoFixable": 0,
+  "suggestionsOnly": 18,
+  "entries": [
+    {
+      "issueId": "issue-1",
+      "file": "src/App.tsx",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-2",
+      "file": "src/components/Navbar.tsx",
+      "category": "ux",
+      "severity": "low",
+      "action": "suggest",
+      "message": "Nested ternary expression may produce a confusing UI flow.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-3",
+      "file": "src/components/cart/CartLineItem.tsx",
+      "category": "perf",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Component is wrapped in memo() but passes inline arrow functions as props, defeating memoization.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-4",
+      "file": "src/lib/googleSheetsBackend.ts",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-5",
+      "file": "src/lib/skills/skillGuard.ts",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "File touches CMS, store, API, or admin logic — suggestion only."
+    },
+    {
+      "issueId": "issue-6",
+      "file": "src/pages/AdminPage.tsx",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "File touches CMS, store, API, or admin logic — suggestion only."
+    },
+    {
+      "issueId": "issue-7",
+      "file": "src/pages/AdminPage.tsx",
+      "category": "ux",
+      "severity": "low",
+      "action": "suggest",
+      "message": "Nested ternary expression may produce a confusing UI flow.",
+      "reason": "File touches CMS, store, API, or admin logic — suggestion only."
+    },
+    {
+      "issueId": "issue-8",
+      "file": "src/pages/CheckoutPage.tsx",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-9",
+      "file": "src/pages/CheckoutPage.tsx",
+      "category": "ux",
+      "severity": "low",
+      "action": "suggest",
+      "message": "Nested ternary expression may produce a confusing UI flow.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-10",
+      "file": "src/pages/OrderConfirmationPage.tsx",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-11",
+      "file": "src/services/orderSubmissionService.ts",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-12",
+      "file": "src/services/orderSubmissionService.ts",
+      "category": "ux",
+      "severity": "low",
+      "action": "suggest",
+      "message": "Nested ternary expression may produce a confusing UI flow.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-13",
+      "file": "src/store/useProductCatalogStore.ts",
+      "category": "ux",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Async operation has no visible success/error/loading feedback.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-14",
+      "file": "src/store/useProductCatalogStore.ts",
+      "category": "ux",
+      "severity": "low",
+      "action": "suggest",
+      "message": "Nested ternary expression may produce a confusing UI flow.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-15",
+      "file": "src/pages/PrivacyPage.tsx",
+      "category": "ui",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/SustainabilityPage.tsx.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-16",
+      "file": "src/pages/SustainabilityPage.tsx",
+      "category": "ui",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/PrivacyPage.tsx.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-17",
+      "file": "src/pages/ReturnsPage.tsx",
+      "category": "ui",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/ShippingPage.tsx.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    },
+    {
+      "issueId": "issue-18",
+      "file": "src/pages/ShippingPage.tsx",
+      "category": "ui",
+      "severity": "medium",
+      "action": "suggest",
+      "message": "Shares an identical JSX structure with 1 other file(s): src/pages/ReturnsPage.tsx.",
+      "reason": "Fix requires a structural or logic change, not a safe presentational edit."
+    }
+  ]
+}
