@@ -1,4 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { checkoutContract } from '../../src/contracts/checkout.contract';
+
+const checkoutFields = checkoutContract.fields;
+const checkoutSubmission = checkoutContract.submission;
 
 const appRoutes = [
   '/',
@@ -19,6 +23,36 @@ const appRoutes = [
 ];
 
 test.beforeEach(async ({ page }) => {
+  await page.route(
+    (url) => url.hostname !== '127.0.0.1' && url.hostname !== 'localhost',
+    async (route) => {
+      if (route.request().resourceType() !== 'fetch') {
+        await route.continue();
+        return;
+      }
+
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          contentType: 'application/json',
+          body: JSON.stringify({
+            products: [],
+            settings: { sheetProductDatabase: false },
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          orderId: 'DF-E2E-CHECKOUT',
+          message: 'Order request received.',
+        }),
+      });
+    },
+  );
+
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.removeItem('dotfumes-cart');
@@ -46,7 +80,9 @@ const markFirstCartItemOverLimit = async (page: Page) => {
       }
 
       const currentStock = Number(item.stock);
-      const availableStock = Number.isFinite(currentStock) ? Math.max(1, Math.floor(currentStock)) : 1;
+      const availableStock = Number.isFinite(currentStock)
+        ? Math.max(1, Math.floor(currentStock))
+        : 1;
 
       return {
         ...item,
@@ -79,7 +115,9 @@ test.describe('route smoke', () => {
     await expect(page.getByRole('link', { name: 'Return Home' })).toBeVisible();
   });
 
-  test('/order-confirmation shows fallback state when no session order exists', async ({ page }) => {
+  test('/order-confirmation shows fallback state when no session order exists', async ({
+    page,
+  }) => {
     await page.goto('/order-confirmation');
     await expect(page.getByRole('heading', { name: /No recent order/i })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Return to Checkout' })).toBeVisible();
@@ -87,7 +125,9 @@ test.describe('route smoke', () => {
     await expect(page.getByRole('link', { name: 'Contact Support' })).toBeVisible();
   });
 
-  test('/order-confirmation success state shows order details and support actions', async ({ page }) => {
+  test('/order-confirmation success state shows order details and support actions', async ({
+    page,
+  }) => {
     await page.goto('/');
     await page.evaluate(() => {
       sessionStorage.setItem(
@@ -153,6 +193,144 @@ test.describe('route smoke', () => {
 });
 
 test.describe('core interactions', () => {
+  test('page exposes one main landmark and a working skip link', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page.getByRole('main')).toHaveCount(1);
+    const skipLink = page.getByRole('link', { name: 'Skip to main content' });
+    await skipLink.focus();
+    await expect(skipLink).toBeFocused();
+    await skipLink.press('Enter');
+    await expect(page.getByRole('main')).toBeFocused();
+  });
+
+  test('keyboard focus uses the shared gold ring', async ({ page }) => {
+    await page.goto('/');
+
+    const shopLink = page.getByRole('navigation').getByRole('link', { name: 'Shop', exact: true });
+    await shopLink.focus();
+    await expect(shopLink).toBeFocused();
+    await expect(shopLink).toHaveCSS('outline-style', 'solid');
+    await expect(shopLink).toHaveCSS('outline-width', '2px');
+  });
+
+  test('product artwork uses a native link', async ({ page }) => {
+    await page.goto('/collection');
+
+    const productLink = page.getByRole('link', { name: 'View Bold Decision' }).first();
+    await expect(productLink).toHaveAttribute('href', '/product/bold-decision');
+  });
+
+  test('reduced motion disables smooth scrolling', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+
+    await expect(page.locator('html')).not.toHaveClass(/lenis/);
+  });
+
+  test('reduced motion disables smooth hash navigation', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      const scrollBehaviors: Array<ScrollBehavior | undefined> = [];
+      Object.defineProperty(window, '__dotfumesScrollBehaviors', {
+        configurable: true,
+        value: scrollBehaviors,
+      });
+      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+        scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
+      };
+    });
+
+    await page.goto('/about#ethics');
+    await expect(page.locator('#ethics')).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as Window & { __dotfumesScrollBehaviors?: Array<ScrollBehavior | undefined> })
+              .__dotfumesScrollBehaviors?.[0],
+        ),
+      )
+      .toBe('auto');
+  });
+
+  test('reduced motion disables smooth checkout error recovery', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/product/bold-decision');
+    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page.getByRole('button', { name: 'Checkout' }).click();
+    await page.evaluate(() => {
+      const scrollBehaviors: Array<ScrollBehavior | undefined> = [];
+      Object.defineProperty(window, '__dotfumesScrollBehaviors', {
+        configurable: true,
+        value: scrollBehaviors,
+      });
+      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+        scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
+      };
+    });
+
+    await page.locator('form').evaluate((form: HTMLFormElement) => form.requestSubmit());
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window as Window & { __dotfumesScrollBehaviors?: Array<ScrollBehavior | undefined> })
+              .__dotfumesScrollBehaviors?.[0],
+        ),
+      )
+      .toBe('auto');
+  });
+
+  test('reduced motion fully disables animations, transitions, and CTA transforms', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+
+    const heroCta = page.getByRole('link', { name: 'Explore Bold Decision' });
+    await heroCta.hover();
+    await page.mouse.down();
+
+    const motionState = await page.evaluate(() => {
+      const parseTimeList = (value: string) =>
+        value.split(',').map((time) => {
+          const normalized = time.trim();
+          return normalized.endsWith('ms')
+            ? Number.parseFloat(normalized)
+            : Number.parseFloat(normalized) * 1000;
+        });
+
+      const elements = Array.from(document.querySelectorAll<HTMLElement>('*'));
+      const violations = elements.flatMap((element) => {
+        const styles = getComputedStyle(element);
+        const transitionMs = parseTimeList(styles.transitionDuration);
+
+        return styles.animationName !== 'none' || transitionMs.some((duration) => duration > 0)
+          ? [
+              {
+                tag: element.tagName,
+                animationName: styles.animationName,
+                transitionDuration: styles.transitionDuration,
+              },
+            ]
+          : [];
+      });
+
+      return {
+        runningAnimations: document
+          .getAnimations()
+          .filter((animation) => animation.playState === 'running').length,
+        violations,
+      };
+    });
+
+    await expect(heroCta).toHaveCSS('transform', 'none');
+    expect(motionState.runningAnimations).toBe(0);
+    expect(motionState.violations).toEqual([]);
+    await page.mouse.up();
+  });
+
   test('homepage has a clear shop CTA and it navigates to collection', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('link', { name: 'Shop Perfumes' }).first()).toBeVisible();
@@ -245,12 +423,34 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('dialog', { name: 'Shopping cart' })).toBeVisible();
   });
 
+  test('mobile navigation releases its modal state at the desktop breakpoint', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Open navigation menu' }).click();
+    await expect(page.getByRole('dialog', { name: 'Mobile navigation' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe('hidden');
+
+    const desktopShopLink = page
+      .getByRole('navigation', { name: 'Primary navigation' })
+      .getByRole('link', { name: 'Shop', exact: true });
+    await desktopShopLink.focus();
+    await expect(desktopShopLink).toBeFocused();
+  });
+
   test('mobile cart drawer keeps product details readable and checkout tappable while toast is visible', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
 
     const drawer = page.getByRole('dialog', { name: 'Shopping cart' });
     await expect(drawer).toBeVisible();
@@ -272,9 +472,27 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('link', { name: 'Bold Decision' })).toBeVisible();
   });
 
+  test('toast dismiss control keeps a full touch target', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 320, height: 812 });
+    await page.goto('/product/bold-decision');
+    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+
+    const dismissButton = page.getByRole('button', { name: 'Dismiss notification' });
+    await expect(dismissButton).toBeVisible();
+    const buttonBox = await dismissButton.boundingBox();
+
+    expect(buttonBox).not.toBeNull();
+    expect(buttonBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(buttonBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  });
+
   test('product page buy now sends customer to checkout with selected item', async ({ page }) => {
     await page.goto('/product/soft-promise');
-    await page.getByRole('button', { name: /^Buy Now$/i }).first().click();
+    await page
+      .getByRole('button', { name: /^Buy Now$/i })
+      .first()
+      .click();
     await expect(page).toHaveURL(/\/checkout$/);
     await expect(page.getByRole('heading', { name: 'Your Selection' })).toBeVisible();
     await expect(page.locator('aside').getByText('Soft Promise', { exact: true })).toBeVisible();
@@ -293,11 +511,71 @@ test.describe('core interactions', () => {
     await page.getByRole('button', { name: 'Checkout' }).click();
     await expect(page).toHaveURL(/\/checkout$/);
 
-    await page.getByRole('button', { name: 'Place Order Request' }).click();
+    const submitButton = page.getByRole('button', { name: checkoutSubmission.label });
+    await expect(submitButton).toBeDisabled();
 
-    await expect(page.getByText('Please enter your first name.')).toBeVisible();
-    await expect(page.getByText('Please select your payment method.')).toBeVisible();
-    await expect(page.getByText('Please upload your payment slip.')).toBeVisible();
+    await page.getByLabel(checkoutFields.firstName.label).focus();
+    await page.getByLabel(checkoutFields.firstName.label).blur();
+    await page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first().focus();
+    await page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first().blur();
+    await page.locator(`input[name="${checkoutContract.slip.name}"]`).focus();
+    await page.locator(`input[name="${checkoutContract.slip.name}"]`).blur();
+
+    await expect(page.getByText(checkoutFields.firstName.messages.required)).toBeVisible();
+    await expect(page.getByText(checkoutFields.paymentMethod.messages.required)).toBeVisible();
+    await expect(page.getByText(checkoutContract.slip.messages.required)).toBeVisible();
+  });
+
+  test('checkout hidden controls expose visible focus on their labels', async ({ page }) => {
+    await page.goto('/checkout');
+
+    const paymentInput = page.locator(
+      `input[name="${checkoutFields.paymentMethod.name}"]`,
+    ).first();
+    const paymentLabel = paymentInput.locator('xpath=..');
+    await paymentInput.focus();
+    await expect(paymentInput).toBeFocused();
+    expect(await paymentLabel.evaluate((label) => getComputedStyle(label).boxShadow)).not.toBe(
+      'none',
+    );
+
+    const slipInput = page.locator(`input[name="${checkoutContract.slip.name}"]`);
+    const slipLabel = slipInput.locator('xpath=..');
+    await slipInput.focus();
+    await expect(slipInput).toBeFocused();
+    expect(await slipLabel.evaluate((label) => getComputedStyle(label).boxShadow)).not.toBe('none');
+  });
+
+  test('checkout enables submission as soon as all required values are valid', async ({ page }) => {
+    await page.goto('/product/bold-decision');
+    await page.getByRole('button', { name: /Add to Cart/i }).click();
+    await page.getByRole('button', { name: 'Checkout' }).click();
+
+    for (const fieldName of checkoutContract.steps[0].fields) {
+      const field = checkoutFields[fieldName];
+      await page.getByLabel(field.label).fill(checkoutContract.testFixtures.validValues[fieldName]);
+    }
+    const paymentMethod = checkoutContract.paymentMethods[0];
+    await page.getByText(paymentMethod.label, { exact: true }).click();
+    await expect(
+      page.locator(
+        `input[name="${checkoutFields.paymentMethod.name}"][value="${paymentMethod.value}"]`,
+      ),
+    ).toBeChecked();
+    await page.locator(`input[name="${checkoutContract.slip.name}"]`).setInputFiles({
+      name: checkoutContract.testFixtures.validSlip.name,
+      mimeType: checkoutContract.testFixtures.validSlip.type,
+      buffer: Buffer.from(checkoutContract.testFixtures.validSlip.contents),
+    });
+    await expect(page.locator(`input[name="${checkoutContract.slip.name}"]`)).toHaveJSProperty(
+      'files.length',
+      1,
+    );
+
+    const submitButton = page.getByRole('button', { name: checkoutSubmission.label });
+    await expect(submitButton).toBeEnabled();
+    await submitButton.click();
+    await expect(page).toHaveURL(/\/order-confirmation$/);
   });
 
   test('footer support and policy links navigate to real pages', async ({ page }) => {
@@ -343,11 +621,27 @@ test.describe('core interactions', () => {
   test('footer links do not route to checkout unless checkout CTA', async ({ page }) => {
     await page.goto('/');
     const footer = page.locator('footer');
-    const hrefs = await footer.locator('a').evaluateAll((anchors) =>
-      anchors.map((anchor) => anchor.getAttribute('href')),
-    );
+    const hrefs = await footer
+      .locator('a')
+      .evaluateAll((anchors) => anchors.map((anchor) => anchor.getAttribute('href')));
 
     expect(hrefs.some((href) => href?.includes('/checkout'))).toBeFalsy();
+  });
+
+  test('mobile footer status labels stay inside their navigation column', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 812 });
+    await page.goto('/');
+
+    const statusLabel = page.getByLabel('Limited Editions opening soon');
+    const navigationColumn = statusLabel.locator('xpath=../../..');
+    const statusBox = await statusLabel.boundingBox();
+    const columnBox = await navigationColumn.boundingBox();
+
+    expect(statusBox).not.toBeNull();
+    expect(columnBox).not.toBeNull();
+    expect((statusBox?.x ?? 0) + (statusBox?.width ?? 0)).toBeLessThanOrEqual(
+      (columnBox?.x ?? 0) + (columnBox?.width ?? 0),
+    );
   });
 
   test('mobile checkout shows heading before selection summary', async ({ page }) => {
@@ -370,10 +664,10 @@ test.describe('core interactions', () => {
 
   test('checkout shows customer reassurance copy', async ({ page }) => {
     await page.goto('/checkout');
-    const steps = page.getByLabel('Checkout steps');
-    await expect(steps.getByText('1. Your Details')).toBeVisible();
-    await expect(steps.getByText('2. Payment Proof')).toBeVisible();
-    await expect(steps.getByText('3. Review & Submit')).toBeVisible();
+    const steps = page.getByLabel(checkoutContract.progressLabel);
+    for (const step of checkoutContract.steps) {
+      await expect(steps.getByText(step.label)).toBeVisible();
+    }
     await expect(page.getByText(/What Happens Next/i)).toBeVisible();
     await expect(page.getByText(/Dotfumes reviews your payment proof manually/i)).toBeVisible();
     await expect(page.getByText(/contact you as early as possible/i).first()).toBeVisible();
@@ -391,14 +685,18 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('button', { name: 'Checkout' })).toBeDisabled();
   });
 
-  test('checkout submit is blocked when cart quantity exceeds available stock', async ({ page }) => {
+  test('checkout submit is blocked when cart quantity exceeds available stock', async ({
+    page,
+  }) => {
     await page.goto('/product/soft-promise');
     await page.getByRole('button', { name: /Add to Cart/i }).click();
     await markFirstCartItemOverLimit(page);
 
     await page.goto('/checkout');
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(page.getByRole('button', { name: 'Place Order Request' })).toBeDisabled();
-    await expect(page.getByText('Currently unavailable').first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: checkoutSubmission.label }),
+    ).toBeDisabled();
+    await expect(page.getByText('Out of stock — remove to continue').first()).toBeVisible();
   });
 });
