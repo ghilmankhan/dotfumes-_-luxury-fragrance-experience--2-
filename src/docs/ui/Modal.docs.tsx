@@ -11,8 +11,8 @@ export const ModalDocs = () => {
   return (
     <div className="space-y-10 bg-brand-white p-10 text-brand-black">
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest">Usage</h2>
-        <p className="mb-3 max-w-2xl text-xs text-black/60">
+        <h2 className="mb-4 text-body font-bold uppercase tracking-widest">Usage</h2>
+        <p className="mb-3 max-w-2xl text-label text-on-light-secondary">
           Modal owns the shell (backdrop via Overlay, slide-in panel, focus-trap, Escape-to-close,
           body scroll lock, ARIA dialog role). It does not own visual theme — callers pass
           overlayClassName/dialogClassName so the same shell serves CartDrawer's light panel and
@@ -27,10 +27,10 @@ export const ModalDocs = () => {
           onClose={() => setIsOpen(false)}
           ariaLabel="Example drawer"
           triggerRef={triggerRef}
-          overlayClassName="z-[100] bg-black/40"
-          dialogClassName="z-[101] h-full w-full max-w-md bg-white p-8"
+          overlayClassName="z-100 bg-surface-overlay-muted"
+          dialogClassName="z-101 h-full w-full max-w-md bg-brand-white p-8"
         >
-          <p className="text-sm">Drawer content.</p>
+          <p className="text-body">Drawer content.</p>
           <Button variant="outline" onClick={() => setIsOpen(false)} className="mt-6">
             Close
           </Button>
@@ -38,8 +38,8 @@ export const ModalDocs = () => {
       </section>
 
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest">Edge cases covered</h2>
-        <ul className="list-disc space-y-1 pl-5 text-xs text-black/60">
+        <h2 className="mb-4 text-body font-bold uppercase tracking-widest">Edge cases covered</h2>
+        <ul className="list-disc space-y-1 pl-4 text-label text-on-light-secondary">
           <li>Escape key closes and returns focus to triggerRef.</li>
           <li>Tab/Shift+Tab wraps within the dialog's focusable elements.</li>
           <li>Body scroll is locked while open, restored on close.</li>
@@ -48,15 +48,15 @@ export const ModalDocs = () => {
       </section>
 
       <section>
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-widest">Reference</h2>
-        <pre className="overflow-x-auto bg-black/5 p-4 text-xs">
+        <h2 className="mb-4 text-body font-bold uppercase tracking-widest">Reference</h2>
+        <pre className="overflow-x-auto bg-surface-overlay-subtle p-4 text-label">
           {`<Modal
   isOpen={isCartOpen}
   onClose={closeCart}
   ariaLabel="Shopping cart"
   triggerRef={cartTriggerRef}
-  overlayClassName="z-[120] bg-black/40"
-  dialogClassName="z-[121] h-full w-full max-w-md bg-white"
+  overlayClassName="z-120 bg-surface-overlay-muted"
+  dialogClassName="z-121 h-full w-full max-w-md bg-brand-white"
 >
   {/* drawer content */}
 </Modal>`}

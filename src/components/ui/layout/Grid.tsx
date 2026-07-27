@@ -5,6 +5,7 @@ export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Column counts per breakpoint, e.g. { base: 1, md: 2, xl: 4 } (AdminPage metrics grid). */
   cols?: { base?: number; sm?: number; md?: number; lg?: number; xl?: number };
   gap?: 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12;
+  layout?: 'balanced' | 'content-sidebar' | 'media-copy' | 'product-detail';
 }
 
 const colsMap: Record<number, string> = {
@@ -46,14 +47,28 @@ const gapMap = {
   2: 'gap-2',
   3: 'gap-3',
   4: 'gap-4',
-  5: 'gap-5',
+  5: 'gap-6',
   6: 'gap-6',
   8: 'gap-8',
   10: 'gap-10',
   12: 'gap-12',
 };
 
-export const Grid: React.FC<GridProps> = ({ cols = {}, gap = 4, className, children, ...rest }) => (
+const layoutMap = {
+  balanced: 'grid-layout-balanced',
+  'content-sidebar': 'grid-layout-content-sidebar',
+  'media-copy': 'grid-layout-media-copy',
+  'product-detail': 'grid-layout-product-detail',
+};
+
+export const Grid: React.FC<GridProps> = ({
+  cols = {},
+  gap = 4,
+  layout,
+  className,
+  children,
+  ...rest
+}) => (
   <div
     className={cn(
       'grid',
@@ -63,6 +78,7 @@ export const Grid: React.FC<GridProps> = ({ cols = {}, gap = 4, className, child
       cols.md && mdColsMap[cols.md],
       cols.lg && lgColsMap[cols.lg],
       cols.xl && xlColsMap[cols.xl],
+      layout && layoutMap[layout],
       className,
     )}
     {...rest}

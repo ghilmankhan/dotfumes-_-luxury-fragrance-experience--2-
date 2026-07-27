@@ -17,7 +17,7 @@ export const Spinner: React.FC<SpinnerProps> = ({ size = 'sm', className, ...res
   <span
     aria-hidden="true"
     className={cn(
-      'animate-spin rounded-full border border-current border-t-transparent',
+      'motion-safe:animate-spin rounded-full border border-current border-t-transparent',
       sizeClasses[size],
       className,
     )}
