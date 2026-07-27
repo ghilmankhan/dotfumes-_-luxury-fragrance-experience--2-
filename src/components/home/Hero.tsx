@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
+import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { Pause, Play } from 'lucide-react';
 import { FEATURED_PRODUCTS } from '../../constants/products';
 import { Button, LinkButton } from '../ui/primitives/Button';
 import { cn } from '../../lib/utils';
 import { eyebrowLabel, headingXl } from '../../styles/tokens/typography';
-import { easing } from '../../styles/tokens/motion';
+import { duration, easing } from '../../styles/tokens/motion';
+import type { ImageFocalPoint } from '../../styles/tokens/imageTokens';
+import { AssetImage } from '../AssetImage';
+import { touchTarget } from '../../styles/tokens/interactive';
 
 type HeroSlide = {
   slug: string;
@@ -23,8 +27,7 @@ type HeroSlide = {
   secondaryCtaRoute: string;
   accentClassName: string;
   alt: string;
-  desktopObjectPosition: string;
-  mobileObjectPosition: string;
+  focal: ImageFocalPoint;
 };
 
 const getProductBySlug = (slug: string) =>
@@ -47,10 +50,9 @@ const HERO_SLIDES: HeroSlide[] = [
     primaryCtaRoute: '/product/bold-decision',
     secondaryCtaLabel: 'Shop Perfumes',
     secondaryCtaRoute: '/collection',
-    accentClassName: 'from-amber-300/80 to-amber-600/70',
+    accentClassName: 'from-hero-accent-warm-start to-hero-accent-warm-end',
     alt: 'Bold Decision cinematic perfume hero in obsidian lighting',
-    desktopObjectPosition: '72% center',
-    mobileObjectPosition: '60% center',
+    focal: 'right',
   },
   {
     slug: 'soft-promise',
@@ -68,10 +70,9 @@ const HERO_SLIDES: HeroSlide[] = [
     primaryCtaRoute: '/product/soft-promise',
     secondaryCtaLabel: 'Shop Perfumes',
     secondaryCtaRoute: '/collection',
-    accentClassName: 'from-rose-200/80 to-amber-400/70',
+    accentClassName: 'from-hero-accent-rose-start to-hero-accent-rose-end',
     alt: 'Soft Promise perfume hero image with warm editorial lighting',
-    desktopObjectPosition: '70% center',
-    mobileObjectPosition: '62% center',
+    focal: 'right',
   },
   {
     slug: 'wild-silence',
@@ -89,10 +90,9 @@ const HERO_SLIDES: HeroSlide[] = [
     primaryCtaRoute: '/product/wild-silence',
     secondaryCtaLabel: 'Shop Perfumes',
     secondaryCtaRoute: '/collection',
-    accentClassName: 'from-cyan-200/70 to-slate-300/60',
+    accentClassName: 'from-hero-accent-cool-start to-hero-accent-cool-end',
     alt: 'Wild Silence perfume hero in dark stone-inspired cinematic mood',
-    desktopObjectPosition: '74% center',
-    mobileObjectPosition: '64% center',
+    focal: 'right',
   },
   {
     slug: 'bleu-heat',
@@ -110,10 +110,9 @@ const HERO_SLIDES: HeroSlide[] = [
     primaryCtaRoute: '/product/bleu-heat',
     secondaryCtaLabel: 'Shop Perfumes',
     secondaryCtaRoute: '/collection',
-    accentClassName: 'from-sky-300/80 to-blue-500/70',
+    accentClassName: 'from-hero-accent-sky-start to-hero-accent-sky-end',
     alt: 'Bleu Heat perfume hero with cool blue and amber highlights',
-    desktopObjectPosition: '72% center',
-    mobileObjectPosition: '62% center',
+    focal: 'right',
   },
   {
     slug: 'first-meet',
@@ -131,34 +130,41 @@ const HERO_SLIDES: HeroSlide[] = [
     primaryCtaRoute: '/product/first-meet',
     secondaryCtaLabel: 'Shop Perfumes',
     secondaryCtaRoute: '/collection',
-    accentClassName: 'from-yellow-200/80 to-amber-500/80',
+    accentClassName: 'from-hero-accent-gold-start to-hero-accent-gold-end',
     alt: 'First Meet perfume hero with golden-hour cinematic reflections',
-    desktopObjectPosition: '73% center',
-    mobileObjectPosition: '60% center',
+    focal: 'right',
   },
 ];
 
 const TOUCH_RESUME_AFTER_MS = 10000;
 
+// Cadence for the hero's single rehearsed entrance (eyebrow → headline →
+// description/mood → CTA), layered on top of each block's existing
+// AnimatePresence key/exit below — see copyContainerVariants/ctaContainerVariants.
+const FOCAL_STAGGER_STEP = 0.09;
+
 export const Hero = () => {
   const prefersReducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isInteractionPaused, setIsInteractionPaused] = useState(false);
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
   const [slideFallbacks, setSlideFallbacks] = useState<Record<string, boolean>>({});
   const touchResumeTimeoutRef = useRef<number | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const activeSlide = HERO_SLIDES[activeIndex];
   const autoRotateMs = 7000;
+  const autoplayEnabled = !prefersReducedMotion && !isInteractionPaused && !isAutoplayPaused;
 
   // Mobile has no hover/blur to resume on, so touching the slide pauses it and
   // a fresh inactivity timer (reset on every touch) resumes it instead.
   const handleTouchStart = () => {
-    setIsPaused(true);
+    setIsInteractionPaused(true);
     if (touchResumeTimeoutRef.current) {
       window.clearTimeout(touchResumeTimeoutRef.current);
     }
     touchResumeTimeoutRef.current = window.setTimeout(() => {
-      setIsPaused(false);
+      setIsInteractionPaused(false);
     }, TOUCH_RESUME_AFTER_MS);
   };
 
@@ -171,7 +177,7 @@ export const Hero = () => {
   }, []);
 
   useEffect(() => {
-    if (prefersReducedMotion || isPaused) {
+    if (!autoplayEnabled) {
       return;
     }
 
@@ -180,7 +186,7 @@ export const Hero = () => {
     }, autoRotateMs);
 
     return () => window.clearInterval(interval);
-  }, [isPaused, prefersReducedMotion]);
+  }, [autoplayEnabled]);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -202,139 +208,261 @@ export const Hero = () => {
     if (nextTarget && event.currentTarget.contains(nextTarget)) {
       return;
     }
-    setIsPaused(false);
+    setIsInteractionPaused(false);
   };
 
-  const slideProgressWidth = useMemo(
-    () => `${((activeIndex + 1) / HERO_SLIDES.length) * 100}%`,
-    [activeIndex],
-  );
+  const selectSlide = (index: number, moveFocus = false) => {
+    const nextIndex = (index + HERO_SLIDES.length) % HERO_SLIDES.length;
+    setActiveIndex(nextIndex);
+    if (moveFocus) {
+      tabRefs.current[nextIndex]?.focus();
+    }
+  };
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number | null = null;
+
+    if (event.key === 'ArrowRight') {
+      nextIndex = index + 1;
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = index - 1;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = HERO_SLIDES.length - 1;
+    }
+
+    if (nextIndex !== null) {
+      event.preventDefault();
+      selectSlide(nextIndex, true);
+    }
+  };
+
+  const slideProgressWidth = `${((activeIndex + 1) / HERO_SLIDES.length) * 100}%`;
+
+  // Headline → description → mood pill cascade (beat 2 of the entrance).
+  const copyContainerVariants = {
+    hidden: {},
+    show: {
+      transition: prefersReducedMotion
+        ? {}
+        : { staggerChildren: FOCAL_STAGGER_STEP, delayChildren: FOCAL_STAGGER_STEP },
+    },
+    exit: {
+      transition: prefersReducedMotion
+        ? {}
+        : { staggerChildren: FOCAL_STAGGER_STEP, staggerDirection: -1 },
+    },
+  };
+
+  const copyItemVariants = {
+    hidden: prefersReducedMotion ? {} : { opacity: 0, y: 14 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: prefersReducedMotion ? 0 : duration.slow, ease: easing.standard },
+    },
+    exit: prefersReducedMotion
+      ? {}
+      : { opacity: 0, y: -10, transition: { duration: duration.fast, ease: easing.standard } },
+  };
+
+  // CTA row is the final beat, starting once the copy cascade above is underway.
+  const ctaContainerVariants = {
+    hidden: {},
+    show: {
+      transition: prefersReducedMotion
+        ? {}
+        : { staggerChildren: FOCAL_STAGGER_STEP, delayChildren: FOCAL_STAGGER_STEP * 3 },
+    },
+    exit: {
+      transition: prefersReducedMotion
+        ? {}
+        : { staggerChildren: FOCAL_STAGGER_STEP, staggerDirection: -1 },
+    },
+  };
 
   return (
     <section
-      className="relative min-h-[92svh] w-full overflow-hidden bg-brand-black md:min-h-screen"
+      className="relative min-h-svh w-full overflow-hidden bg-brand-black md:min-h-screen"
       aria-label="Featured fragrance hero carousel"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocusCapture={() => setIsPaused(true)}
+      onMouseEnter={() => setIsInteractionPaused(true)}
+      onMouseLeave={() => setIsInteractionPaused(false)}
+      onFocusCapture={() => setIsInteractionPaused(true)}
       onBlurCapture={handleBlurCapture}
       onTouchStart={handleTouchStart}
     >
-      <AnimatePresence mode="wait">
+      {/* True crossfade: no `mode="wait"` so the outgoing and incoming slide
+          overlap and cross-dissolve instead of fading to black between them. */}
+      <AnimatePresence initial={!prefersReducedMotion}>
         <motion.div
           key={activeSlide.slug}
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: prefersReducedMotion ? 0.01 : 1.1, ease: easing.standard }}
+          exit={prefersReducedMotion ? {} : { opacity: 0 }}
+          transition={{
+            duration: prefersReducedMotion ? 0 : duration.cinematic,
+            ease: easing.standard,
+          }}
           className="absolute inset-0"
+          aria-hidden="true"
         >
-          <img
-            src={currentSlideImage}
-            alt={activeSlide.alt}
-            className="h-full w-full object-cover md:hidden"
-            style={{ objectPosition: activeSlide.mobileObjectPosition }}
-            loading={activeIndex === 0 ? 'eager' : 'lazy'}
-            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
-            decoding="async"
-            sizes="100vw"
-            onError={() =>
-              setSlideFallbacks((prev) => ({
-                ...prev,
-                [activeSlide.slug]: true,
-              }))
+          {/* Slow continuous zoom for the slide's full dwell time — the one
+              authored background moment; disabled outright under reduced motion. */}
+          <motion.div
+            className="h-full w-full"
+            initial={prefersReducedMotion ? false : { scale: 1 }}
+            animate={{ scale: prefersReducedMotion ? 1 : 1.06 }}
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : { duration: autoRotateMs / 1000, ease: 'linear' }
             }
-          />
-          <img
-            src={currentSlideImage}
-            alt=""
-            aria-hidden="true"
-            className="hidden h-full w-full object-cover md:block"
-            style={{ objectPosition: activeSlide.desktopObjectPosition }}
-            loading={activeIndex === 0 ? 'eager' : 'lazy'}
-            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
-            decoding="async"
-            sizes="100vw"
-            onError={() =>
-              setSlideFallbacks((prev) => ({
-                ...prev,
-                [activeSlide.slug]: true,
-              }))
-            }
-          />
+          >
+            <AssetImage
+              src={currentSlideImage}
+              alt=""
+              wrapperClassName="h-full w-full"
+              className="h-full w-full object-cover motion-reduce:scale-100 motion-reduce:blur-none motion-reduce:transition-none"
+              focal={activeSlide.focal}
+              loading={activeIndex === 0 ? 'eager' : 'lazy'}
+              fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+              decoding="async"
+              sizes="100vw"
+              onError={() =>
+                setSlideFallbacks((prev) => ({
+                  ...prev,
+                  [activeSlide.slug]: true,
+                }))
+              }
+            />
+          </motion.div>
         </motion.div>
       </AnimatePresence>
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/90 via-black/58 to-black/18 md:from-black/82 md:via-black/44 md:to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/76 via-black/18 to-black/35 md:from-black/70 md:to-black/20" />
-      <div className="noise-overlay pointer-events-none absolute inset-0 opacity-[0.18]" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-gradient-shadow-solid via-gradient-shadow-muted to-gradient-shadow-subtle md:from-gradient-shadow-deep md:via-gradient-shadow-soft md:to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-gradient-shadow-strong via-gradient-shadow-faint to-gradient-shadow-soft md:from-gradient-shadow-strong md:to-gradient-shadow-subtle" />
+      <div className="noise-overlay pointer-events-none absolute inset-0 opacity-20" />
 
-      <div className="absolute right-[8%] top-[18%] z-20 hidden h-52 w-52 rounded-full bg-amber-300/15 blur-[110px] md:block" />
-      <div className="absolute left-[20%] top-[22%] z-20 hidden h-44 w-44 rounded-full bg-sky-200/10 blur-[120px] md:block" />
+      <div className="absolute right-16 top-24 z-20 hidden h-52 w-52 rounded-full bg-hero-glow-warm blur-3xl md:block" />
+      <div className="absolute left-1/5 top-28 z-20 hidden h-44 w-44 rounded-full bg-hero-glow-cool blur-3xl md:block" />
 
-      <main className="relative z-30 mx-auto flex min-h-[92svh] w-full max-w-[1760px] flex-col justify-between px-6 pb-10 pt-28 md:min-h-screen md:px-16 md:pb-14 md:pt-36 lg:px-24">
-        <div className="max-w-[720px]">
-          <p className={cn(eyebrowLabel, 'mb-5 inline-flex items-center gap-3 tracking-[0.46em] text-brand-gold md:mb-7')}>
-            <span>{activeSlide.eyebrow}</span>
-            <span
-              className={`h-px w-10 bg-gradient-to-r ${activeSlide.accentClassName} md:w-14`}
-              aria-hidden="true"
-            />
-          </p>
+      <div
+        className="relative z-30 mx-auto flex min-h-svh w-full max-w-440 flex-col justify-between px-6 pb-10 pt-28 md:min-h-screen md:px-16 md:pb-14 md:pt-36 lg:px-24"
+        id={`hero-panel-${activeSlide.slug}`}
+        role="tabpanel"
+        aria-labelledby={`hero-tab-${activeSlide.slug}`}
+        tabIndex={0}
+      >
+        <div className="max-w-180">
+          {/* Beat 1: eyebrow leads the cascade. */}
+          <AnimatePresence mode="wait" initial={!prefersReducedMotion}>
+            <motion.p
+              key={`${activeSlide.slug}-eyebrow`}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={prefersReducedMotion ? {} : { opacity: 0, x: -8 }}
+              transition={{
+                duration: prefersReducedMotion ? 0 : duration.base,
+                ease: easing.standard,
+              }}
+              className={cn(
+                eyebrowLabel,
+                'mb-4 inline-flex items-center gap-3 tracking-wider text-brand-gold md:mb-8',
+              )}
+            >
+              <span>{activeSlide.eyebrow}</span>
+              <span
+                className={`h-px w-10 bg-gradient-to-r ${activeSlide.accentClassName} md:w-14`}
+                aria-hidden="true"
+              />
+            </motion.p>
+          </AnimatePresence>
 
-          <AnimatePresence mode="wait">
+          {/* Beat 2: headline → description → mood pill, staggered via copyContainerVariants. */}
+          <AnimatePresence mode="wait" initial={!prefersReducedMotion}>
             <motion.div
               key={`${activeSlide.slug}-copy`}
-              initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -10 }}
-              transition={{ duration: prefersReducedMotion ? 0.01 : 0.6, ease: easing.standard }}
+              variants={copyContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
             >
-              <h1 className={headingXl}>
+              <motion.h1 variants={copyItemVariants} className={headingXl}>
                 <span className="block">{activeSlide.headlineLine1}</span>
-                <span className="block text-white/80">{activeSlide.headlineLine2}</span>
-              </h1>
+                <span className="block text-on-dark-secondary">{activeSlide.headlineLine2}</span>
+              </motion.h1>
 
-              <p className="mt-7 max-w-xl text-[13px] leading-7 text-white/82 md:mt-8 md:text-[15px] md:leading-8">
+              <motion.p
+                variants={copyItemVariants}
+                className="mt-8 max-w-[52ch] text-[15px] leading-[1.7] text-on-dark-secondary/70"
+              >
                 {activeSlide.description}
-              </p>
+              </motion.p>
 
-              <div className="mt-6 inline-flex flex-wrap items-center gap-3 border border-white/15 bg-black/25 px-4 py-3 backdrop-blur-sm">
-                <p className="text-[10px] uppercase tracking-[0.34em] text-brand-gold/85">Mood</p>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/90">{activeSlide.mood}</p>
-                <span className="hidden text-white/45 md:inline">•</span>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-white/70">{activeSlide.notes}</p>
-              </div>
+              {/* Notes row: one line only. A short 32px hairline (not a
+                  full-width rule) leads into it; the mood word is dropped
+                  here since the eyebrow above already carries that role —
+                  showing both was redundant and pushed this onto a 3rd,
+                  single-word-orphaned line. text-balance keeps any wrap
+                  (narrow viewports) landing as two even lines instead. */}
+              <motion.div variants={copyItemVariants} className="mt-6 max-w-[38ch]">
+                <span aria-hidden="true" className="mb-4 block h-px w-8 bg-brand-gold/40" />
+                <p className="text-balance text-[11px] uppercase tracking-[0.12em] text-on-dark-muted">
+                  {activeSlide.notes.replace(/\s*•\s*/g, ' · ')}
+                </p>
+              </motion.div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        <div className="mt-10 flex flex-col gap-6 md:mt-0">
-          <div className="flex flex-wrap gap-3">
-            <LinkButton
-              to={activeSlide.primaryCtaRoute}
-              variant="secondary"
-              className="font-semibold md:text-[11px]"
+        <div className="mt-10 flex flex-col md:mt-0">
+          {/* Beat 3: CTA row lands last, once the copy cascade is underway. */}
+          <AnimatePresence mode="wait" initial={!prefersReducedMotion}>
+            <motion.div
+              key={`${activeSlide.slug}-cta`}
+              variants={ctaContainerVariants}
+              initial="hidden"
+              animate="show"
+              exit="exit"
+              className="flex flex-wrap items-stretch gap-6"
             >
-              {activeSlide.primaryCtaLabel}
-            </LinkButton>
-            <LinkButton
-              to={activeSlide.secondaryCtaRoute}
-              className="border border-white/25 bg-black/25 px-6 py-3 font-semibold text-white hover:border-white/60 hover:bg-white/12 hover:text-white md:px-8 md:py-4 md:text-[11px]"
-            >
-              {activeSlide.secondaryCtaLabel}
-            </LinkButton>
-          </div>
+              {/* Both CTAs share one fixed geometry (52px tall, 40px horizontal
+                  padding, 12px/0.15em-ish type) so the pair reads as one
+                  matched system — only fill behavior (ivory sweep vs. no
+                  fill) tells them apart. */}
+              <motion.div variants={copyItemVariants}>
+                <LinkButton
+                  to={activeSlide.primaryCtaRoute}
+                  variant="secondary"
+                  className="h-[52px] px-10 py-0 text-label font-semibold tracking-normal md:h-[52px] md:px-10 md:py-0 md:text-label"
+                >
+                  {activeSlide.primaryCtaLabel}
+                </LinkButton>
+              </motion.div>
+              <motion.div variants={copyItemVariants}>
+                <LinkButton
+                  to={activeSlide.secondaryCtaRoute}
+                  variant="outlineDark"
+                  className="h-[52px] px-10 py-0 text-label font-semibold tracking-normal md:h-[52px] md:px-10 md:py-0 md:text-label"
+                >
+                  {activeSlide.secondaryCtaLabel}
+                </LinkButton>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
 
-          <p className="max-w-[640px] text-[11px] uppercase tracking-[0.2em] text-white/68">
-            Manual payment review, order confirmation, and delivery coordination with WhatsApp or
-            email support.
+          {/* Shortened out of the CTA visual path — the full manual-review/
+              WhatsApp/email explanation already lives in the checkout flow
+              itself (CheckoutPage), where it's actually actionable. */}
+          <p className="mt-10 max-w-[44ch] text-[10px] leading-[1.6] text-brand-ivory/35">
+            Concierge checkout · WhatsApp &amp; email support
           </p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-5 md:mt-6 md:flex-row md:items-end md:justify-between">
+        <div className="mt-8 flex flex-col gap-6 md:mt-6 md:flex-row md:items-end md:justify-between">
           <div
-            className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="scrollbar-hidden flex gap-2 overflow-x-auto pb-1"
             role="tablist"
             aria-label="Choose featured fragrance slide"
           >
@@ -343,17 +471,21 @@ export const Hero = () => {
               return (
                 <Button
                   key={slide.slug}
+                  ref={(node) => {
+                    tabRefs.current[index] = node;
+                  }}
                   variant="ghost"
+                  id={`hero-tab-${slide.slug}`}
                   role="tab"
                   aria-selected={isActive}
-                  aria-controls={`hero-slide-${slide.slug}`}
+                  aria-controls={`hero-panel-${slide.slug}`}
                   aria-label={`Show ${slide.name} hero`}
-                  onClick={() => setActiveIndex(index)}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => selectSlide(index)}
+                  onKeyDown={(event) => handleTabKeyDown(event, index)}
                   className={cn(
-                    'shrink-0 border px-3 py-2 font-normal normal-case tracking-[0.22em] text-[10px] transition md:px-4 md:text-[11px]',
-                    isActive
-                      ? 'border-brand-gold bg-brand-gold/20 text-white hover:text-white'
-                      : 'border-white/20 bg-black/25 text-white/72 hover:border-white/45 hover:text-white',
+                    'shrink-0 border-b-2 border-transparent px-1 py-2 font-normal normal-case tracking-wide transition md:px-2 md:text-small',
+                    isActive && 'border-brand-gold text-brand-white hover:text-brand-white',
                   )}
                 >
                   {slide.name}
@@ -362,40 +494,58 @@ export const Hero = () => {
             })}
           </div>
 
-          <div className="hidden items-center gap-3 self-start md:flex md:self-auto">
+          <div className="flex items-center gap-3 self-start md:self-auto">
             <Button
               variant="ghost"
-              onClick={() =>
-                setActiveIndex((prev) => (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)
+              size="icon"
+              onClick={() => setIsAutoplayPaused((paused) => !paused)}
+              className={cn('border-0 bg-transparent text-on-dark-subtle hover:text-on-dark-strong', touchTarget)}
+              aria-pressed={isAutoplayPaused || Boolean(prefersReducedMotion)}
+              aria-label={
+                prefersReducedMotion
+                  ? 'Autoplay disabled'
+                  : isAutoplayPaused
+                    ? 'Resume autoplay'
+                    : 'Pause autoplay'
               }
-              className="h-10 w-10 border border-white/22 bg-black/22 p-0 normal-case tracking-normal text-white/85 hover:border-white/55 hover:text-white"
-              aria-label="Show previous fragrance slide"
+              disabled={Boolean(prefersReducedMotion)}
             >
-              ‹
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setActiveIndex((prev) => (prev + 1) % HERO_SLIDES.length)}
-              className="h-10 w-10 border border-white/22 bg-black/22 p-0 normal-case tracking-normal text-white/85 hover:border-white/55 hover:text-white"
-              aria-label="Show next fragrance slide"
-            >
-              ›
+              {prefersReducedMotion || isAutoplayPaused ? (
+                <Play size={14} strokeWidth={1.6} aria-hidden="true" />
+              ) : (
+                <Pause size={14} strokeWidth={1.6} aria-hidden="true" />
+              )}
             </Button>
           </div>
         </div>
 
-        <div className="mt-4 h-[2px] w-full max-w-[560px] overflow-hidden bg-white/20">
+        <div className="mt-4 h-0.5 w-full max-w-140 overflow-hidden bg-surface-glass-muted">
           <motion.div
             key={`progress-${activeIndex}`}
-            className={`h-full bg-gradient-to-r ${activeSlide.accentClassName}`}
-            initial={{ width: 0 }}
+            className={`h-full bg-gradient-to-r motion-reduce:transition-none ${activeSlide.accentClassName}`}
+            initial={prefersReducedMotion ? false : { width: 0 }}
             animate={{ width: slideProgressWidth }}
-            transition={{ duration: prefersReducedMotion ? 0.1 : 0.5, ease: easing.standard }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : duration.moderate,
+              ease: easing.standard,
+            }}
           />
         </div>
-      </main>
+      </div>
 
-      <p className="sr-only" aria-live="polite" id={`hero-slide-${activeSlide.slug}`}>
+      {HERO_SLIDES.map((slide, index) =>
+        index === activeIndex ? null : (
+          <div
+            key={slide.slug}
+            id={`hero-panel-${slide.slug}`}
+            role="tabpanel"
+            aria-labelledby={`hero-tab-${slide.slug}`}
+            hidden
+          />
+        ),
+      )}
+
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
         Slide {activeIndex + 1} of {HERO_SLIDES.length}. {activeSlide.name}.
       </p>
     </section>
