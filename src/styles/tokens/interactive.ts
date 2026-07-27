@@ -2,7 +2,7 @@
 // and touch-target sizing, previously duplicated inline across Button.tsx,
 // ProductCard.tsx, Navbar.tsx, CartDrawer.tsx, and CartLineItem.tsx.
 export const focusRing =
-  'focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold';
+  'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-gold';
 
 // Minimum touch-target size on mobile, reset to natural size at desktop
 // breakpoints where hover/pointer precision makes the larger hit area unnecessary.

@@ -1,5 +1,8 @@
-export { colors } from './colors';
-export type { ColorToken } from './colors';
+export { colors, gradients } from './colors';
+export type { ColorToken, GradientToken } from './colors';
+
+export { imageFocalClasses } from './imageTokens';
+export type { ImageFocalPoint } from './imageTokens';
 
 export { spacing } from './spacing';
 export type { SpacingToken } from './spacing';
