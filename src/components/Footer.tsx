@@ -7,17 +7,17 @@ import { tracking } from '../styles/tokens/typography';
 import { focusRing } from '../styles/tokens/interactive';
 import { cn } from '../lib/utils';
 
-export const Footer = () => {
-  const { pushToast } = useToastStore();
-  const socialNotice = () => pushToast('Social channels are opening soon.', 'neutral');
+const socialNotice = () =>
+  useToastStore.getState().pushToast('Social channels are opening soon.', 'neutral');
 
+export const Footer = () => {
   return (
-    <footer className="bg-brand-black text-white pt-24 pb-12 px-8 md:px-16 border-t border-white/5">
+    <footer className="bg-brand-black text-brand-white pt-24 pb-12 px-8 md:px-16 border-t border-on-dark-subtle">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-16 mb-24">
         {/* Brand Info */}
         <div className="max-w-xs">
           <h2 className={cn('font-serif text-3xl uppercase mb-8', tracking.wider)}>Dotfumes</h2>
-          <p className="text-brand-gray text-sm leading-relaxed uppercase tracking-[0.22em] font-light">
+          <p className="text-brand-gray text-body leading-relaxed uppercase tracking-wide font-light">
             An artisanal archive of silence. Curated in Paris, captured in Grasse.
           </p>
         </div>
@@ -54,14 +54,14 @@ export const Footer = () => {
         </Grid>
       </div>
 
-      <div className="max-w-7xl mx-auto border-t border-white/5 py-8">
-        <p className={cn('text-center text-[11px] uppercase text-white/55', tracking.normal)}>
+      <div className="max-w-7xl mx-auto border-t border-on-dark-subtle py-8">
+        <p className={cn('text-center text-small uppercase text-on-dark-muted', tracking.normal)}>
           Manual payment verification with WhatsApp and email support. Delivery is coordinated after
           confirmation.
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto pt-4 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto pt-4 border-t border-on-dark-subtle flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="flex gap-8">
           <Button
             variant="ghost"
@@ -87,12 +87,14 @@ export const Footer = () => {
           >
             <Facebook size={18} strokeWidth={1.5} />
           </Button>
-          <span className={cn('self-center text-[10px] uppercase text-white/45', tracking.normal)}>
+          <span
+            className={cn('self-center text-caption uppercase text-on-dark-muted', tracking.normal)}
+          >
             Opening soon
           </span>
         </div>
 
-        <div className={cn('text-[11px] uppercase text-white/45 text-center', tracking.normal)}>
+        <div className={cn('text-small uppercase text-on-dark-muted text-center', tracking.normal)}>
           © 2026 Dotfumes. All rights reserved. <br className="md:hidden" /> Designed for the
           refined palette.
         </div>
@@ -101,7 +103,7 @@ export const Footer = () => {
           <Link
             to="/privacy"
             className={cn(
-              'text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors',
+              'text-small uppercase tracking-normal text-on-dark-muted hover:text-brand-white transition-colors',
               focusRing,
             )}
           >
@@ -110,7 +112,7 @@ export const Footer = () => {
           <Link
             to="/terms"
             className={cn(
-              'text-[11px] uppercase tracking-[0.14em] text-white/55 hover:text-white transition-colors',
+              'text-small uppercase tracking-normal text-on-dark-muted hover:text-brand-white transition-colors',
               focusRing,
             )}
           >
@@ -130,7 +132,7 @@ type FooterLink = {
 
 const FooterGroup = ({ title, links }: { title: string; links: FooterLink[] }) => (
   <div className="flex flex-col gap-6">
-    <h4 className="text-brand-gold text-[11px] uppercase tracking-[0.34em] font-bold">{title}</h4>
+    <h4 className="text-brand-gold text-small uppercase tracking-wider font-bold">{title}</h4>
     <ul className="flex flex-col gap-4">
       {links.map((link) => (
         <li key={link.label}>
@@ -138,7 +140,7 @@ const FooterGroup = ({ title, links }: { title: string; links: FooterLink[] }) =
             <Link
               to={link.to}
               className={cn(
-                'text-white/60 text-[11px] uppercase tracking-[0.16em] hover:text-white transition-colors',
+                'text-on-dark-secondary text-small uppercase tracking-normal hover:text-brand-white transition-colors',
                 focusRing,
               )}
             >
@@ -146,12 +148,12 @@ const FooterGroup = ({ title, links }: { title: string; links: FooterLink[] }) =
             </Link>
           ) : (
             <span
-              className="inline-flex items-center gap-2 text-white/45 text-[11px] uppercase tracking-[0.16em]"
+              className="inline-flex max-w-full flex-col items-start gap-2 text-on-dark-muted text-small uppercase tracking-normal sm:flex-row sm:items-center"
               aria-label={`${link.label} opening soon`}
             >
               <span>{link.label}</span>
               {link.status === 'coming-soon' ? (
-                <span className="border border-white/15 px-2 py-0.5 text-[9px] tracking-[0.16em] text-white/45">
+                <span className="border border-on-dark-subtle px-2 py-0.5 text-micro tracking-normal text-on-dark-muted">
                   Opening soon
                 </span>
               ) : null}

@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { ToastViewport } from './components/ToastViewport';
 import { ScrollToTop } from './components/ScrollToTop';
 import { lazy, Suspense, useEffect } from 'react';
+import { MotionConfig } from 'motion/react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { CollectionPage } from './pages/CollectionPage';
@@ -28,65 +29,78 @@ import { JournalPage } from './pages/JournalPage';
 import { SustainabilityPage } from './pages/SustainabilityPage';
 import { CareersPage } from './pages/CareersPage';
 import { useProductCatalogStore } from './store/useProductCatalogStore';
+import { buttonClasses } from './components/ui/primitives/Button';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 
 export default function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname === '/admin' || location.pathname.startsWith('/admin/');
-  const initCatalog = useProductCatalogStore((state) => state.init);
 
   useEffect(() => {
-    void initCatalog();
-  }, [initCatalog]);
+    void useProductCatalogStore.getState().init();
+  }, []);
 
   return (
-    <SmoothScroll>
-      <ScrollToTop />
-      <main className="relative min-h-screen bg-brand-black selection:bg-brand-gold selection:text-black">
-        <div className="noise-overlay fixed inset-0 z-[100] opacity-[0.03] pointer-events-none" />
+    <MotionConfig reducedMotion="user">
+      <SmoothScroll>
+        <ScrollToTop />
+        <div className="relative min-h-screen bg-brand-black selection:bg-brand-gold selection:text-brand-black">
+          <a
+            href="#main-content"
+            className={buttonClasses(
+              'secondary',
+              'fixed left-4 top-4 z-200 -translate-y-24 border-brand-gold bg-brand-gold text-brand-black focus-visible:translate-y-0',
+            )}
+          >
+            Skip to main content
+          </a>
+          <div className="noise-overlay fixed inset-0 z-100 opacity-5 pointer-events-none" />
 
-        {!isAdminRoute ? <Navbar /> : null}
-        {!isAdminRoute ? <CartDrawer /> : null}
-        <ToastViewport />
+          {!isAdminRoute ? <Navbar /> : null}
+          {!isAdminRoute ? <CartDrawer /> : null}
+          <ToastViewport />
 
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/collection" element={<CollectionPage />} />
-          <Route path="/product/:slug" element={<ProductPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-          <Route
-            path="/admin"
-            element={
-              <Suspense fallback={null}>
-                <AdminPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/admin/*"
-            element={
-              <Suspense fallback={null}>
-                <AdminPage />
-              </Suspense>
-            }
-          />
-          <Route path="/shipping" element={<ShippingPage />} />
-          <Route path="/returns" element={<ReturnsPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FaqPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/journal" element={<JournalPage />} />
-          <Route path="/sustainability" element={<SustainabilityPage />} />
-          <Route path="/careers" element={<CareersPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+          <main id="main-content" tabIndex={-1}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/collection" element={<CollectionPage />} />
+              <Route path="/product/:slug" element={<ProductPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              <Route
+                path="/admin"
+                element={
+                  <Suspense fallback={null}>
+                    <AdminPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/admin/*"
+                element={
+                  <Suspense fallback={null}>
+                    <AdminPage />
+                  </Suspense>
+                }
+              />
+              <Route path="/shipping" element={<ShippingPage />} />
+              <Route path="/returns" element={<ReturnsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/faq" element={<FaqPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/journal" element={<JournalPage />} />
+              <Route path="/sustainability" element={<SustainabilityPage />} />
+              <Route path="/careers" element={<CareersPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </main>
 
-        {!isAdminRoute ? <Footer /> : null}
-      </main>
-    </SmoothScroll>
+          {!isAdminRoute ? <Footer /> : null}
+        </div>
+      </SmoothScroll>
+    </MotionConfig>
   );
 }
