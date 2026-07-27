@@ -7,7 +7,10 @@ export const ScrollToTop = () => {
   useEffect(() => {
     if (hash) {
       window.requestAnimationFrame(() => {
-        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
+        const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth';
+        document.querySelector(hash)?.scrollIntoView({ behavior });
       });
       return;
     }
