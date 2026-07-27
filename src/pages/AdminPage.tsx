@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useMemo, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { appConfig } from '../lib/config';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { Button } from '../components/ui/primitives/Button';
@@ -6,7 +6,13 @@ import { Card } from '../components/ui/primitives/Card';
 import { Input } from '../components/ui/primitives/Input';
 import { Grid } from '../components/ui/layout/Grid';
 import { ensureArray, isRecord, parseNumber, parseText } from '../lib/normalize';
-import { MetricCard, TableSkeleton, DataSection, OrdersTable, ProductTable } from '../components/admin';
+import {
+  MetricCard,
+  TableSkeleton,
+  DataSection,
+  OrdersTable,
+  ProductTable,
+} from '../components/admin';
 import type { AdminOrder, AdminProductStock } from '../components/admin';
 
 type AdminMetricSummary = {
@@ -38,8 +44,6 @@ type DashboardApiResponse = {
   message?: unknown;
   data?: unknown;
 };
-
-type DashboardAction = 'dashboard' | 'orders' | 'products' | 'settings';
 
 const DEFAULT_ADMIN_ERROR =
   'The dashboard is unavailable right now. Please refresh or verify your backend setup.';
@@ -203,16 +207,7 @@ const validateBackendUrl = (urlValue: string) => {
   }
 };
 
-const redactAdminTokenInUrl = (inputUrl: URL) => {
-  const redacted = new URL(inputUrl.toString());
-  if (redacted.searchParams.has('adminToken')) {
-    redacted.searchParams.set('adminToken', '[REDACTED]');
-  }
-  if (redacted.searchParams.has('token')) {
-    redacted.searchParams.set('token', '[REDACTED]');
-  }
-  return redacted.toString();
-};
+const adminUrlValidation = validateBackendUrl(appConfig.googleAppsScriptWebAppUrl);
 
 const loadViaJsonp = (endpoint: URL) =>
   new Promise<DashboardApiResponse>((resolve, reject) => {
@@ -273,10 +268,6 @@ export const AdminPage = () => {
 
   const hasAdminPassword = Boolean(appConfig.adminPassword);
   const hasAdminReadToken = Boolean(appConfig.adminReadToken);
-  const urlValidation = useMemo(
-    () => validateBackendUrl(appConfig.googleAppsScriptWebAppUrl),
-    [],
-  );
 
   usePageMeta({
     title: 'Admin | DOTFUMES',
@@ -285,8 +276,8 @@ export const AdminPage = () => {
     robots: 'noindex,nofollow',
   });
 
-  const loadDashboard = useCallback(async () => {
-    if (!urlValidation.exists || !appConfig.googleAppsScriptWebAppUrl) {
+  const loadDashboard = async () => {
+    if (!adminUrlValidation.exists || !appConfig.googleAppsScriptWebAppUrl) {
       setDashboardError(
         'Admin backend is not configured. Add VITE_GOOGLE_APPS_SCRIPT_WEB_APP_URL and restart the app.',
       );
@@ -294,7 +285,7 @@ export const AdminPage = () => {
       return;
     }
 
-    if (!urlValidation.valid || !urlValidation.url) {
+    if (!adminUrlValidation.valid || !adminUrlValidation.url) {
       setDashboardError(
         'Admin backend URL is invalid. Use a deployed Google Apps Script URL ending with /exec.',
       );
@@ -313,35 +304,15 @@ export const AdminPage = () => {
     setIsLoading(true);
     setDashboardError('');
 
-    const endpoint = new URL(urlValidation.url.toString());
+    const endpoint = new URL(adminUrlValidation.url.toString());
     endpoint.searchParams.set('action', 'dashboard');
     endpoint.searchParams.set('adminToken', appConfig.adminReadToken);
-    const redactedEndpoint = redactAdminTokenInUrl(endpoint);
-    const currentAction: DashboardAction = 'dashboard';
-
-    if (import.meta.env.DEV) {
-      console.log('[AdminPage] dashboard request action:', 'dashboard');
-      console.log('[AdminPage] dashboard request URL:', redactedEndpoint);
-      console.log('[AdminPage] backend URL exists:', urlValidation.exists);
-      console.log('[AdminPage] backend URL valid:', urlValidation.valid);
-      console.log('[AdminPage] admin token exists:', hasAdminReadToken);
-      console.log('[AdminPage] hasScriptUrl:', Boolean(appConfig.googleAppsScriptWebAppUrl));
-      console.log('[AdminPage] scriptUrlLooksValid:', urlValidation.valid);
-      console.log('[AdminPage] hasAdminToken:', hasAdminReadToken);
-      console.log('[AdminPage] fetch method:', 'GET');
-      console.log('[AdminPage] fetch mode:', 'cors');
-      console.log('[AdminPage] backend URL is /exec:', endpoint.pathname.endsWith('/exec'));
-      console.log('[AdminPage] backend URL is /dev:', endpoint.pathname.endsWith('/dev'));
-    }
 
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), ADMIN_READ_TIMEOUT_MS);
 
     try {
-      let parsedFromJsonp = false;
       let raw = '';
-      let responseStatus = 0;
-      let responseContentType = '';
 
       try {
         const response = await fetch(endpoint.toString(), {
@@ -349,20 +320,13 @@ export const AdminPage = () => {
           signal: controller.signal,
         });
 
-        responseStatus = response.status;
-        responseContentType = response.headers.get('content-type') || '';
         raw = await response.text();
       } catch (fetchError) {
         if (!(fetchError instanceof TypeError)) {
           throw fetchError;
         }
 
-        if (import.meta.env.DEV) {
-          console.log('[AdminPage] fetch failed, attempting JSONP fallback:', fetchError.message);
-        }
-
         const jsonpPayload = await loadViaJsonp(endpoint);
-        parsedFromJsonp = true;
 
         if (jsonpPayload.success === false) {
           throw new Error(parseText(jsonpPayload.message, DEFAULT_ADMIN_ERROR), {
@@ -371,12 +335,6 @@ export const AdminPage = () => {
         }
 
         raw = JSON.stringify(jsonpPayload);
-      }
-
-      if (import.meta.env.DEV) {
-        console.log('[AdminPage] dashboard response status:', responseStatus || 'jsonp');
-        console.log('[AdminPage] dashboard response content-type:', responseContentType || 'jsonp');
-        console.log('[AdminPage] dashboard response source:', parsedFromJsonp ? 'jsonp' : 'fetch');
       }
 
       const parsed = parseDashboardResponse(raw);
@@ -390,27 +348,21 @@ export const AdminPage = () => {
         message = normalizeDashboardErrorMessage(error.message);
       }
 
-      if (import.meta.env.DEV) {
-        console.log('[AdminPage] dashboard request action:', currentAction);
-        console.log('[AdminPage] dashboard request URL:', redactedEndpoint);
-        console.log('[AdminPage] error name:', error instanceof Error ? error.name : 'unknown');
-        console.log('[AdminPage] error message:', error instanceof Error ? error.message : String(error));
-        console.log('[AdminPage] response success false message:', message);
-      }
-
       setDashboardError(message);
       setDashboard(null);
     } finally {
       window.clearTimeout(timeout);
       setIsLoading(false);
     }
-  }, [hasAdminReadToken, urlValidation.exists, urlValidation.url, urlValidation.valid]);
+  };
 
   const handleUnlock = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!hasAdminPassword) {
-      setAuthError('Admin password is not configured. Add VITE_ADMIN_PASSWORD and restart the app.');
+      setAuthError(
+        'Admin password is not configured. Add VITE_ADMIN_PASSWORD and restart the app.',
+      );
       return;
     }
 
@@ -426,21 +378,28 @@ export const AdminPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <section className="min-h-screen bg-brand-black px-6 pb-20 pt-28 text-white md:px-12">
-        <Card variant="dark" className="mx-auto max-w-md border-white/15 bg-black/30 p-7 md:p-8">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold">DOTFUMES Admin</p>
-          <p className="mt-3 inline-block border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-amber-200">
+      <section className="min-h-screen bg-brand-black px-6 pb-20 pt-28 text-brand-white md:px-12">
+        <Card
+          variant="dark"
+          className="mx-auto max-w-md border-on-dark-subtle bg-surface-overlay-muted p-8 md:p-8"
+        >
+          <p className="text-caption uppercase tracking-wider text-brand-gold">DOTFUMES Admin</p>
+          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-micro uppercase tracking-wide text-amber-200">
             Client-side preview dashboard — not production-auth secured
           </p>
           <h1 className="mt-6 font-serif text-4xl italic leading-tight">Secure Access</h1>
-          <p className="mt-4 text-sm leading-7 text-white/65">
+          <p className="mt-4 text-body leading-7 text-on-dark-secondary">
             Enter the admin password to access the operational control room.
           </p>
 
           <form onSubmit={handleUnlock} className="mt-8 space-y-4" noValidate>
             <label className="block">
-              <span className="text-[11px] uppercase tracking-[0.25em] text-white/45">Password</span>
+              <span className="text-small uppercase tracking-wide text-on-dark-muted">
+                Password
+              </span>
               <Input
+                id="admin-password"
+                name="password"
                 variant="dark"
                 type="password"
                 value={password}
@@ -452,21 +411,23 @@ export const AdminPage = () => {
                 }}
                 className="mt-2"
                 autoComplete="current-password"
+                aria-describedby={authError ? 'admin-password-error' : undefined}
+                aria-invalid={Boolean(authError)}
                 required
               />
             </label>
 
             {authError ? (
-              <p className="border border-red-400/40 bg-red-950/40 px-3 py-2 text-sm text-red-200" role="alert">
+              <p
+                id="admin-password-error"
+                className="border border-status-error bg-status-error-surface px-3 py-2 text-body text-red-200"
+                role="alert"
+              >
                 {authError}
               </p>
             ) : null}
 
-            <Button
-              type="submit"
-              variant="secondary"
-              className="w-full border-brand-gold/60 bg-brand-gold text-black tracking-[0.3em] hover:bg-white hover:text-black"
-            >
+            <Button type="submit" variant="secondary" className="w-full">
               Unlock Dashboard
             </Button>
           </form>
@@ -481,13 +442,15 @@ export const AdminPage = () => {
   return (
     <section className="min-h-screen bg-brand-white px-6 pb-20 pt-20 text-brand-black md:px-12">
       <div className="mx-auto max-w-7xl space-y-8">
-        <Card as="header" className="p-6 md:p-8">
-          <p className="text-[10px] uppercase tracking-[0.35em] text-brand-gold">DOTFUMES Admin</p>
-          <p className="mt-3 inline-block border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-amber-700">
+        <Card as="header" padding="responsive">
+          <p className="text-caption uppercase tracking-wider text-brand-gold">DOTFUMES Admin</p>
+          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-micro uppercase tracking-wide text-amber-700">
             Client-side preview dashboard — not production-auth secured
           </p>
-          <h1 className="mt-5 font-serif text-4xl italic leading-tight md:text-5xl">Control Room</h1>
-          <p className="mt-3 text-sm text-black/60">
+          <h1 className="mt-4 font-serif text-4xl italic leading-tight md:text-5xl">
+            Control Room
+          </h1>
+          <p className="mt-3 text-body text-on-light-secondary">
             Read-only operational dashboard for orders, payments, and stock visibility.
           </p>
         </Card>
@@ -499,9 +462,8 @@ export const AdminPage = () => {
               void loadDashboard();
             }}
             loading={isLoading}
-            className="border-black/20 tracking-[0.28em] text-black hover:bg-black hover:text-white hover:border-black/20"
           >
-            {isLoading ? 'Refreshing...' : 'Refresh Dashboard'}
+            {isLoading ? 'Refreshing…' : 'Refresh Dashboard'}
           </Button>
           <Button
             variant="outline"
@@ -512,24 +474,28 @@ export const AdminPage = () => {
               setDashboardError('');
             }}
             disabled={isLoading}
-            className="border-black/20 tracking-[0.28em] text-black/75 hover:bg-black hover:text-white hover:border-black/20"
           >
             Lock Admin
           </Button>
         </div>
 
         {dashboardError ? (
-          <div className="border border-red-300 bg-red-50 p-4 text-sm text-red-700" role="alert">
+          <div className="border border-red-300 bg-red-50 p-4 text-body text-red-700" role="alert">
             {dashboardError}
           </div>
         ) : null}
 
         {isLoading && !dashboard ? (
-          <Grid cols={{ md: 2, xl: 4 }} aria-label="Loading dashboard metrics">
+          <Grid
+            cols={{ md: 2, xl: 4 }}
+            aria-label="Loading dashboard metrics"
+            aria-live="polite"
+            aria-busy="true"
+          >
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
-                className="h-[72px] animate-pulse border border-black/10 bg-black/[0.03] p-4"
+                className="h-18 motion-safe:animate-pulse border border-on-light-muted bg-ink-subtle p-4"
               />
             ))}
           </Grid>
@@ -570,7 +536,10 @@ export const AdminPage = () => {
           {isLoading && !dashboard ? (
             <TableSkeleton />
           ) : (
-            <OrdersTable orders={dashboard?.paymentVerificationQueue ?? []} emptyLabel="No pending verification orders." />
+            <OrdersTable
+              orders={dashboard?.paymentVerificationQueue ?? []}
+              emptyLabel="No pending verification orders."
+            />
           )}
         </DataSection>
 
@@ -578,7 +547,10 @@ export const AdminPage = () => {
           {isLoading && !dashboard ? (
             <TableSkeleton />
           ) : (
-            <OrdersTable orders={dashboard?.recentOrders ?? []} emptyLabel="No recent orders found." />
+            <OrdersTable
+              orders={dashboard?.recentOrders ?? []}
+              emptyLabel="No recent orders found."
+            />
           )}
         </DataSection>
 
@@ -597,7 +569,10 @@ export const AdminPage = () => {
           {isLoading && !dashboard ? (
             <TableSkeleton />
           ) : (
-            <ProductTable products={dashboard?.productStock ?? []} emptyLabel="No product rows found." />
+            <ProductTable
+              products={dashboard?.productStock ?? []}
+              emptyLabel="No product rows found."
+            />
           )}
         </DataSection>
       </div>

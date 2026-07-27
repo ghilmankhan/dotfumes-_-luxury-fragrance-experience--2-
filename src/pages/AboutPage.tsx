@@ -18,43 +18,44 @@ export const AboutPage = () => {
   });
 
   return (
-    <section className="bg-brand-black text-white">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[0.9fr_1.1fr]">
+    <section className="bg-brand-black text-brand-white">
+      <Grid layout="media-copy" className="min-h-screen">
         <div className="flex flex-col justify-center px-6 pb-16 pt-36 md:px-16 lg:px-24">
-          <span className="text-[10px] font-bold uppercase tracking-[0.55em] text-brand-gold">
+          <span className="text-caption font-bold uppercase tracking-widest text-brand-gold">
             The House
           </span>
-          <h1 className="mt-8 font-serif text-6xl italic leading-[0.88] tracking-tight md:text-8xl">
+          <h1 className="mt-8 font-serif text-6xl italic leading-none tracking-tight md:text-8xl">
             Scent as <br />
-            <span className="text-white/30">cinema.</span>
+            <span className="text-on-dark-faint">cinema.</span>
           </h1>
-          <p className="mt-10 max-w-xl text-sm leading-8 text-white/55">
+          <p className="mt-10 max-w-xl text-body leading-8 text-on-dark-muted">
             Dotfumes composes fragrances as quiet scenes: mineral air, warm skin, polished woods,
             and the pause before a room remembers you.
           </p>
           <LinkButton
             to="/collection"
             variant="secondary"
-            className="mt-12 w-fit px-9 py-5 tracking-[0.38em]"
+            className="mt-12 w-fit px-8 py-4 tracking-wider"
           >
             Explore Collection
           </LinkButton>
         </div>
 
-        <div className="relative min-h-[70vh] overflow-hidden">
+        <div className="relative min-h-screen overflow-hidden">
           <AssetImage
             src={aboutHeroImage}
             alt="Dotfumes maison portrait hero with cinematic bottle arrangement"
             wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
-            className="h-full w-full object-cover object-[58%_center] opacity-72 md:object-[64%_center]"
+            className="h-full w-full object-cover opacity-72"
+            focal="right"
             fetchPriority="high"
             onError={() => setHeroImageFailed(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-black via-brand-black/48 to-black/12" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-black via-gradient-shadow-soft to-gradient-shadow-subtle" />
         </div>
-      </div>
+      </Grid>
 
-      <div id="ethics" className="border-t border-white/10 px-6 py-24 md:px-16 lg:px-24">
+      <div id="ethics" className="border-t border-on-dark-subtle px-6 py-24 md:px-16 lg:px-24">
         <Grid cols={{ md: 3 }} gap={12} className="mx-auto max-w-6xl">
           {[
             [
@@ -70,9 +71,9 @@ export const AboutPage = () => {
               'No noise, no crowd logic. Just emotionally precise fragrance architecture.',
             ],
           ].map(([title, copy]) => (
-            <article key={title} className="border-t border-white/10 pt-8">
+            <article key={title} className="border-t border-on-dark-subtle pt-8">
               <h2 className="font-serif text-3xl italic">{title}</h2>
-              <p className="mt-5 text-sm leading-7 text-white/45">{copy}</p>
+              <p className="mt-4 text-body leading-7 text-on-dark-muted">{copy}</p>
             </article>
           ))}
         </Grid>

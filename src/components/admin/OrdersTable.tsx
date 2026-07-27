@@ -1,10 +1,16 @@
 import { AdminOrder } from './types';
 
-export const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; emptyLabel: string }) => {
+export const OrdersTable = ({
+  orders,
+  emptyLabel,
+}: {
+  orders: AdminOrder[];
+  emptyLabel: string;
+}) => {
   return (
-    <table className="min-w-full border-collapse text-left text-sm">
+    <table className="min-w-full border-collapse text-left text-body">
       <thead>
-        <tr className="border-b border-black/10 bg-black/[0.02] text-[10px] uppercase tracking-[0.16em] text-black/60">
+        <tr className="border-b border-on-light-muted bg-ink-faint text-caption uppercase tracking-normal text-on-light-secondary">
           <th className="px-4 py-3 font-semibold">Order ID</th>
           <th className="px-4 py-3 font-semibold">Created</th>
           <th className="px-4 py-3 font-semibold">Customer</th>
@@ -17,13 +23,16 @@ export const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; empt
       <tbody>
         {orders.length === 0 ? (
           <tr>
-            <td className="px-4 py-6 text-black/55" colSpan={7}>
+            <td className="px-4 py-6 text-on-light-muted" colSpan={7}>
               {emptyLabel}
             </td>
           </tr>
         ) : (
           orders.map((order) => (
-            <tr key={`${order.orderId}-${order.createdAt}`} className="border-b border-black/5">
+            <tr
+              key={`${order.orderId}-${order.createdAt}`}
+              className="border-b border-on-light-subtle"
+            >
               <td className="px-4 py-4 font-medium">{order.orderId}</td>
               <td className="px-4 py-4">{order.createdAt || '—'}</td>
               <td className="px-4 py-4">{order.customerName}</td>
@@ -36,12 +45,12 @@ export const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; empt
                     href={order.slipUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-black underline underline-offset-4 focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+                    className="text-brand-black underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-gold"
                   >
                     View Slip
                   </a>
                 ) : (
-                  <span className="text-black/45">Unavailable</span>
+                  <span className="text-on-light-muted">Unavailable</span>
                 )}
               </td>
             </tr>

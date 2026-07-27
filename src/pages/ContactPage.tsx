@@ -4,6 +4,7 @@ import { Card } from '../components/ui/primitives/Card';
 import { Container } from '../components/ui/layout/Container';
 import { Grid } from '../components/ui/layout/Grid';
 import { appConfig } from '../lib/config';
+import { focusRing } from '../styles/tokens/interactive';
 import { tracking } from '../styles/tokens/typography';
 import { cn } from '../lib/utils';
 
@@ -23,39 +24,36 @@ export const ContactPage = () => {
   const hasWhatsAppSupport = appConfig.hasConfiguredWhatsAppNumber;
   const hasEmailSupport = appConfig.hasConfiguredOrderEmail;
   const whatsappDigits = appConfig.clientWhatsAppNumber.replace(/[^\d]/g, '');
-  const whatsappNumber = useMemo(
-    () => formatWhatsAppNumber(appConfig.clientWhatsAppNumber),
-    [],
-  );
+  const whatsappNumber = useMemo(() => formatWhatsAppNumber(appConfig.clientWhatsAppNumber), []);
 
   return (
-    <section className="min-h-screen bg-brand-black text-white">
+    <section className="min-h-screen bg-brand-black text-brand-white">
       <Container size="lg" className="pb-24 pt-36">
-        <p className="text-[11px] font-bold uppercase tracking-[0.42em] text-brand-gold">Assist</p>
-        <h1 className="mt-8 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
+        <p className="text-small font-bold uppercase tracking-wider text-brand-gold">Assist</p>
+        <h1 className="mt-8 font-serif text-6xl italic leading-none tracking-tight md:text-8xl">
           Contact
         </h1>
-        <p className="mt-8 max-w-3xl text-sm leading-8 text-white/78">
+        <p className="mt-8 max-w-3xl text-body leading-8 text-on-dark-secondary">
           For payment questions, order updates, and delivery coordination, reach Dotfumes support
           directly through WhatsApp or email.
         </p>
 
         <Grid cols={{ sm: 3 }} className="mt-12">
-          <Card as="article" variant="dark" className="p-5">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">Step 1</p>
-            <p className="mt-3 text-sm leading-7 text-white/78">
+          <Card as="article" variant="dark">
+            <p className="text-caption uppercase tracking-wide text-on-dark-secondary">Step 1</p>
+            <p className="mt-3 text-body leading-7 text-on-dark-secondary">
               Share your name and order ID so support can identify your request quickly.
             </p>
           </Card>
-          <Card as="article" variant="dark" className="p-5">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">Step 2</p>
-            <p className="mt-3 text-sm leading-7 text-white/78">
+          <Card as="article" variant="dark">
+            <p className="text-caption uppercase tracking-wide text-on-dark-secondary">Step 2</p>
+            <p className="mt-3 text-body leading-7 text-on-dark-secondary">
               Mention whether you need checkout help, payment proof guidance, or delivery updates.
             </p>
           </Card>
-          <Card as="article" variant="dark" className="p-5">
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/65">Step 3</p>
-            <p className="mt-3 text-sm leading-7 text-white/78">
+          <Card as="article" variant="dark">
+            <p className="text-caption uppercase tracking-wide text-on-dark-secondary">Step 3</p>
+            <p className="mt-3 text-body leading-7 text-on-dark-secondary">
               Support confirms next steps and coordinates your order after verification.
             </p>
           </Card>
@@ -69,19 +67,26 @@ export const ContactPage = () => {
               target="_blank"
               rel="noreferrer"
               variant="dark"
-              className="border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
+              className={cn(
+                'border-on-dark-muted bg-surface-overlay-muted px-6 py-4 transition-colors hover:border-brand-gold hover:text-brand-gold',
+                focusRing,
+              )}
             >
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">WhatsApp</p>
-              <p className="mt-2 text-sm">{whatsappNumber}</p>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+              <p className="text-small uppercase tracking-wide text-on-dark-secondary">WhatsApp</p>
+              <p className="mt-2 text-body">{whatsappNumber}</p>
+              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
                 Fastest route for active orders
               </p>
             </Card>
           ) : (
-            <Card variant="dark" className="border-white/20 bg-black/30 px-6 py-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">WhatsApp</p>
-              <p className="mt-2 text-sm text-white/80">Shared after order request</p>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+            <Card
+              variant="dark"
+              padding="wide"
+              className="border-on-dark-muted bg-surface-overlay-muted"
+            >
+              <p className="text-small uppercase tracking-wide text-on-dark-secondary">WhatsApp</p>
+              <p className="mt-2 text-body text-on-dark-secondary">Shared after order request</p>
+              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
                 Use email for immediate support
               </p>
             </Card>
@@ -92,27 +97,36 @@ export const ContactPage = () => {
               as="a"
               href={`mailto:${supportEmail}`}
               variant="dark"
-              className="border-white/20 bg-black/30 px-6 py-5 transition-colors hover:border-brand-gold hover:text-brand-gold"
+              className={cn(
+                'border-on-dark-muted bg-surface-overlay-muted px-6 py-4 transition-colors hover:border-brand-gold hover:text-brand-gold',
+                focusRing,
+              )}
             >
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">Email</p>
-              <p className="mt-2 text-sm">{supportEmail}</p>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+              <p className="text-small uppercase tracking-wide text-on-dark-secondary">Email</p>
+              <p className="mt-2 break-words text-body">{supportEmail}</p>
+              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
                 Best for detailed requests
               </p>
             </Card>
           ) : (
-            <Card variant="dark" className="border-white/20 bg-black/30 px-6 py-5">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/65">Email</p>
-              <p className="mt-2 text-sm text-white/80">Support email shared on request</p>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/45">
+            <Card
+              variant="dark"
+              padding="wide"
+              className="border-on-dark-muted bg-surface-overlay-muted"
+            >
+              <p className="text-small uppercase tracking-wide text-on-dark-secondary">Email</p>
+              <p className="mt-2 text-body text-on-dark-secondary">
+                Support email shared on request
+              </p>
+              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
                 Contact through available channels
               </p>
             </Card>
           )}
         </Grid>
 
-        <Card variant="dark" className="mt-12 bg-black/35 px-6 py-6">
-          <p className={cn('text-[11px] uppercase text-white/72', tracking.normal)}>
+        <Card variant="dark" padding="comfortable" className="mt-12 bg-surface-overlay-muted">
+          <p className={cn('text-small uppercase text-on-dark-secondary', tracking.normal)}>
             Manual payment verification is part of every order. Delivery coordination begins after
             confirmation.
           </p>
