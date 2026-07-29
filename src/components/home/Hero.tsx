@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Pause, Play } from 'lucide-react';
+import { ArrowRight, Pause, Play } from 'lucide-react';
 import { FEATURED_PRODUCTS } from '../../constants/products';
 import { Button, LinkButton } from '../ui/primitives/Button';
 import { cn } from '../../lib/utils';
-import { eyebrowLabel, headingXl } from '../../styles/tokens/typography';
+import { ctaLabelTracking, eyebrowLabel, headingXl, tracking } from '../../styles/tokens/typography';
 import { duration, easing } from '../../styles/tokens/motion';
 import type { ImageFocalPoint } from '../../styles/tokens/imageTokens';
 import { AssetImage } from '../AssetImage';
@@ -395,7 +395,7 @@ export const Hero = () => {
 
               <motion.p
                 variants={copyItemVariants}
-                className="mt-8 max-w-[52ch] text-[15px] leading-[1.7] text-on-dark-secondary/70"
+                className="mt-8 max-w-[52ch] text-body leading-relaxed text-on-dark-secondary"
               >
                 {activeSlide.description}
               </motion.p>
@@ -408,7 +408,12 @@ export const Hero = () => {
                   (narrow viewports) landing as two even lines instead. */}
               <motion.div variants={copyItemVariants} className="mt-6 max-w-[38ch]">
                 <span aria-hidden="true" className="mb-4 block h-px w-8 bg-brand-gold/40" />
-                <p className="text-balance text-[11px] uppercase tracking-[0.12em] text-on-dark-muted">
+                <p
+                  className={cn(
+                    'text-balance text-small uppercase text-on-dark-muted',
+                    tracking.normal,
+                  )}
+                >
                   {activeSlide.notes.replace(/\s*•\s*/g, ' · ')}
                 </p>
               </motion.div>
@@ -425,28 +430,68 @@ export const Hero = () => {
               initial="hidden"
               animate="show"
               exit="exit"
-              className="flex flex-wrap items-stretch gap-6"
+              className="flex flex-col items-start gap-4 md:flex-row md:items-center md:gap-6"
             >
-              {/* Both CTAs share one fixed geometry (52px tall, 40px horizontal
-                  padding, 12px/0.15em-ish type) so the pair reads as one
-                  matched system — only fill behavior (ivory sweep vs. no
-                  fill) tells them apart. */}
-              <motion.div variants={copyItemVariants}>
+              {/* One dominant commerce action (solid ivory box) and one quiet
+                  editorial action (underline + arrow text link) — deliberately
+                  unequal weight so the pair never reads as two competing
+                  boxed buttons. Hover scale/press-shrink are overridden off
+                  here only (not in the shared Button primitive) per the
+                  "cinematic, not animated" Hero CTA brief; every other button
+                  on the site keeps its default scale/press feedback. */}
+              {/* Font-size/weight/tracking are applied on inner <span>s rather
+                  than the LinkButton root: tailwind-merge's default class
+                  groups don't recognize this project's custom `text-{size}`
+                  scale (text-label, etc.) as distinct from its custom
+                  `text-{color}` scale (text-brand-black, etc.), so passing
+                  both through cn() on the same element silently drops
+                  whichever came first — confirmed by inspecting the rendered
+                  CTA, whose fill color was being eaten this way. Keeping
+                  color on the LinkButton root (via the variant) and
+                  typography on a child span sidesteps the collision; color
+                  still cascades to the child normally. */}
+              <motion.div variants={copyItemVariants} className="w-full md:w-auto">
                 <LinkButton
                   to={activeSlide.primaryCtaRoute}
-                  variant="secondary"
-                  className="h-[52px] px-10 py-0 text-label font-semibold tracking-normal md:h-[52px] md:px-10 md:py-0 md:text-label"
+                  variant="heroPrimary"
+                  className={cn(
+                    'w-full min-h-12 justify-center md:w-auto md:min-h-[52px]',
+                    'motion-safe:hover:scale-100 motion-safe:active:scale-100 motion-safe:active:translate-y-px',
+                  )}
                 >
-                  {activeSlide.primaryCtaLabel}
+                  <span className={cn('text-label font-semibold', ctaLabelTracking)}>
+                    {activeSlide.primaryCtaLabel}
+                  </span>
                 </LinkButton>
               </motion.div>
               <motion.div variants={copyItemVariants}>
                 <LinkButton
                   to={activeSlide.secondaryCtaRoute}
-                  variant="outlineDark"
-                  className="h-[52px] px-10 py-0 text-label font-semibold tracking-normal md:h-[52px] md:px-10 md:py-0 md:text-label"
+                  variant="heroSecondary"
+                  className={cn(
+                    touchTarget,
+                    'motion-safe:hover:scale-100 motion-safe:active:scale-100 motion-safe:active:translate-y-px',
+                  )}
                 >
-                  {activeSlide.secondaryCtaLabel}
+                  <span
+                    className={cn(
+                      'border-b border-brand-gold/50 pb-0.5 font-normal transition-colors duration-[350ms]',
+                      'ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:border-brand-gold motion-reduce:transition-none',
+                      'text-label',
+                      ctaLabelTracking,
+                    )}
+                  >
+                    {activeSlide.secondaryCtaLabel}
+                  </span>
+                  <ArrowRight
+                    size={14}
+                    strokeWidth={1.75}
+                    aria-hidden="true"
+                    className={cn(
+                      'shrink-0 transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)]',
+                      'group-hover:translate-x-1 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0',
+                    )}
+                  />
                 </LinkButton>
               </motion.div>
             </motion.div>
@@ -455,7 +500,7 @@ export const Hero = () => {
           {/* Shortened out of the CTA visual path — the full manual-review/
               WhatsApp/email explanation already lives in the checkout flow
               itself (CheckoutPage), where it's actually actionable. */}
-          <p className="mt-10 max-w-[44ch] text-[10px] leading-[1.6] text-brand-ivory/35">
+          <p className="mt-10 max-w-[44ch] text-caption leading-relaxed text-on-dark-muted">
             Concierge checkout · WhatsApp &amp; email support
           </p>
         </div>

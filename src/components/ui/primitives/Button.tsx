@@ -4,7 +4,15 @@ import { cn } from '../../../lib/utils';
 import { Spinner } from '../feedback/Spinner';
 import { focusRing } from '../../../styles/tokens/interactive';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'outlineDark' | 'danger';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'outline'
+  | 'outlineDark'
+  | 'danger'
+  | 'heroPrimary'
+  | 'heroSecondary';
 
 // Solid-fill variants get a diagonal light-catching sweep on hover (same
 // pattern as SpotlightCards' hover shimmer) instead of a flat color swap.
@@ -68,6 +76,17 @@ const variantClasses: Record<ButtonVariant, string> = {
   outlineDark:
     'border border-on-dark-muted bg-transparent px-6 py-3 text-brand-white hover:border-brand-gold hover:text-brand-gold md:px-8 md:py-4 disabled:opacity-50',
   danger: 'border border-red-200 text-red-600 px-4 py-3 hover:bg-red-50 disabled:opacity-50',
+  // Hero primary commerce CTA — solid ivory surface at rest (unlike
+  // `secondary`, which only fills on hover), inverting to near-black on
+  // hover/press. Scoped to the Hero's single dominant action; see
+  // design-system/ui-patterns.md "Hero CTA system" before reusing elsewhere.
+  heroPrimary:
+    'border border-on-light-subtle bg-brand-ivory px-6 py-3 text-brand-black hover:border-brand-black hover:bg-brand-black hover:text-brand-ivory md:px-8 md:py-4 disabled:opacity-50',
+  // Hero secondary/editorial CTA — quiet text action with no boxed surface;
+  // the underline rule and arrow icon are rendered by the caller (Hero.tsx)
+  // since they're presentational children, not variant-owned chrome. See
+  // design-system/ui-patterns.md "Hero CTA system".
+  heroSecondary: 'border-0 bg-transparent px-1 py-2 text-brand-ivory/90 hover:text-brand-white disabled:opacity-50',
 };
 
 /**
