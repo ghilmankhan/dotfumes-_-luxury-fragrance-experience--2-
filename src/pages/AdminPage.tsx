@@ -384,10 +384,10 @@ export const AdminPage = () => {
           className="mx-auto max-w-md border-on-dark-subtle bg-surface-overlay-muted p-8 md:p-8"
         >
           <p className="text-caption uppercase tracking-wider text-brand-gold">DOTFUMES Admin</p>
-          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-micro uppercase tracking-wide text-amber-200">
+          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-small uppercase tracking-wide text-amber-200">
             Client-side preview dashboard — not production-auth secured
           </p>
-          <h1 className="mt-6 font-serif text-4xl italic leading-tight">Secure Access</h1>
+          <h1 className="mt-6 font-sans text-title font-semibold leading-tight">Secure Access</h1>
           <p className="mt-4 text-body leading-7 text-on-dark-secondary">
             Enter the admin password to access the operational control room.
           </p>
@@ -444,12 +444,10 @@ export const AdminPage = () => {
       <div className="mx-auto max-w-7xl space-y-8">
         <Card as="header" padding="responsive">
           <p className="text-caption uppercase tracking-wider text-brand-gold">DOTFUMES Admin</p>
-          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-micro uppercase tracking-wide text-amber-700">
+          <p className="mt-3 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-small uppercase tracking-wide text-amber-700">
             Client-side preview dashboard — not production-auth secured
           </p>
-          <h1 className="mt-4 font-serif text-4xl italic leading-tight md:text-5xl">
-            Control Room
-          </h1>
+          <h1 className="mt-4 font-sans text-title font-semibold leading-tight">Control Room</h1>
           <p className="mt-3 text-body text-on-light-secondary">
             Read-only operational dashboard for orders, payments, and stock visibility.
           </p>

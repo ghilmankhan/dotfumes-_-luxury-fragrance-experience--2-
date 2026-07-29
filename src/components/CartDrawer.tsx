@@ -139,7 +139,7 @@ export const CartDrawer = () => {
           >
             Checkout
           </Button>
-          <p className="mt-4 text-caption text-center text-neutral-600 uppercase tracking-normal md:mt-6">
+          <p className="mt-4 text-small text-center text-neutral-600 md:mt-6">
             {shouldBlockCheckout && hasUnavailableItems
               ? 'Resolve the unavailable items above to continue.'
               : "You'll review details before placing the order."}

@@ -43,9 +43,7 @@ export const SustainabilityPage = () => {
         <Grid cols={{ md: 3 }} gap={5} className="mt-12">
           {practices.map((practice) => (
             <Card as="article" key={practice.title} variant="dark" padding="comfortable">
-              <h2 className="text-small font-bold uppercase tracking-wide text-on-dark-strong">
-                {practice.title}
-              </h2>
+              <h2 className="text-heading font-semibold text-on-dark-strong">{practice.title}</h2>
               <p className="mt-4 text-body leading-7 text-on-dark-secondary">{practice.detail}</p>
             </Card>
           ))}
@@ -55,7 +53,7 @@ export const SustainabilityPage = () => {
           variant="dark"
           className="mt-12 bg-surface-overlay-muted px-6 py-6 sm:flex sm:items-center sm:justify-between"
         >
-          <p className="text-small uppercase tracking-wide text-on-dark-secondary">
+          <p className="text-small text-on-dark-secondary">
             Questions about packaging or handling? Reach support before placing your order.
           </p>
           <LinkButton

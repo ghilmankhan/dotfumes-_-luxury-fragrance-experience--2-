@@ -6,7 +6,7 @@ import { AssetImage } from '../AssetImage';
 import { Button } from '../ui/primitives/Button';
 import { Card } from '../ui/primitives/Card';
 import { cn } from '../../lib/utils';
-import { tracking } from '../../styles/tokens/typography';
+import { headingXs } from '../../styles/tokens/typography';
 import { focusRing, touchTarget } from '../../styles/tokens/interactive';
 import { formatCurrency } from '../../lib/order';
 import { selectCartItemById, useCartStore } from '../../store/useCartStore';
@@ -178,7 +178,7 @@ export const CartLineItem = memo(function CartLineItem({
                 {formatCurrency(item.price * item.quantity)}
               </span>
             </div>
-            <p className="mt-2 text-caption uppercase tracking-normal text-neutral-600">
+            <p className="mt-2 text-small text-neutral-600">
               {isUnavailable
                 ? 'Out of stock — remove to continue'
                 : atMaxStock
@@ -202,9 +202,14 @@ export const CartLineItem = memo(function CartLineItem({
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-serif text-xl italic">{item.name}</p>
-            <p className="mt-2 text-caption uppercase tracking-wide text-on-light-muted">
-              {formatCurrency(item.price)} / {item.sku}
+            <p className={headingXs}>{item.name}</p>
+            <p className="mt-2 flex items-baseline gap-2">
+              <span className="text-small font-semibold text-on-light-strong">
+                {formatCurrency(item.price)}
+              </span>
+              <span className="text-caption uppercase tracking-wide text-on-light-muted">
+                {item.sku}
+              </span>
             </p>
           </div>
           <Button
@@ -248,7 +253,7 @@ export const CartLineItem = memo(function CartLineItem({
             <Plus size={12} strokeWidth={1.5} />
           </Button>
         </div>
-        <p className={cn('mt-3 text-caption uppercase text-on-light-muted', tracking.normal)}>
+        <p className="mt-3 text-small text-on-light-muted">
           {isUnavailable ? 'Out of stock — remove to continue' : `Stock: ${availableStock}`}
         </p>
       </div>

@@ -16,7 +16,7 @@ import { Button, LinkButton, buttonClasses } from '../components/ui/primitives/B
 import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
 import { easing, duration } from '../styles/tokens/motion';
-import { tracking } from '../styles/tokens/typography';
+import { headingMd, headingXs, tracking } from '../styles/tokens/typography';
 import { cn } from '../lib/utils';
 
 export const OrderConfirmationPage = () => {
@@ -144,17 +144,17 @@ export const OrderConfirmationPage = () => {
             className="mt-10 text-label uppercase tracking-wide text-on-dark-muted"
           >
             <Card variant="dark" className="border-on-dark-subtle">
-              <p className="text-micro">Order ID</p>
+              <p>Order ID</p>
               <p className="mt-2 text-small text-brand-white">{order.orderId}</p>
             </Card>
             <Card variant="dark" className="border-on-dark-subtle">
-              <p className="text-micro">Payment</p>
+              <p>Payment</p>
               <p className="mt-2 text-small text-brand-white">
                 {formatPaymentMethodLabel(order.paymentMethod)}
               </p>
             </Card>
             <Card variant="dark" className="border-on-dark-subtle sm:col-span-2">
-              <p className="text-micro">Slip Reference</p>
+              <p>Slip Reference</p>
               {hasRemoteSlipUrl ? (
                 <a
                   href={order.slip.referenceUrl}
@@ -254,7 +254,7 @@ export const OrderConfirmationPage = () => {
               : 'No email was provided. You can still use WhatsApp for confirmation.'}
           </p>
 
-          <p className="mt-6 text-caption uppercase tracking-wide text-on-dark-muted">
+          <p className="mt-6 text-small text-on-dark-secondary">
             {order.submissionMode === 'google-sheets'
               ? 'Dotfumes reviews payment proof manually and confirms next steps soon.'
               : 'Please send the prefilled support message so Dotfumes can confirm your request.'}
@@ -269,7 +269,7 @@ export const OrderConfirmationPage = () => {
         </Card>
 
         <Card as="aside" variant="dark" padding="spacious" className="bg-surface-muted">
-          <h2 className="font-serif text-3xl italic">Order Summary</h2>
+          <h2 className={headingMd}>Order Summary</h2>
           <div className="mt-8 space-y-4">
             {order.items.map((item) => (
               <div
@@ -277,8 +277,8 @@ export const OrderConfirmationPage = () => {
                 className="flex items-center justify-between border-b border-on-dark-subtle pb-4"
               >
                 <div>
-                  <p className="font-serif text-xl italic">{item.name}</p>
-                  <p className="mt-1 text-micro uppercase tracking-wide text-on-dark-muted">
+                  <p className={headingXs}>{item.name}</p>
+                  <p className="mt-1 text-caption uppercase tracking-wide text-on-dark-muted">
                     {item.sku ? `${item.sku} · ` : ''}Qty {item.quantity}
                   </p>
                 </div>
@@ -289,13 +289,13 @@ export const OrderConfirmationPage = () => {
 
           <div className="mt-8 border-t border-on-dark-subtle pt-4">
             <div className="mb-2 flex items-end justify-between">
-              <p className={cn('text-micro uppercase text-on-dark-muted', tracking.wide)}>
+              <p className={cn('text-caption uppercase text-on-dark-muted', tracking.wide)}>
                 Subtotal
               </p>
               <p className="text-body text-on-dark-secondary">{formatCurrency(order.subtotal)}</p>
             </div>
             <div className="mb-3 flex items-end justify-between">
-              <p className={cn('text-micro uppercase text-on-dark-muted', tracking.wide)}>
+              <p className={cn('text-caption uppercase text-on-dark-muted', tracking.wide)}>
                 Delivery
               </p>
               <p className="text-body text-on-dark-secondary">
@@ -303,13 +303,15 @@ export const OrderConfirmationPage = () => {
               </p>
             </div>
             <div className="flex items-end justify-between">
-              <p className={cn('text-micro uppercase text-on-dark-muted', tracking.wide)}>Total</p>
-              <p className="font-serif text-3xl italic">{formatCurrency(order.total)}</p>
+              <p className={cn('text-caption uppercase text-on-dark-muted', tracking.wide)}>
+                Total
+              </p>
+              <p className={headingMd}>{formatCurrency(order.total)}</p>
             </div>
           </div>
 
           <div className="mt-8 border border-on-dark-subtle p-4">
-            <p className="text-micro uppercase tracking-wide text-on-dark-muted">Payment Slip</p>
+            <p className="text-caption uppercase tracking-wide text-on-dark-muted">Payment Slip</p>
             {order.slip.previewUrl ? (
               <AssetImage
                 src={order.slip.previewUrl}

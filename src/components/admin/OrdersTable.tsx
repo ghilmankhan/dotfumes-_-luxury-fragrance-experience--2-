@@ -33,7 +33,7 @@ export const OrdersTable = ({
               key={`${order.orderId}-${order.createdAt}`}
               className="border-b border-on-light-subtle"
             >
-              <td className="px-4 py-4 font-medium">{order.orderId}</td>
+              <td className="px-4 py-4 font-semibold">{order.orderId}</td>
               <td className="px-4 py-4">{order.createdAt || '—'}</td>
               <td className="px-4 py-4">{order.customerName}</td>
               <td className="px-4 py-4">${order.total.toFixed(2)}</td>

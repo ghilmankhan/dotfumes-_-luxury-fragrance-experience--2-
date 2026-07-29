@@ -41,9 +41,7 @@ export const JournalPage = () => {
         <Grid cols={{ md: 3 }} gap={5} className="mt-12">
           {entries.map((entry) => (
             <Card as="article" key={entry.title} variant="dark" padding="comfortable">
-              <h2 className="text-small font-bold uppercase tracking-wide text-on-dark-secondary">
-                {entry.title}
-              </h2>
+              <h2 className="text-heading font-semibold text-on-dark-secondary">{entry.title}</h2>
               <p className="mt-4 text-body leading-7 text-on-dark-secondary">{entry.description}</p>
               <p className="mt-6 text-caption uppercase tracking-wide text-on-dark-muted">
                 Opening soon
@@ -56,7 +54,7 @@ export const JournalPage = () => {
           variant="dark"
           className="mt-12 bg-surface-overlay-muted px-6 py-6 sm:flex sm:items-center sm:justify-between"
         >
-          <p className="text-small uppercase tracking-wide text-on-dark-secondary">
+          <p className="text-small text-on-dark-secondary">
             Need immediate order support? Use contact for payment and delivery coordination.
           </p>
           <LinkButton

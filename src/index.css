@@ -79,8 +79,12 @@
   --text-caption: 0.625rem;
   --text-small: 0.6875rem;
   --text-label: 0.75rem;
-  --text-body: 0.8125rem;
-  --text-heading: 1.125rem;
+  /* Raised from 0.8125rem (13px) — this is the primary long-form reading size
+     across every editorial/legal page and the checkout/order-confirmation
+     flow; 13px sits below practical body-copy legibility. --text-heading
+     moved up in step to keep the same relative hierarchy gap over body. */
+  --text-body: 0.9375rem;
+  --text-heading: 1.25rem;
   --text-title: 2.25rem;
   --text-display: clamp(2.55rem, 6vw, 5.6rem);
 
@@ -96,6 +100,60 @@
   --shadow-md: 0 16px 40px rgba(10, 10, 10, 0.06);
   --shadow-lg: 0 24px 60px rgba(10, 10, 10, 0.12);
   --shadow-xl: 0 32px 90px rgba(10, 10, 10, 0.22);
+}
+
+/* Tailwind's color namespace would otherwise derive utilities such as
+   text-text-on-dark-strong and border-border-on-light-strong. Register the
+   semantic names as first-class Tailwind v4 utilities so every standard
+   variant (hover, focus-visible, responsive, etc.) is generated from actual
+   source usage and remains inside Tailwind's utilities layer. */
+@utility text-on-dark-faint {
+  color: var(--color-text-on-dark-faint);
+}
+@utility text-on-dark-subtle {
+  color: var(--color-text-on-dark-subtle);
+}
+@utility text-on-dark-muted {
+  color: var(--color-text-on-dark-muted);
+}
+@utility text-on-dark-secondary {
+  color: var(--color-text-on-dark-secondary);
+}
+@utility text-on-dark-strong {
+  color: var(--color-text-on-dark-strong);
+}
+@utility text-on-light-faint {
+  color: var(--color-text-on-light-faint);
+}
+@utility text-on-light-subtle {
+  color: var(--color-text-on-light-subtle);
+}
+@utility text-on-light-muted {
+  color: var(--color-text-on-light-muted);
+}
+@utility text-on-light-secondary {
+  color: var(--color-text-on-light-secondary);
+}
+@utility text-on-light-strong {
+  color: var(--color-text-on-light-strong);
+}
+@utility border-on-dark-subtle {
+  border-color: var(--color-border-on-dark-subtle);
+}
+@utility border-on-dark-muted {
+  border-color: var(--color-border-on-dark-muted);
+}
+@utility border-on-dark-strong {
+  border-color: var(--color-border-on-dark-strong);
+}
+@utility border-on-light-subtle {
+  border-color: var(--color-border-on-light-subtle);
+}
+@utility border-on-light-muted {
+  border-color: var(--color-border-on-light-muted);
+}
+@utility border-on-light-strong {
+  border-color: var(--color-border-on-light-strong);
 }
 
 :root {

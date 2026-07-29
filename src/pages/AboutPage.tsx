@@ -4,6 +4,7 @@ import { LinkButton } from '../components/ui/primitives/Button';
 import { Grid } from '../components/ui/layout/Grid';
 import { COLLECTION_IMAGES } from '../constants/images';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { headingMd } from '../styles/tokens/typography';
 
 export const AboutPage = () => {
   const [heroImageFailed, setHeroImageFailed] = useState(false);
@@ -72,7 +73,7 @@ export const AboutPage = () => {
             ],
           ].map(([title, copy]) => (
             <article key={title} className="border-t border-on-dark-subtle pt-8">
-              <h2 className="font-serif text-3xl italic">{title}</h2>
+              <h2 className={headingMd}>{title}</h2>
               <p className="mt-4 text-body leading-7 text-on-dark-muted">{copy}</p>
             </article>
           ))}

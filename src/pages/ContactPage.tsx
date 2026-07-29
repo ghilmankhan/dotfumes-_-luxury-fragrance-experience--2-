@@ -5,7 +5,6 @@ import { Container } from '../components/ui/layout/Container';
 import { Grid } from '../components/ui/layout/Grid';
 import { appConfig } from '../lib/config';
 import { focusRing } from '../styles/tokens/interactive';
-import { tracking } from '../styles/tokens/typography';
 import { cn } from '../lib/utils';
 
 const formatWhatsAppNumber = (rawNumber: string) => {
@@ -74,9 +73,7 @@ export const ContactPage = () => {
             >
               <p className="text-small uppercase tracking-wide text-on-dark-secondary">WhatsApp</p>
               <p className="mt-2 text-body">{whatsappNumber}</p>
-              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
-                Fastest route for active orders
-              </p>
+              <p className="mt-3 text-small text-on-dark-muted">Fastest route for active orders</p>
             </Card>
           ) : (
             <Card
@@ -86,9 +83,7 @@ export const ContactPage = () => {
             >
               <p className="text-small uppercase tracking-wide text-on-dark-secondary">WhatsApp</p>
               <p className="mt-2 text-body text-on-dark-secondary">Shared after order request</p>
-              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
-                Use email for immediate support
-              </p>
+              <p className="mt-3 text-small text-on-dark-muted">Use email for immediate support</p>
             </Card>
           )}
 
@@ -104,9 +99,7 @@ export const ContactPage = () => {
             >
               <p className="text-small uppercase tracking-wide text-on-dark-secondary">Email</p>
               <p className="mt-2 break-words text-body">{supportEmail}</p>
-              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
-                Best for detailed requests
-              </p>
+              <p className="mt-3 text-small text-on-dark-muted">Best for detailed requests</p>
             </Card>
           ) : (
             <Card
@@ -118,15 +111,13 @@ export const ContactPage = () => {
               <p className="mt-2 text-body text-on-dark-secondary">
                 Support email shared on request
               </p>
-              <p className="mt-3 text-caption uppercase tracking-normal text-on-dark-muted">
-                Contact through available channels
-              </p>
+              <p className="mt-3 text-small text-on-dark-muted">Contact through available channels</p>
             </Card>
           )}
         </Grid>
 
         <Card variant="dark" padding="comfortable" className="mt-12 bg-surface-overlay-muted">
-          <p className={cn('text-small uppercase text-on-dark-secondary', tracking.normal)}>
+          <p className="text-small text-on-dark-secondary">
             Manual payment verification is part of every order. Delivery coordination begins after
             confirmation.
           </p>

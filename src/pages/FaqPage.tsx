@@ -52,9 +52,7 @@ export const FaqPage = () => {
         <div className="mt-12 space-y-6">
           {faqs.map((faq) => (
             <Card as="article" key={faq.question} variant="dark" padding="comfortable">
-              <h2 className="text-small font-bold uppercase tracking-wide text-on-dark-strong">
-                {faq.question}
-              </h2>
+              <h2 className="text-heading font-semibold text-on-dark-strong">{faq.question}</h2>
               <p className="mt-4 text-body leading-7 text-on-dark-secondary">{faq.answer}</p>
             </Card>
           ))}
@@ -64,7 +62,7 @@ export const FaqPage = () => {
           variant="dark"
           className="mt-12 bg-surface-overlay-muted px-6 py-6 sm:flex sm:items-center sm:justify-between"
         >
-          <p className="text-small uppercase tracking-wide text-on-dark-secondary">
+          <p className="text-small text-on-dark-secondary">
             Need help with a specific order? Support can guide you directly.
           </p>
           <LinkButton

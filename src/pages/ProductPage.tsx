@@ -13,7 +13,7 @@ import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
 import { Stack } from '../components/ui/layout/Stack';
 import { focusRing } from '../styles/tokens/interactive';
-import { tracking } from '../styles/tokens/typography';
+import { headingMd, headingXs, tracking } from '../styles/tokens/typography';
 import { cn } from '../lib/utils';
 
 export const ProductPage = () => {
@@ -180,7 +180,7 @@ export const ProductPage = () => {
                 <p className="text-caption uppercase tracking-wide text-on-light-muted">
                   {section.label}
                 </p>
-                <p className="font-serif text-xl italic leading-8">{section.notes.join(' · ')}</p>
+                <p className={cn(headingXs, 'leading-8')}>{section.notes.join(' · ')}</p>
               </Stack>
             ))}
           </Stack>
@@ -241,11 +241,11 @@ export const ProductPage = () => {
             </Button>
           </div>
 
-          <p className={cn('mt-4 text-caption uppercase text-on-light-muted', tracking.normal)}>
+          <p className="mt-4 text-small text-on-light-secondary">
             Add to Cart opens your cart to review first. Buy Now skips ahead straight to checkout.
           </p>
           <p
-            className="mt-3 text-caption uppercase tracking-wide text-on-light-muted"
+            className="mt-3 text-small font-semibold text-on-light-strong"
             role="status"
             aria-live="polite"
           >
@@ -253,7 +253,7 @@ export const ProductPage = () => {
           </p>
 
           <Card variant="light" className="mt-4 bg-ink-faint">
-            <p className="text-caption uppercase tracking-wide text-on-light-secondary">
+            <p className="text-small text-on-light-secondary">
               Authentic DOTFUMES selection with manual order support. After checkout and payment
               proof review, confirmation and delivery coordination continue on WhatsApp or email.
             </p>
@@ -334,7 +334,7 @@ export const ProductPage = () => {
                   className="h-full w-full object-contain"
                 />
                 <div>
-                  <p className="font-serif text-3xl italic">{item.name}</p>
+                  <p className={headingMd}>{item.name}</p>
                   <p className="mt-3 text-caption uppercase tracking-wide text-on-dark-secondary">
                     {formatCurrency(item.price)} / {item.category}
                   </p>
@@ -348,7 +348,7 @@ export const ProductPage = () => {
       <div className="safe-bottom-mobile-action fixed inset-x-0 bottom-0 z-40 border-t border-on-light-muted bg-surface-light-raised px-3 pt-3 shadow-lg backdrop-blur md:hidden">
         <div className="mx-auto max-w-md">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="truncate font-serif text-xl italic">{product.name}</p>
+            <p className={cn(headingXs, 'truncate')}>{product.name}</p>
             <p className="shrink-0 text-body uppercase tracking-normal text-on-light-secondary">
               {formatCurrency(product.price)}
             </p>
@@ -382,7 +382,7 @@ export const ProductPage = () => {
               This fragrance is currently unavailable.
             </p>
           ) : (
-            <p className="mt-2 text-center text-micro uppercase tracking-normal text-on-light-muted">
+            <p className="mt-2 text-center text-small text-on-light-secondary">
               Add to Cart reviews first · Buy Now checks out instantly
             </p>
           )}

@@ -17,7 +17,7 @@ export const Footer = () => {
         {/* Brand Info */}
         <div className="max-w-xs">
           <h2 className={cn('font-serif text-3xl uppercase mb-8', tracking.wider)}>Dotfumes</h2>
-          <p className="text-brand-gray text-body leading-relaxed uppercase tracking-wide font-light">
+          <p className="text-brand-gray text-body leading-relaxed font-light">
             An artisanal archive of silence. Curated in Paris, captured in Grasse.
           </p>
         </div>
@@ -55,7 +55,7 @@ export const Footer = () => {
       </div>
 
       <div className="max-w-7xl mx-auto border-t border-on-dark-subtle py-8">
-        <p className={cn('text-center text-small uppercase text-on-dark-muted', tracking.normal)}>
+        <p className="text-center text-small text-on-dark-secondary">
           Manual payment verification with WhatsApp and email support. Delivery is coordinated after
           confirmation.
         </p>

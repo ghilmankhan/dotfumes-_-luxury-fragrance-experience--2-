@@ -101,7 +101,7 @@ export const CollectionPage = () => {
                 Pick your scent, <br />
                 <span className="text-neutral-300">then continue to checkout.</span>
               </h2>
-              <p className="mt-6 text-small uppercase tracking-wide text-on-light-muted">
+              <p className="mt-6 text-small text-on-light-secondary">
                 Manual review, payment-proof verification, and WhatsApp or email support included.
               </p>
             </div>
@@ -113,7 +113,7 @@ export const CollectionPage = () => {
                   variant="ghost"
                   onClick={() => setActiveFilter(filter)}
                   className={cn(
-                    'border px-4 py-3 font-normal normal-case tracking-wide text-caption',
+                    'border px-4 py-3 font-normal normal-case tracking-wide text-small',
                     activeFilter === filter
                       ? 'border-brand-black bg-brand-black text-brand-white hover:text-brand-white'
                       : 'border-on-light-muted text-on-light-muted hover:border-on-light-strong hover:text-brand-black',

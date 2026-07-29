@@ -8,7 +8,7 @@ import { useToastStore } from '../../store/useToastStore';
 import { AssetImage } from '../AssetImage';
 import { isProductOutOfStock } from '../../lib/validation';
 import { Button, LinkButton } from '../ui/primitives/Button';
-import { eyebrowLabel, eyebrowLabelSm, headingLg } from '../../styles/tokens/typography';
+import { eyebrowLabel, eyebrowLabelSm, headingLg, headingXs } from '../../styles/tokens/typography';
 import { cn } from '../../lib/utils';
 import { easing, motionTiers } from '../../styles/tokens/motion';
 import { focusRing, touchTarget } from '../../styles/tokens/interactive';
@@ -181,13 +181,13 @@ export const ProductCard: FC<ProductCardProps> = ({ product, index }) => {
           </h3>
         </Link>
 
-        <p className="mb-8 line-clamp-2 min-h-[2.6em] max-w-70 text-body font-light normal-case leading-relaxed tracking-normal text-neutral-500/60">
+        <p className="mb-8 line-clamp-2 min-h-[2.6em] max-w-70 text-body font-light normal-case leading-relaxed tracking-normal text-on-light-secondary">
           {product.shortDescription}
         </p>
 
         <div className="w-full flex items-center justify-between border-t border-on-light-subtle pt-6">
-          <span className="text-xl font-serif italic text-brand-black">${product.price}.00</span>
-          <span className={cn(eyebrowLabelSm, 'text-on-light-faint')}>{product.sku}</span>
+          <span className={cn(headingXs, 'text-brand-black')}>${product.price}.00</span>
+          <span className={cn(eyebrowLabelSm, 'text-on-light-subtle')}>{product.sku}</span>
         </div>
 
         <div className="mt-4 grid w-full grid-cols-2 gap-3 md:hidden">

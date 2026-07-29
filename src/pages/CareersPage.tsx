@@ -29,9 +29,7 @@ export const CareersPage = () => {
         </p>
 
         <Card variant="dark" padding="comfortable" className="mt-12">
-          <h2 className="text-small font-bold uppercase tracking-wide text-on-dark-strong">
-            Current focus areas
-          </h2>
+          <h2 className="text-heading font-semibold text-on-dark-strong">Current focus areas</h2>
           <ul className="mt-6 space-y-3 text-body leading-7 text-on-dark-secondary">
             {roles.map((role) => (
               <li key={role} className="flex gap-3">
@@ -40,7 +38,7 @@ export const CareersPage = () => {
               </li>
             ))}
           </ul>
-          <p className="mt-8 text-caption uppercase tracking-wide text-on-dark-muted">
+          <p className="mt-8 text-small text-on-dark-muted">
             Openings are reviewed based on active business needs.
           </p>
         </Card>
@@ -49,7 +47,7 @@ export const CareersPage = () => {
           variant="dark"
           className="mt-12 bg-surface-overlay-muted px-6 py-6 sm:flex sm:items-center sm:justify-between"
         >
-          <p className="text-small uppercase tracking-wide text-on-dark-secondary">
+          <p className="text-small text-on-dark-secondary">
             Send your profile and portfolio to begin a conversation.
           </p>
           <LinkButton

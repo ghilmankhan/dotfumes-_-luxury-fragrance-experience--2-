@@ -43,9 +43,7 @@ export const TermsPage = () => {
         <Grid cols={{ md: 3 }} gap={5} className="mt-12">
           {termPoints.map((point) => (
             <Card as="article" key={point.title} variant="dark" padding="comfortable">
-              <h2 className="text-small font-bold uppercase tracking-wide text-on-dark-strong">
-                {point.title}
-              </h2>
+              <h2 className="text-heading font-semibold text-on-dark-strong">{point.title}</h2>
               <p className="mt-4 text-body leading-7 text-on-dark-secondary">{point.detail}</p>
             </Card>
           ))}
@@ -55,7 +53,7 @@ export const TermsPage = () => {
           variant="dark"
           className="mt-12 bg-surface-overlay-muted px-6 py-6 sm:flex sm:items-center sm:justify-between"
         >
-          <p className="text-small uppercase tracking-wide text-on-dark-secondary">
+          <p className="text-small text-on-dark-secondary">
             For order-specific clarification, contact support before or after checkout.
           </p>
           <div className="mt-4 flex flex-wrap gap-3 sm:mt-0">

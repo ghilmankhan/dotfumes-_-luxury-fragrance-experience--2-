@@ -22,7 +22,7 @@ import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import { cn } from '../lib/utils';
 import { CartLineItem } from '../components/cart/CartLineItem';
 import { easing, duration } from '../styles/tokens/motion';
-import { tracking } from '../styles/tokens/typography';
+import { headingMd, tracking } from '../styles/tokens/typography';
 import { focusRing } from '../styles/tokens/interactive';
 import { Button } from '../components/ui/primitives/Button';
 import { Card } from '../components/ui/primitives/Card';
@@ -564,7 +564,7 @@ const CheckoutFlow = ({
 
         <Card
           variant="light"
-          className="bg-brand-ivory px-4 py-4 text-label leading-6 text-on-light-secondary"
+          className="bg-brand-ivory px-4 py-4 text-body leading-6 text-on-light-secondary"
         >
           <div className="flex items-start gap-3">
             <ShieldCheck size={16} className="mt-1 text-brand-gold" />
@@ -608,9 +608,7 @@ const CheckoutFlow = ({
               : checkoutContract.submission.preparingLabel
             : checkoutContract.submission.label}
         </Button>
-        <p
-          className={cn('text-center text-caption uppercase text-on-light-muted', tracking.normal)}
-        >
+        <p className="text-center text-small text-on-light-secondary">
           Your order request is sent now. Dotfumes will contact you as early as possible.
         </p>
       </form>
@@ -638,7 +636,7 @@ const CheckoutSummary = ({
     variant="light"
     className="order-3 h-fit p-6 shadow-md lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28"
   >
-    <h2 className="font-serif text-3xl italic">Your Selection</h2>
+    <h2 className={headingMd}>Your Selection</h2>
     <div className="mt-8 space-y-6">
       {items.length === 0 ? (
         <div className="py-14 text-center">
@@ -676,7 +674,7 @@ const CheckoutSummary = ({
       </div>
       <div className="flex items-end justify-between">
         <span className="text-caption uppercase tracking-wider text-on-light-muted">Subtotal</span>
-        <span className="font-serif text-3xl italic">{formatCurrency(total)}</span>
+        <span className={headingMd}>{formatCurrency(total)}</span>
       </div>
     </div>
   </Card>
