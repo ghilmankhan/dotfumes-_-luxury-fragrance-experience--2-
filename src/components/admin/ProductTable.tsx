@@ -8,9 +8,9 @@ export const ProductTable = ({
   emptyLabel: string;
 }) => {
   return (
-    <table className="min-w-full border-collapse text-left text-sm">
+    <table className="min-w-full border-collapse text-left text-body">
       <thead>
-        <tr className="border-b border-black/10 bg-black/[0.02] text-[10px] uppercase tracking-[0.16em] text-black/60">
+        <tr className="border-b border-on-light-muted bg-ink-faint text-caption uppercase tracking-normal text-on-light-secondary">
           <th className="px-4 py-3 font-semibold">Name</th>
           <th className="px-4 py-3 font-semibold">Slug</th>
           <th className="px-4 py-3 font-semibold">Category</th>
@@ -22,14 +22,17 @@ export const ProductTable = ({
       <tbody>
         {products.length === 0 ? (
           <tr>
-            <td className="px-4 py-6 text-black/55" colSpan={6}>
+            <td className="px-4 py-6 text-on-light-muted" colSpan={6}>
               {emptyLabel}
             </td>
           </tr>
         ) : (
           products.map((product) => (
-            <tr key={`${product.slug || product.name}-${product.stock}`} className="border-b border-black/5">
-              <td className="px-4 py-4 font-medium">{product.name}</td>
+            <tr
+              key={`${product.slug || product.name}-${product.stock}`}
+              className="border-b border-on-light-subtle"
+            >
+              <td className="px-4 py-4 font-semibold">{product.name}</td>
               <td className="px-4 py-4">{product.slug || '—'}</td>
               <td className="px-4 py-4">{product.category}</td>
               <td className="px-4 py-4">${product.price.toFixed(2)}</td>

@@ -3,6 +3,7 @@ import { FeaturedProducts } from '../components/home/FeaturedProducts';
 import { CategorySplit } from '../components/home/CategorySplit';
 import { BrandStory } from '../components/home/BrandStory';
 import { SignatureExperience } from '../components/home/SignatureExperience';
+import { TrustSignals } from '../components/home/TrustSignals';
 import { usePageMeta } from '../hooks/usePageMeta';
 
 export const HomePage = () => {
@@ -20,6 +21,7 @@ export const HomePage = () => {
       <CategorySplit />
       <BrandStory />
       <SignatureExperience />
+      <TrustSignals />
     </>
   );
 };

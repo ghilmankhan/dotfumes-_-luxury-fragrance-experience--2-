@@ -5,14 +5,14 @@ export type EmptyStateTone = 'light' | 'dark';
 
 const toneClasses: Record<EmptyStateTone, { border: string; title: string; body: string }> = {
   light: {
-    border: 'border-black/10',
-    title: 'text-black/45',
-    body: 'text-black/50',
+    border: 'border-on-light-muted',
+    title: 'text-on-light-muted',
+    body: 'text-on-light-muted',
   },
   dark: {
-    border: 'border-white/10',
-    title: 'text-white/60',
-    body: 'text-white/45',
+    border: 'border-on-dark-subtle',
+    title: 'text-on-dark-secondary',
+    body: 'text-on-dark-muted',
   },
 };
 
@@ -57,13 +57,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {...rest}
     >
       {icon}
-      <p className={cn('text-[11px] uppercase tracking-[0.35em]', palette.title, titleClassName)}>
+      <p className={cn('text-small uppercase tracking-wider', palette.title, titleClassName)}>
         {title}
       </p>
       {description ? (
-        <p
-          className={cn('mt-3 max-w-[280px] text-xs leading-6', palette.body, descriptionClassName)}
-        >
+        <p className={cn('mt-3 max-w-70 text-label leading-6', palette.body, descriptionClassName)}>
           {description}
         </p>
       ) : null}

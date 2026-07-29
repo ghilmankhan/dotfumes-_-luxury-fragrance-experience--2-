@@ -12,7 +12,8 @@ import { Button, LinkButton } from '../components/ui/primitives/Button';
 import { Card } from '../components/ui/primitives/Card';
 import { Grid } from '../components/ui/layout/Grid';
 import { Stack } from '../components/ui/layout/Stack';
-import { tracking } from '../styles/tokens/typography';
+import { focusRing } from '../styles/tokens/interactive';
+import { headingMd, headingXs, tracking } from '../styles/tokens/typography';
 import { cn } from '../lib/utils';
 
 export const ProductPage = () => {
@@ -21,8 +22,6 @@ export const ProductPage = () => {
   const allProducts = useProductCatalogStore((state) => state.allProducts);
   const product = allProducts.find((item) => item.slug === slug);
   const [quantity, setQuantity] = useState(1);
-  const { addItem, openCart } = useCartStore();
-  const { pushToast } = useToastStore();
   const availableStock = product ? getAvailableStock(product) : 0;
   const isOutOfStock = product ? isProductOutOfStock(product) || product.active === false : true;
   const maxSelectableQuantity = Math.max(1, availableStock);
@@ -64,7 +63,8 @@ export const ProductPage = () => {
         '@type': 'Offer',
         priceCurrency: 'USD',
         price: product.price,
-        availability: availableStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        availability:
+          availableStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       },
       category: `Luxury Perfume ${product.category}`,
     });
@@ -82,13 +82,13 @@ export const ProductPage = () => {
 
   if (!product) {
     return (
-      <section className="min-h-screen bg-brand-black px-6 py-40 text-center text-white">
-        <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">Archive Missing</p>
+      <section className="min-h-screen bg-brand-black px-6 py-40 text-center text-brand-white">
+        <p className="text-caption uppercase tracking-widest text-brand-gold">Archive Missing</p>
         <h1 className="mt-8 font-serif text-5xl italic">This fragrance is not available.</h1>
         <LinkButton
           to="/collection"
           variant="ghost"
-          className="mt-10 border border-white/15 px-8 py-4 tracking-[0.35em] text-white/70 hover:text-white"
+          className="mt-10 border border-on-dark-subtle px-8 py-4 tracking-wider text-on-dark-secondary hover:text-brand-white"
         >
           Return to Collection
         </LinkButton>
@@ -97,6 +97,9 @@ export const ProductPage = () => {
   }
 
   const addToCart = () => {
+    const { addItem, openCart } = useCartStore.getState();
+    const { pushToast } = useToastStore.getState();
+
     if (isOutOfStock) {
       pushToast(`${product.name} is currently out of stock.`, 'error');
       return;
@@ -111,6 +114,9 @@ export const ProductPage = () => {
     openCart();
   };
   const buyNow = () => {
+    const { addItem } = useCartStore.getState();
+    const { pushToast } = useToastStore.getState();
+
     if (isOutOfStock) {
       pushToast(`${product.name} is currently out of stock.`, 'error');
       return;
@@ -132,14 +138,14 @@ export const ProductPage = () => {
   ];
 
   return (
-    <section className="min-h-screen bg-brand-white pb-[calc(7rem+env(safe-area-inset-bottom))] text-brand-black md:pb-0">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
-        <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
+    <section className="safe-bottom-product min-h-screen bg-brand-white text-brand-black md:pb-0">
+      <Grid layout="product-detail" className="min-h-screen">
+        <div className="relative flex min-h-screen items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-screen sm:px-8 sm:pt-20 md:min-h-screen md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
             src={product.images.angle}
             alt={`${product.name} perfume bottle angled product view`}
-            wrapperClassName="h-[56vh] w-full max-w-2xl bg-transparent sm:h-[62vh] md:h-[66vh] lg:h-[70vh]"
-            className="h-full w-full object-contain drop-shadow-[0_45px_90px_rgba(0,0,0,0.12)]"
+            wrapperClassName="h-screen w-full max-w-2xl bg-transparent sm:h-screen md:h-screen lg:h-screen"
+            className="h-full w-full object-contain drop-shadow-xl"
             fetchPriority="high"
           />
         </div>
@@ -147,59 +153,80 @@ export const ProductPage = () => {
         <div className="flex flex-col justify-center px-6 py-16 md:px-14 lg:px-16 lg:pt-32">
           <Link
             to="/collection"
-            className="mb-10 text-[11px] uppercase tracking-[0.26em] text-black/55 transition-colors hover:text-black"
+            className={cn(
+              'mb-10 w-fit text-small uppercase tracking-wide text-on-light-muted transition-colors hover:text-brand-black',
+              focusRing,
+            )}
           >
             Collection
           </Link>
-          <span className="text-[10px] font-bold uppercase tracking-[0.45em] text-brand-gold">
+          <span className="text-caption font-bold uppercase tracking-wider text-brand-gold">
             {product.category} / 100ml / {product.sku}
           </span>
-          <h1 className="mt-7 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
+          <h1 className="mt-8 font-serif text-6xl italic leading-none tracking-tight md:text-8xl">
             {product.name}
           </h1>
-          <p className="mt-8 max-w-xl text-sm leading-8 text-neutral-500">{product.description}</p>
+          <p className="mt-8 max-w-xl text-body leading-8 text-neutral-500">
+            {product.description}
+          </p>
 
-          <Stack gap={3} className="mt-12 border-y border-black/10 py-8">
+          <Stack gap={3} className="mt-12 border-y border-on-light-muted py-8">
             {notesSections.map((section) => (
-              <Stack key={section.label} gap={3} className="border-b border-black/5 pb-5 last:border-b-0 last:pb-0">
-                <p className="text-[10px] uppercase tracking-[0.26em] text-black/58">{section.label}</p>
-                <p className="font-serif text-xl italic leading-8">{section.notes.join(' · ')}</p>
+              <Stack
+                key={section.label}
+                gap={3}
+                className="border-b border-on-light-subtle pb-4 last:border-b-0 last:pb-0"
+              >
+                <p className="text-caption uppercase tracking-wide text-on-light-muted">
+                  {section.label}
+                </p>
+                <p className={cn(headingXs, 'leading-8')}>{section.notes.join(' · ')}</p>
               </Stack>
             ))}
           </Stack>
 
-          <div className="mt-10 flex flex-col gap-5 sm:flex-row sm:items-center">
-            <div className="flex w-fit items-center border border-black/10" aria-label="Quantity selector">
+          <div className="mt-10 flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div
+              className="flex w-fit items-center border border-on-light-muted"
+              aria-label="Quantity selector"
+            >
               <Button
                 variant="ghost"
-                onClick={() => setQuantity((value) => Math.max(1, Math.min(selectedQuantity, value) - 1))}
-                className="p-4 normal-case tracking-normal text-black hover:bg-black/5 hover:text-black"
+                onClick={() =>
+                  setQuantity((value) => Math.max(1, Math.min(selectedQuantity, value) - 1))
+                }
+                className="p-4 normal-case tracking-normal text-brand-black hover:bg-surface-overlay-subtle hover:text-brand-black"
                 aria-label="Decrease quantity"
               >
-                <Minus size={14} strokeWidth={1.4} />
+                <Minus aria-hidden="true" size={14} strokeWidth={1.4} />
               </Button>
-              <span className="w-12 text-center text-sm">{selectedQuantity}</span>
+              <span className="w-12 text-center text-body" aria-live="polite" aria-atomic="true">
+                {selectedQuantity}
+              </span>
               <Button
                 variant="ghost"
                 onClick={() =>
                   setQuantity((value) =>
-                    Math.min(maxSelectableQuantity, Math.max(1, Math.min(selectedQuantity, value)) + 1),
+                    Math.min(
+                      maxSelectableQuantity,
+                      Math.max(1, Math.min(selectedQuantity, value)) + 1,
+                    ),
                   )
                 }
                 disabled={isOutOfStock || selectedQuantity >= availableStock}
-                className="p-4 normal-case tracking-normal text-black hover:bg-black/5 hover:text-black"
+                className="p-4 normal-case tracking-normal text-brand-black hover:bg-surface-overlay-subtle hover:text-brand-black"
                 aria-label="Increase quantity"
               >
-                <Plus size={14} strokeWidth={1.4} />
+                <Plus aria-hidden="true" size={14} strokeWidth={1.4} />
               </Button>
             </div>
             <Button
               variant="primary"
               onClick={addToCart}
               disabled={isOutOfStock}
-              className="flex-1 px-8 py-5 tracking-[0.35em]"
+              className="flex-1 px-8 py-4 tracking-wider"
             >
-              <ShoppingBag size={15} strokeWidth={1.3} />
+              <ShoppingBag aria-hidden="true" size={15} strokeWidth={1.3} />
               {availableStock > 0
                 ? `Add to Cart • ${formatCurrency(product.price)}`
                 : 'Out of Stock'}
@@ -208,95 +235,107 @@ export const ProductPage = () => {
               variant="outline"
               onClick={buyNow}
               disabled={isOutOfStock}
-              className="px-8 py-5 tracking-[0.28em]"
+              className="px-8 py-4 tracking-wide"
             >
               Buy Now
             </Button>
           </div>
 
-          <p className={cn('mt-4 text-[10px] uppercase text-black/45', tracking.normal)}>
+          <p className="mt-4 text-small text-on-light-secondary">
             Add to Cart opens your cart to review first. Buy Now skips ahead straight to checkout.
           </p>
-          <p className="mt-3 text-[10px] uppercase tracking-[0.22em] text-black/58">
+          <p
+            className="mt-3 text-small font-semibold text-on-light-strong"
+            role="status"
+            aria-live="polite"
+          >
             {availableStock > 0 ? `${availableStock} pieces available` : 'Currently out of stock'}
           </p>
 
-          <Card variant="light" className="mt-5 bg-black/[0.02] px-4 py-4">
-            <p className="text-[10px] uppercase tracking-[0.24em] text-black/65">
+          <Card variant="light" className="mt-4 bg-ink-faint">
+            <p className="text-small text-on-light-secondary">
               Authentic DOTFUMES selection with manual order support. After checkout and payment
               proof review, confirmation and delivery coordination continue on WhatsApp or email.
             </p>
           </Card>
 
-          <Grid cols={{ sm: 3 }} gap={3} className="mt-8 border-t border-black/10 pt-8">
-            <TrustBadge icon={<ShieldCheck size={14} />} label="Extrait concentration" />
-            <TrustBadge icon={<Truck size={14} />} label="Insured delivery" />
-            <TrustBadge icon={<Leaf size={14} />} label="Refill roadmap" />
+          <Grid cols={{ sm: 3 }} gap={3} className="mt-8 border-t border-on-light-muted pt-8">
+            <TrustBadge
+              icon={<ShieldCheck aria-hidden="true" size={14} />}
+              label="Extrait concentration"
+            />
+            <TrustBadge icon={<Truck aria-hidden="true" size={14} />} label="Insured delivery" />
+            <TrustBadge icon={<Leaf aria-hidden="true" size={14} />} label="Refill roadmap" />
           </Grid>
         </div>
-      </div>
+      </Grid>
 
-      <div className="bg-brand-black text-white">
-        <div className="grid min-h-[80vh] grid-cols-1 lg:grid-cols-2">
-          <div className="relative min-h-[60vh] overflow-hidden">
+      <div className="bg-brand-black text-brand-white">
+        <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
+          <div className="relative min-h-screen overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[0]}
               alt={`${product.name} perfume lifestyle campaign scene`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-75"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gradient-shadow-strong via-transparent to-gradient-shadow-subtle" />
           </div>
           <div className="flex flex-col justify-center px-6 py-20 md:px-16 lg:px-20">
-            <p className="text-[10px] uppercase tracking-[0.45em] text-brand-gold">Campaign Mood</p>
-            <h2 className="mt-8 font-serif text-5xl italic leading-[0.95] md:text-7xl">
+            <p className="text-caption uppercase tracking-wider text-brand-gold">Campaign Mood</p>
+            <h2 className="mt-8 font-serif text-5xl italic leading-none md:text-7xl">
               The world behind <br />
-              <span className="text-white/30">{product.name}.</span>
+              <span className="text-on-dark-faint">{product.name}.</span>
             </h2>
-            <p className="mt-8 max-w-lg text-sm leading-8 text-white/50">{product.description}</p>
+            <p className="mt-8 max-w-lg text-body leading-8 text-on-dark-muted">
+              {product.description}
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 border-t border-white/10 lg:grid-cols-2">
-          <div className="flex items-center justify-center bg-white p-8 md:p-16">
+        <div className="grid grid-cols-1 border-t border-on-dark-subtle lg:grid-cols-2">
+          <div className="flex items-center justify-center bg-brand-white p-8 md:p-16">
             <AssetImage
               src={product.images.flatLay}
               alt={`${product.name} perfume bottle top-down flat lay`}
-              wrapperClassName="aspect-[4/3] w-full max-w-2xl bg-white"
-              className="h-full w-full object-contain drop-shadow-[0_35px_70px_rgba(0,0,0,0.08)]"
+              wrapperClassName="aspect-4/3 w-full max-w-2xl bg-brand-white"
+              className="h-full w-full object-contain drop-shadow-xl"
             />
           </div>
-          <div className="relative min-h-[52vh] overflow-hidden">
+          <div className="relative min-h-screen overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[1]}
               alt={`${product.name} still life with fragrance note ingredients`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-80"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-gradient-shadow-strong via-transparent to-transparent" />
           </div>
         </div>
       </div>
 
-      <div className="bg-brand-black px-6 py-24 text-white md:px-16 lg:px-24">
+      <div className="bg-brand-black px-6 py-24 text-brand-white md:px-16 lg:px-24">
         <div className="mx-auto max-w-6xl">
-          <p className="text-[10px] uppercase tracking-[0.45em] text-brand-gold">Related Archives</p>
+          <p className="text-caption uppercase tracking-wider text-brand-gold">Related Archives</p>
           <Grid cols={{ md: 2 }} gap={8} className="mt-12">
             {relatedProducts.map((item) => (
               <Link
                 key={item.id}
                 to={`/product/${item.slug}`}
-                className="group flex items-center gap-6 border border-white/10 p-5 transition-colors hover:border-brand-gold/40"
+                className={cn(
+                  'group flex items-center gap-6 border border-on-dark-subtle p-4 transition-colors hover:border-accent-muted',
+                  focusRing,
+                )}
               >
                 <AssetImage
                   src={item.images.front}
                   alt={`Front view of ${item.name} perfume bottle`}
-                  wrapperClassName="h-28 w-24 shrink-0 bg-white/5"
+                  wrapperClassName="h-28 w-24 shrink-0 bg-surface-glass-subtle"
                   className="h-full w-full object-contain"
                 />
                 <div>
-                  <p className="font-serif text-3xl italic">{item.name}</p>
-                  <p className="mt-3 text-[10px] uppercase tracking-[0.24em] text-white/60">
+                  <p className={headingMd}>{item.name}</p>
+                  <p className="mt-3 text-caption uppercase tracking-wide text-on-dark-secondary">
                     {formatCurrency(item.price)} / {item.category}
                   </p>
                 </div>
@@ -306,11 +345,11 @@ export const ProductPage = () => {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-14px_45px_rgba(0,0,0,0.12)] backdrop-blur md:hidden">
+      <div className="safe-bottom-mobile-action fixed inset-x-0 bottom-0 z-40 border-t border-on-light-muted bg-surface-light-raised px-3 pt-3 shadow-lg backdrop-blur md:hidden">
         <div className="mx-auto max-w-md">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="truncate font-serif text-xl italic">{product.name}</p>
-            <p className="shrink-0 text-sm uppercase tracking-[0.16em] text-black/65">
+            <p className={cn(headingXs, 'truncate')}>{product.name}</p>
+            <p className="shrink-0 text-body uppercase tracking-normal text-on-light-secondary">
               {formatCurrency(product.price)}
             </p>
           </div>
@@ -319,26 +358,31 @@ export const ProductPage = () => {
               variant="primary"
               onClick={addToCart}
               disabled={isOutOfStock}
-              className="px-4 py-3 tracking-[0.22em]"
+              className="px-4 py-3 tracking-wide"
             >
-              <ShoppingBag size={14} strokeWidth={1.3} />
+              <ShoppingBag aria-hidden="true" size={14} strokeWidth={1.3} />
               {availableStock > 0 ? 'Add to Cart' : 'Out of Stock'}
             </Button>
             <Button
               variant="outline"
               onClick={buyNow}
               disabled={isOutOfStock}
-              className="px-4 py-3 tracking-[0.22em]"
+              className="px-4 py-3 tracking-wide"
             >
               Buy Now
             </Button>
           </Grid>
           {isOutOfStock ? (
-            <p className={cn('mt-3 text-center text-[10px] uppercase text-red-700', tracking.normal)}>
+            <p
+              className={cn(
+                'mt-3 text-center text-caption uppercase text-red-700',
+                tracking.normal,
+              )}
+            >
               This fragrance is currently unavailable.
             </p>
           ) : (
-            <p className="mt-2 text-center text-[9px] uppercase tracking-[0.16em] text-black/45">
+            <p className="mt-2 text-center text-small text-on-light-secondary">
               Add to Cart reviews first · Buy Now checks out instantly
             </p>
           )}
@@ -349,8 +393,13 @@ export const ProductPage = () => {
 };
 
 const TrustBadge = ({ icon, label }: { icon: ReactNode; label: string }) => (
-  <div className={cn('flex items-center gap-2 border border-black/10 px-3 py-3 text-[10px] uppercase text-black/62', tracking.normal)}>
-    <span className="text-black/70">{icon}</span>
+  <div
+    className={cn(
+      'flex items-center gap-2 border border-on-light-muted px-3 py-3 text-caption uppercase text-on-light-secondary',
+      tracking.normal,
+    )}
+  >
+    <span className="text-on-light-secondary">{icon}</span>
     <span>{label}</span>
   </div>
 );

@@ -1,5 +1,5 @@
-import { ReactNode, RefObject, useEffect, useRef } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { ReactNode, RefObject, useEffect, useId, useRef } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { cn } from '../../../lib/utils';
 import { Overlay } from './Overlay';
 import { easing } from '../../../styles/tokens/motion';
@@ -9,6 +9,8 @@ export interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   ariaLabel: string;
+  ariaLabelledBy?: string;
+  ariaDescribedBy?: string;
   id?: string;
   /** Extra classes for the backdrop (color, z-index, responsive visibility). */
   overlayClassName: string;
@@ -16,12 +18,12 @@ export interface ModalProps {
   dialogClassName: string;
   /** Slide-in transition duration in seconds. */
   transitionDuration?: number;
-  /** Optional ref to the element that opened the modal, focused again on Escape close. */
+  /** Optional ref to the element that opened the modal. */
   triggerRef?: RefObject<HTMLElement | null>;
 }
 
 const focusableSelector =
-  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * Shared right-side drawer/modal shell: backdrop + dialog panel with
@@ -33,6 +35,8 @@ export const Modal = ({
   onClose,
   children,
   ariaLabel,
+  ariaLabelledBy,
+  ariaDescribedBy,
   id,
   overlayClassName,
   dialogClassName,
@@ -40,67 +44,114 @@ export const Modal = ({
   triggerRef,
 }: ModalProps) => {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  const generatedId = useId();
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
+    const restoreTarget =
+      triggerRef?.current ??
+      (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    const focusable = Array.from(
-      dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-    );
-    focusable[0]?.focus();
+    const getFocusableElements = () =>
+      Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? []).filter(
+        (element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true',
+      );
+
+    const focusable = getFocusableElements();
+    (focusable[0] ?? dialogRef.current)?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
-        triggerRef?.current?.focus();
+        event.preventDefault();
+        event.stopPropagation();
+        onCloseRef.current();
         return;
       }
 
-      if (event.key !== 'Tab' || focusable.length === 0) {
+      if (event.key !== 'Tab') {
         return;
       }
 
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const currentFocusable = getFocusableElements();
+      if (currentFocusable.length === 0) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
 
-      if (event.shiftKey && document.activeElement === first) {
+      const first = currentFocusable[0];
+      const last = currentFocusable[currentFocusable.length - 1];
+
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))
+      ) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))
+      ) {
         event.preventDefault();
         first.focus();
       }
     };
 
+    const handleFocusIn = (event: FocusEvent) => {
+      if (!dialogRef.current?.contains(event.target as Node)) {
+        (getFocusableElements()[0] ?? dialogRef.current)?.focus();
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('focusin', handleFocusIn);
 
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('focusin', handleFocusIn);
+      if (restoreTarget?.isConnected) {
+        restoreTarget.focus();
+      }
     };
-  }, [isOpen, onClose, triggerRef]);
+  }, [isOpen, triggerRef]);
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <Overlay onClick={onClose} className={overlayClassName} />
+          <Overlay onClick={() => onCloseRef.current()} className={overlayClassName} />
           <motion.div
-            id={id}
+            id={id ?? `modal-${generatedId}`}
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={ariaLabel}
-            initial={{ x: '100%' }}
+            aria-label={ariaLabelledBy ? undefined : ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            aria-describedby={ariaDescribedBy}
+            tabIndex={-1}
+            initial={reduceMotion ? false : { x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: transitionDuration, ease: easing.cinematic }}
-            className={cn('fixed right-0 top-0', dialogClassName)}
+            exit={reduceMotion ? {} : { x: '100%' }}
+            transition={{
+              duration: reduceMotion ? 0 : transitionDuration,
+              ease: easing.cinematic,
+            }}
+            className={cn(
+              'fixed right-0 top-0 motion-reduce:transform-none motion-reduce:transition-none',
+              dialogClassName,
+            )}
           >
             {children}
           </motion.div>

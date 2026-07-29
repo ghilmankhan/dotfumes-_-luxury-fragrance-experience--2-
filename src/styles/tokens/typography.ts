@@ -1,50 +1,59 @@
-// Shared typography class constants, derived from the classes already in use
-// across Hero.tsx, ProductCard.tsx, CartDrawer.tsx, and CheckoutPage.tsx.
-// These are string constants only — no new visual scale is introduced.
+// Semantic type scale. Components consume these tokens instead of raw values.
+export const micro = 'text-micro';
+export const caption = 'text-caption';
+export const small = 'text-small';
+export const body = 'text-body';
+export const heading = 'text-heading';
+export const label = 'text-label';
+export const title = 'text-title';
+export const display = 'text-display';
 
-// Large serif italic display heading (Hero h1).
-export const headingXl =
-  'font-serif italic leading-[0.9] tracking-[-0.035em] text-white text-[2.55rem] sm:text-[3.3rem] md:text-[5rem] lg:text-[5.6rem]';
-
-// Mid-size serif italic heading (ProductCard h3, CartDrawer/Checkout section titles).
-export const headingLg = 'font-serif text-3xl md:text-4xl tracking-tighter italic';
-
-// Small serif italic heading (drawer/aside titles like "Your Selection").
-export const headingSm = 'font-serif text-2xl italic tracking-tight';
-
-// Uppercase eyebrow/label text pattern, e.g. Hero eyebrow, ProductCard category label.
-export const eyebrowLabel = 'text-[10px] font-semibold uppercase tracking-[0.4em]';
-
-// Smaller eyebrow variant used for section kickers (Footer group titles, checkout steps).
-export const eyebrowLabelSm = 'text-[9px] uppercase tracking-[0.3em] font-bold';
-
-// Body copy pattern for supporting paragraph text.
-export const bodyCopy = 'text-[11px] uppercase tracking-[0.2em] font-light leading-loose';
-
-// Standalone tracking-only class strings for call sites that need to override
-// just the letter-spacing of a Button/element without pulling in a full
-// heading or eyebrow pattern. Values mirror the tracking already baked into
-// the heading/eyebrow constants above — no new visual values introduced.
-// Full class strings (not raw em values) so Tailwind's JIT scanner can find
-// them statically — a template-literal interpolation like
-// `tracking-[${x}]` would not be picked up by the build.
 export const tracking = {
-  normal: 'tracking-[0.2em]', // matches bodyCopy
-  wide: 'tracking-[0.3em]', // matches eyebrowLabelSm
-  wider: 'tracking-[0.4em]', // matches eyebrowLabel
+  tight: 'tracking-tight',
+  normal: 'tracking-normal',
+  wide: 'tracking-wide',
+  wider: 'tracking-wider',
+  widest: 'tracking-widest',
 } as const;
 
-// Grouped namespace for token-system consumers (e.g. docs pages) that want
-// `typography.headingXl` instead of a named import. Re-exports the same
-// constants above — no additional values, no new visual scale.
+export const headingXl = `font-serif italic leading-none ${tracking.tight} text-brand-white ${display}`;
+export const headingLg = `font-serif italic ${tracking.tight} ${title}`;
+// Section/summary heading tier — matches the "font-serif text-3xl italic" pattern
+// already repeated verbatim across checkout, order confirmation, and editorial pages.
+export const headingMd = `font-serif italic text-3xl`;
+export const headingSm = `font-serif italic ${tracking.tight} text-2xl`;
+// Card/line-item title tier — matches the "font-serif text-xl italic" pattern already
+// repeated verbatim across product cards, cart line items, and product detail.
+export const headingXs = `font-serif italic text-xl`;
+export const eyebrowLabel = `${caption} font-semibold uppercase ${tracking.wider}`;
+export const eyebrowLabelSm = `${micro} font-bold uppercase ${tracking.wide}`;
+export const bodyCopy = `${body} font-light leading-loose`;
+// Compact all-caps CTA button labels (Hero primary/secondary). None of the
+// named tracking steps above land in the ~0.08-0.12em range recommended for
+// this role (tight -0.035em / normal 0.16em / wide 0.22em / wider 0.35em /
+// widest 0.5em all overshoot or undershoot it), so this is defined once here
+// instead of an inline arbitrary value per call site.
+export const ctaLabelTracking = 'tracking-[0.1em]';
+
 export const typography = {
+  micro,
+  caption,
+  small,
+  body,
+  heading,
+  label,
+  title,
+  display,
+  tracking,
   headingXl,
   headingLg,
+  headingMd,
   headingSm,
+  headingXs,
   eyebrowLabel,
   eyebrowLabelSm,
   bodyCopy,
-  tracking,
+  ctaLabelTracking,
 } as const;
 
 export type TypographyToken = keyof typeof typography;

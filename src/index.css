@@ -12,18 +12,175 @@
   --color-brand-gold: #c5a059;
   --color-brand-ivory: #f9f8f6;
   --color-brand-gray: #a1a1a1;
+  --color-surface-raised: rgb(253 253 253 / 0.06);
+  --color-surface-subtle: rgb(253 253 253 / 0.02);
+  --color-surface-muted: rgb(253 253 253 / 0.03);
+  --color-ink-faint: rgb(10 10 10 / 0.02);
+  --color-ink-subtle: rgb(10 10 10 / 0.03);
+  --color-ink-muted: rgb(10 10 10 / 0.04);
+  --color-text-on-dark-faint: rgb(253 253 253 / 0.2);
+  --color-text-on-dark-subtle: rgb(253 253 253 / 0.4);
+  --color-text-on-dark-muted: rgb(253 253 253 / 0.55);
+  --color-text-on-dark-secondary: rgb(253 253 253 / 0.72);
+  --color-text-on-dark-strong: rgb(253 253 253 / 0.9);
+  --color-text-on-light-faint: rgb(10 10 10 / 0.28);
+  --color-text-on-light-subtle: rgb(10 10 10 / 0.45);
+  --color-text-on-light-muted: rgb(10 10 10 / 0.55);
+  --color-text-on-light-secondary: rgb(10 10 10 / 0.65);
+  --color-text-on-light-strong: rgb(10 10 10 / 0.75);
+  --color-border-on-dark-subtle: rgb(253 253 253 / 0.1);
+  --color-border-on-dark-muted: rgb(253 253 253 / 0.2);
+  --color-border-on-dark-strong: rgb(253 253 253 / 0.5);
+  --color-border-on-light-subtle: rgb(10 10 10 / 0.05);
+  --color-border-on-light-muted: rgb(10 10 10 / 0.1);
+  --color-border-on-light-strong: rgb(10 10 10 / 0.3);
+  --color-surface-overlay-subtle: rgb(10 10 10 / 0.2);
+  --color-surface-overlay-muted: rgb(10 10 10 / 0.35);
+  --color-surface-overlay-strong: rgb(10 10 10 / 0.6);
+  --color-surface-overlay-solid: rgb(10 10 10 / 0.9);
+  --color-surface-glass-subtle: rgb(253 253 253 / 0.05);
+  --color-surface-glass-muted: rgb(253 253 253 / 0.2);
+  --color-surface-glass-strong: rgb(253 253 253 / 0.7);
+  --color-surface-light-raised: rgb(253 253 253 / 0.95);
+  --color-accent-gold-subtle: rgb(197 160 89 / 0.1);
+  --color-accent-gold-muted: rgb(197 160 89 / 0.2);
+  --color-accent-gold-strong: rgb(197 160 89 / 0.6);
+  --color-border-accent-muted: rgb(197 160 89 / 0.4);
+  --color-status-warning-surface: rgb(251 191 36 / 0.1);
+  --color-status-warning-border: rgb(251 191 36 / 0.4);
+  --color-status-error-surface: rgb(69 10 10 / 0.4);
+  --color-status-error-border: rgb(248 113 113 / 0.5);
+  --color-surface-neutral-raised: rgb(250 250 250 / 0.9);
+  --color-border-neutral-muted: rgb(229 229 229 / 0.8);
+  --color-hero-glow-warm: rgb(252 211 77 / 0.15);
+  --color-hero-glow-cool: rgb(186 230 253 / 0.1);
+  --color-hero-accent-warm-start: rgb(252 211 77 / 0.8);
+  --color-hero-accent-warm-end: rgb(217 119 6 / 0.7);
+  --color-hero-accent-rose-start: rgb(254 205 211 / 0.8);
+  --color-hero-accent-rose-end: rgb(251 191 36 / 0.7);
+  --color-hero-accent-cool-start: rgb(165 243 252 / 0.7);
+  --color-hero-accent-cool-end: rgb(203 213 225 / 0.6);
+  --color-hero-accent-sky-start: rgb(125 211 252 / 0.8);
+  --color-hero-accent-sky-end: rgb(59 130 246 / 0.7);
+  --color-hero-accent-gold-start: rgb(254 240 138 / 0.8);
+  --color-hero-accent-gold-end: rgb(245 158 11 / 0.8);
+  --color-gradient-shadow-faint: rgb(10 10 10 / 0.15);
+  --color-gradient-shadow-subtle: rgb(10 10 10 / 0.2);
+  --color-gradient-shadow-soft: rgb(10 10 10 / 0.4);
+  --color-gradient-shadow-muted: rgb(10 10 10 / 0.5);
+  --color-gradient-shadow-strong: rgb(10 10 10 / 0.7);
+  --color-gradient-shadow-deep: rgb(10 10 10 / 0.8);
+  --color-gradient-shadow-solid: rgb(10 10 10 / 0.9);
+  --color-gradient-warm-haze: rgb(120 53 15 / 0.4);
+  --color-gradient-warm-glow: rgb(120 53 15 / 0.2);
+  --color-gradient-cool-haze: rgb(148 163 184 / 0.1);
+
+  --text-micro: 0.5625rem;
+  --text-caption: 0.625rem;
+  --text-small: 0.6875rem;
+  --text-label: 0.75rem;
+  /* Raised from 0.8125rem (13px) — this is the primary long-form reading size
+     across every editorial/legal page and the checkout/order-confirmation
+     flow; 13px sits below practical body-copy legibility. --text-heading
+     moved up in step to keep the same relative hierarchy gap over body. */
+  --text-body: 0.9375rem;
+  --text-heading: 1.25rem;
+  --text-title: 2.25rem;
+  --text-display: clamp(2.55rem, 6vw, 5.6rem);
+
+  --tracking-tight: -0.035em;
+  --tracking-normal: 0.16em;
+  --tracking-wide: 0.22em;
+  --tracking-wider: 0.35em;
+  --tracking-widest: 0.5em;
 
   /* Unified elevation scale — every surface shadow site-wide resolves to
      one of these four tiers (shadow-sm/md/lg/xl). See src/styles/tokens/shadows.ts. */
   --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.05);
-  --shadow-md: 0 20px 50px rgba(10, 10, 10, 0.08);
-  --shadow-lg: 0 30px 70px rgba(10, 10, 10, 0.18);
-  --shadow-xl: 0 40px 80px rgba(10, 10, 10, 0.4);
+  --shadow-md: 0 16px 40px rgba(10, 10, 10, 0.06);
+  --shadow-lg: 0 24px 60px rgba(10, 10, 10, 0.12);
+  --shadow-xl: 0 32px 90px rgba(10, 10, 10, 0.22);
+}
+
+/* Tailwind's color namespace would otherwise derive utilities such as
+   text-text-on-dark-strong and border-border-on-light-strong. Register the
+   semantic names as first-class Tailwind v4 utilities so every standard
+   variant (hover, focus-visible, responsive, etc.) is generated from actual
+   source usage and remains inside Tailwind's utilities layer. */
+@utility text-on-dark-faint {
+  color: var(--color-text-on-dark-faint);
+}
+@utility text-on-dark-subtle {
+  color: var(--color-text-on-dark-subtle);
+}
+@utility text-on-dark-muted {
+  color: var(--color-text-on-dark-muted);
+}
+@utility text-on-dark-secondary {
+  color: var(--color-text-on-dark-secondary);
+}
+@utility text-on-dark-strong {
+  color: var(--color-text-on-dark-strong);
+}
+@utility text-on-light-faint {
+  color: var(--color-text-on-light-faint);
+}
+@utility text-on-light-subtle {
+  color: var(--color-text-on-light-subtle);
+}
+@utility text-on-light-muted {
+  color: var(--color-text-on-light-muted);
+}
+@utility text-on-light-secondary {
+  color: var(--color-text-on-light-secondary);
+}
+@utility text-on-light-strong {
+  color: var(--color-text-on-light-strong);
+}
+@utility border-on-dark-subtle {
+  border-color: var(--color-border-on-dark-subtle);
+}
+@utility border-on-dark-muted {
+  border-color: var(--color-border-on-dark-muted);
+}
+@utility border-on-dark-strong {
+  border-color: var(--color-border-on-dark-strong);
+}
+@utility border-on-light-subtle {
+  border-color: var(--color-border-on-light-subtle);
+}
+@utility border-on-light-muted {
+  border-color: var(--color-border-on-light-muted);
+}
+@utility border-on-light-strong {
+  border-color: var(--color-border-on-light-strong);
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-toast-top: calc(0.75rem + var(--safe-top));
+  --safe-toast-bottom: calc(1.25rem + var(--safe-bottom));
+  --safe-product-bottom: calc(7rem + var(--safe-bottom));
+  --safe-mobile-action-bottom: calc(0.75rem + var(--safe-bottom));
 }
 
 @layer base {
   body {
-    @apply bg-brand-black text-brand-white font-sans antialiased selection:bg-brand-gold selection:text-black;
+    @apply bg-brand-black text-brand-white font-sans antialiased selection:bg-brand-gold selection:text-brand-black;
+  }
+
+  :where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [role='link'],
+    [role='button'],
+    [tabindex]:not([tabindex='-1'])
+  ):focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-gold ring-2 ring-brand-gold ring-offset-2;
   }
 
   /* Cinematic scrollbar styling */
@@ -56,7 +213,8 @@
 }
 
 @keyframes smokeFlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.08;
     transform: translateY(0) scale(1);
   }
@@ -67,7 +225,8 @@
 }
 
 @keyframes volumetricHaze {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.12;
     filter: blur(140px);
   }
@@ -78,11 +237,16 @@
 }
 
 @keyframes bottleGlow {
-  0%, 100% {
-    box-shadow: 0 0 80px rgba(197, 160, 89, 0.15), inset -20px -20px 60px rgba(0,0,0,0.4);
+  0%,
+  100% {
+    box-shadow:
+      0 0 80px rgba(197, 160, 89, 0.15),
+      inset -20px -20px 60px rgba(0, 0, 0, 0.4);
   }
   50% {
-    box-shadow: 0 0 120px rgba(197, 160, 89, 0.22), inset -20px -20px 60px rgba(0,0,0,0.3);
+    box-shadow:
+      0 0 120px rgba(197, 160, 89, 0.22),
+      inset -20px -20px 60px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -98,7 +262,8 @@
 }
 
 @keyframes subtleShift {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -107,7 +272,8 @@
 }
 
 @keyframes pulseGold {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
   }
   50% {
@@ -131,7 +297,8 @@
 }
 
 @keyframes glassRefraction {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.05;
   }
   50% {
@@ -156,15 +323,110 @@
 
   /* Cinematic utility classes */
   .cinematic-fade {
-    @apply bg-gradient-to-b from-transparent via-transparent to-black/60;
+    @apply bg-gradient-to-b from-transparent via-transparent to-surface-overlay-strong;
   }
 
   .editorial-vignette {
-    @apply bg-[radial-gradient(ellipse_100%_50%_at_50%_0%,transparent_20%,rgba(0,0,0,0.5)_100%)];
+    background-image: radial-gradient(
+      ellipse 100% 50% at 50% 0%,
+      transparent 20%,
+      rgb(0 0 0 / 0.5) 100%
+    );
+  }
+
+  .asset-shimmer {
+    background-image: linear-gradient(
+      110deg,
+      rgb(255 255 255 / 0.05),
+      rgb(255 255 255 / 0.12),
+      rgb(255 255 255 / 0.05)
+    );
+    background-size: 200% 100%;
+  }
+
+  .asset-image-transition {
+    transition-duration: 1600ms;
+  }
+
+  .toast-position {
+    top: var(--safe-toast-top);
+  }
+
+  .safe-bottom-cart {
+    padding-bottom: var(--safe-toast-bottom);
+  }
+
+  .safe-bottom-product {
+    padding-bottom: var(--safe-product-bottom);
+  }
+
+  .safe-bottom-mobile-action {
+    padding-bottom: var(--safe-mobile-action-bottom);
+  }
+
+  .toast-mobile-width {
+    width: calc(100% - 2.5rem);
+  }
+
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  .grid-layout-balanced,
+  .grid-layout-content-sidebar,
+  .grid-layout-media-copy,
+  .grid-layout-product-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gradient-surface {
+    background-image: linear-gradient(
+      to bottom,
+      var(--color-surface-raised),
+      var(--color-surface-subtle)
+    );
+  }
+
+  @media (min-width: 64rem) {
+    .grid-layout-balanced {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .grid-layout-content-sidebar {
+      grid-template-columns: minmax(0, 1fr) 26.875rem;
+    }
+
+    .grid-layout-media-copy {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+
+    .grid-layout-product-detail {
+      grid-template-columns: minmax(0, 1fr) minmax(26.25rem, 0.82fr);
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .toast-position {
+      bottom: var(--safe-toast-bottom);
+      top: auto;
+    }
+
+    .toast-position-cart {
+      bottom: auto;
+      top: var(--safe-toast-top);
+    }
   }
 
   .luxury-text-shadow {
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+    text-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.6),
+      0 2px 8px rgba(0, 0, 0, 0.4);
   }
 
   .glass-frost {
@@ -174,40 +436,48 @@
   }
 
   .amber-glow {
-    box-shadow: 0 0 60px rgba(197, 160, 89, 0.2), inset -15px -15px 40px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 0 60px rgba(197, 160, 89, 0.2),
+      inset -15px -15px 40px rgba(0, 0, 0, 0.3);
   }
 
   /* Animation utilities */
-  .animate-smoke {
-    animation: smokeFlow 8s ease-in-out infinite;
-  }
+  @media (prefers-reduced-motion: no-preference) {
+    .asset-shimmer {
+      animation: shimmer 2.8s linear infinite;
+    }
 
-  .animate-haze {
-    animation: volumetricHaze 10s ease-in-out infinite;
-  }
+    .animate-smoke {
+      animation: smokeFlow 8s ease-in-out infinite;
+    }
 
-  .animate-bottle-glow {
-    animation: bottleGlow 8s ease-in-out infinite;
-  }
+    .animate-haze {
+      animation: volumetricHaze 10s ease-in-out infinite;
+    }
 
-  .animate-cinema-reveal {
-    animation: cinematicReveal 1.2s ease-out forwards;
-  }
+    .animate-bottle-glow {
+      animation: bottleGlow 8s ease-in-out infinite;
+    }
 
-  .animate-subtle-shift {
-    animation: subtleShift 6s ease-in-out infinite;
-  }
+    .animate-cinema-reveal {
+      animation: cinematicReveal 1.2s ease-out forwards;
+    }
 
-  .animate-pulse-gold {
-    animation: pulseGold 3s ease-in-out infinite;
-  }
+    .animate-subtle-shift {
+      animation: subtleShift 6s ease-in-out infinite;
+    }
 
-  .animate-drift {
-    animation: atmosphericDrift 12s ease-in-out infinite;
-  }
+    .animate-pulse-gold {
+      animation: pulseGold 3s ease-in-out infinite;
+    }
 
-  .animate-glass-refraction {
-    animation: glassRefraction 6s ease-in-out infinite;
+    .animate-drift {
+      animation: atmosphericDrift 12s ease-in-out infinite;
+    }
+
+    .animate-glass-refraction {
+      animation: glassRefraction 6s ease-in-out infinite;
+    }
   }
 
   /* GPU-accelerated transforms */
@@ -227,11 +497,11 @@
 
   /* Realistic lighting gradients */
   .light-gradient-warm {
-    @apply bg-gradient-to-r from-amber-950/40 via-transparent to-amber-900/20;
+    @apply bg-gradient-to-r from-gradient-warm-haze via-transparent to-gradient-warm-glow;
   }
 
   .light-gradient-cool {
-    @apply bg-gradient-to-b from-slate-400/10 via-transparent to-transparent;
+    @apply bg-gradient-to-b from-gradient-cool-haze via-transparent to-transparent;
   }
 
   /* Editorial composition helpers */
@@ -277,15 +547,33 @@
   }
 
   .text-luxury-meta {
-    @apply font-sans uppercase tracking-widest text-xs;
+    @apply font-sans uppercase tracking-widest text-label;
   }
 }
 
 /* Motion system overrides for premium feel */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-property: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  .asset-shimmer {
+    animation: none !important;
+    background-position: 50% 0;
+  }
+
+  .asset-image-transition {
+    filter: none !important;
+    transform: none !important;
+  }
+
+  :where(a, button, [role='button'], [role='link']):is(:hover, :active, :focus) {
+    transform: none !important;
   }
 }

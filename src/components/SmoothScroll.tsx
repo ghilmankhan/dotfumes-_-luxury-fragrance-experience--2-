@@ -7,26 +7,47 @@ interface SmoothScrollProps {
 
 export const SmoothScroll: React.FC<SmoothScrollProps> = ({ children }) => {
   useEffect(() => {
-    let frameId: number;
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
-    });
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let frameId: number | undefined;
+    let lenis: Lenis | undefined;
 
-    function raf(time: number) {
-      lenis.raf(time);
+    const stopSmoothScroll = () => {
+      if (frameId !== undefined) {
+        cancelAnimationFrame(frameId);
+        frameId = undefined;
+      }
+      lenis?.destroy();
+      lenis = undefined;
+    };
+
+    const updateSmoothScroll = () => {
+      stopSmoothScroll();
+      if (reducedMotion.matches) {
+        return;
+      }
+
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        orientation: 'vertical',
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+      });
+
+      const raf = (time: number) => {
+        lenis?.raf(time);
+        frameId = requestAnimationFrame(raf);
+      };
       frameId = requestAnimationFrame(raf);
-    }
+    };
 
-    frameId = requestAnimationFrame(raf);
+    updateSmoothScroll();
+    reducedMotion.addEventListener('change', updateSmoothScroll);
 
     return () => {
-      cancelAnimationFrame(frameId);
-      lenis.destroy();
+      reducedMotion.removeEventListener('change', updateSmoothScroll);
+      stopSmoothScroll();
     };
   }, []);
 

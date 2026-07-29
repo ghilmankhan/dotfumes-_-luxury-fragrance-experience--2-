@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem, Product } from '../models/types';
-import { getAvailableStock, isProductOutOfStock } from '../lib/validation';
+import {
+  getAvailableStock,
+  getCartAvailabilityIssues,
+  getCartAvailabilityMessage,
+  isProductOutOfStock,
+} from '../lib/validation';
 import { useProductCatalogStore } from './useProductCatalogStore';
 
 type CartActionResult = {
@@ -13,7 +18,7 @@ interface CartState {
   items: CartItem[];
   isOpen: boolean;
   addItem: (product: Product, quantity?: number) => CartActionResult;
-  removeItem: (productId: string) => void;
+  removeItem: (productId: string) => CartItem | undefined;
   updateQuantity: (productId: string, quantity: number) => void;
   decrementOrRemove: (productId: string) => void;
   openCart: () => void;
@@ -29,7 +34,8 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
       addItem: (product, quantity = 1) => {
         const latestProduct =
-          useProductCatalogStore.getState().allProducts.find((item) => item.id === product.id) || product;
+          useProductCatalogStore.getState().allProducts.find((item) => item.id === product.id) ||
+          product;
         const availableStock = getAvailableStock(latestProduct);
 
         if (isProductOutOfStock(latestProduct) || latestProduct.active === false) {
@@ -71,7 +77,12 @@ export const useCartStore = create<CartState>()(
         }
       },
       removeItem: (productId) => {
+        const removedItem = get().items.find((item) => item.id === productId);
+        if (!removedItem) {
+          return undefined;
+        }
         set({ items: get().items.filter((item) => item.id !== productId) });
+        return removedItem;
       },
       updateQuantity: (productId, quantity) => {
         if (quantity <= 0) {
@@ -85,7 +96,8 @@ export const useCartStore = create<CartState>()(
         }
 
         const latestProduct =
-          useProductCatalogStore.getState().allProducts.find((item) => item.id === productId) || targetItem;
+          useProductCatalogStore.getState().allProducts.find((item) => item.id === productId) ||
+          targetItem;
         const availableStock = getAvailableStock(latestProduct);
         if (availableStock <= 0) {
           get().removeItem(productId);
@@ -143,3 +155,51 @@ export const selectCartCount = (state: CartState) =>
 
 export const selectCartTotal = (state: CartState) =>
   state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+export const selectCartItems = (state: CartState) => state.items;
+
+export const selectCartItemIds = (state: CartState) => state.items.map((item) => item.id);
+
+export const selectCartItemById = (productId: string) => (state: CartState) =>
+  state.items.find((item) => item.id === productId);
+
+export const createCartAvailabilitySelector = (
+  products: Product[],
+  allowOutOfStockCheckout: boolean,
+) => {
+  let previousItems: CartItem[] | undefined;
+  let previousResult:
+    | {
+        productById: Map<string, Product>;
+        availabilityIssues: ReturnType<typeof getCartAvailabilityIssues>;
+        availabilityIssueByItem: Map<string, ReturnType<typeof getCartAvailabilityIssues>[number]>;
+        hasUnavailableItems: boolean;
+        shouldBlockCheckout: boolean;
+        availabilityMessage: string;
+      }
+    | undefined;
+
+  const productById = new Map(products.map((product) => [product.id, product]));
+
+  return (state: CartState) => {
+    if (state.items === previousItems && previousResult) {
+      return previousResult;
+    }
+
+    const availabilityIssues = getCartAvailabilityIssues(state.items, products);
+    const hasUnavailableItems = availabilityIssues.length > 0;
+
+    previousItems = state.items;
+    previousResult = {
+      productById,
+      availabilityIssues,
+      availabilityIssueByItem: new Map(availabilityIssues.map((issue) => [issue.itemId, issue])),
+      hasUnavailableItems,
+      shouldBlockCheckout:
+        state.items.length === 0 || (hasUnavailableItems && !allowOutOfStockCheckout),
+      availabilityMessage: getCartAvailabilityMessage(availabilityIssues),
+    };
+
+    return previousResult;
+  };
+};

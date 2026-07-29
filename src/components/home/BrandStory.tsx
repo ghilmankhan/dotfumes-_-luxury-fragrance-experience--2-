@@ -1,12 +1,15 @@
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { AssetImage } from '../AssetImage';
 import { FEATURED_PRODUCTS } from '../../constants/products';
 import { motionTiers, easing, duration } from '../../styles/tokens/motion';
+import { focusRing } from '../../styles/tokens/interactive';
+import { cn } from '../../lib/utils';
 
 export const BrandStory = () => {
   const containerRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start'],
@@ -22,35 +25,44 @@ export const BrandStory = () => {
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-24 md:gap-40">
         {/* Editorial Image Block - Emotional Storytelling */}
-        <div className="relative w-full md:w-[45%] group flex flex-col pt-20">
-          <div className="absolute top-0 right-0 w-24 h-24 border-t border-r border-brand-black/5 -translate-y-12 translate-x-12 hidden lg:block" />
+        <div className="group relative flex w-full flex-col pt-20 md:w-1/2">
+          <div className="absolute top-0 right-0 w-24 h-24 border-t border-r border-on-light-subtle -translate-y-12 translate-x-12 hidden lg:block" />
 
-          <div className="aspect-[2/3] overflow-hidden bg-neutral-100 relative shadow-xl">
+          <div className="relative aspect-2/3 overflow-hidden bg-neutral-100 shadow-xl">
             {/* Cinematic Atmosphere Layer */}
-            <motion.div style={{ y: imageY }} className="w-full h-[130%] relative">
+            <motion.div
+              style={reduceMotion ? {} : { y: imageY }}
+              className="relative h-full w-full"
+            >
               <AssetImage
                 src={FEATURED_PRODUCTS[2].images.lifestyle[0]}
                 alt="Wild Silence volcanic twilight campaign atmosphere"
                 wrapperClassName="h-full w-full bg-neutral-200"
-                className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-[1.8s] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                className="h-full w-full object-cover grayscale motion-safe:hover:grayscale-0 transition-opacity duration-2000 ease-out motion-reduce:transition-none"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-gradient-shadow-soft via-transparent to-transparent opacity-60"
+              />
             </motion.div>
           </div>
 
           {/* Detailed Metadata Overlay */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={reduceMotion ? false : { opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: duration.cinematic, ease: easing.cinematic }}
-            className="absolute -bottom-16 -right-8 md:-right-16 bg-brand-black p-10 md:p-14 text-white max-w-[320px] shadow-lg"
+            transition={{
+              duration: reduceMotion ? 0 : duration.cinematic,
+              ease: easing.cinematic,
+            }}
+            className="absolute -bottom-16 -right-8 md:-right-16 bg-brand-black p-10 md:p-14 text-brand-white max-w-80 shadow-lg"
           >
-            <div className="w-8 h-px bg-brand-gold mb-6" />
-            <h4 className="font-serif text-3xl mb-6 italic leading-tight">
+            <div aria-hidden="true" className="w-8 h-px bg-brand-gold mb-6" />
+            <blockquote className="font-serif text-3xl mb-6 italic leading-tight">
               "Where silence becomes terrain."
-            </h4>
-            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-white/40 leading-[2] font-light">
+            </blockquote>
+            <p className="text-caption md:text-small uppercase tracking-wider text-on-dark-muted leading-loose font-light">
               Each extrait is staged as a world: mineral, floral, athletic, golden, or decisive. The
               image is never decoration; it is the first breath of the scent.
             </p>
@@ -58,33 +70,40 @@ export const BrandStory = () => {
         </div>
 
         {/* Story Text Content - Refined Editorial Hierarchy */}
-        <div className="w-full md:w-[55%] flex flex-col items-start relative pb-20">
+        <div className="relative flex w-full flex-col items-start pb-20 md:w-1/2">
           <motion.span
-            initial={{ opacity: 0, x: -20 }}
+            initial={reduceMotion ? false : { opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-brand-gold mb-12 font-bold flex items-center gap-4"
+            transition={{ duration: reduceMotion ? 0 : duration.base }}
+            className="text-caption md:text-small uppercase tracking-widest text-brand-gold mb-12 font-bold flex items-center gap-4"
           >
-            <div className="w-2 h-2 rounded-full bg-brand-gold" />
+            <div aria-hidden="true" className="w-2 h-2 rounded-full bg-brand-gold" />
             The Manifesto
           </motion.span>
 
           <motion.h2
-            initial={{ opacity: 0, y: 30 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 1, ease: easing.cinematic }}
-            className="font-serif text-5xl md:text-8xl text-brand-black leading-[0.9] mb-12 tracking-tighter italic"
+            transition={{
+              duration: reduceMotion ? 0 : duration.cinematic,
+              ease: easing.cinematic,
+            }}
+            className="font-serif text-5xl md:text-8xl text-brand-black leading-none mb-12 tracking-tighter italic"
           >
-            Refining the <br /> <span className="ml-[15%] text-neutral-300">Unspoken.</span>
+            Refining the <br /> <span className="ml-16 text-neutral-300">Unspoken.</span>
           </motion.h2>
 
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: duration.cinematic, delay: 0.3 }}
-            className="space-y-12 text-neutral-500 font-sans text-sm md:text-[15px] max-w-lg leading-[1.8] font-light"
+            transition={{
+              duration: reduceMotion ? 0 : duration.cinematic,
+              delay: reduceMotion ? 0 : 0.3,
+            }}
+            className="space-y-12 text-neutral-500 font-sans text-body md:text-body max-w-lg leading-loose font-light"
           >
             <p className="first-letter:text-5xl first-letter:font-serif first-letter:float-left first-letter:mr-4 first-letter:text-brand-black first-letter:mt-2">
               Dotfumes was born from a singular obsession: to make fragrance feel cinematic before
@@ -99,20 +118,24 @@ export const BrandStory = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: reduceMotion ? 0 : duration.base }}
           >
             <Link
               to="/about#ethics"
-              className="mt-16 group flex items-center gap-6 text-[11px] uppercase tracking-[0.4em] font-bold text-brand-black focus-visible:outline focus-visible:outline-1 focus-visible:outline-brand-gold"
+              className={cn(
+                'mt-16 group flex items-center gap-6 text-small uppercase tracking-wider font-bold text-brand-black',
+                focusRing,
+              )}
             >
               Explore The Ethics
-              <div className="relative w-16 h-px bg-brand-black/10 overflow-hidden">
+              <div className="relative w-16 h-px bg-surface-overlay-subtle overflow-hidden">
                 <motion.div
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: '100%' }}
-                  transition={motionTiers.normal}
+                  initial={reduceMotion ? false : { x: '-100%' }}
+                  whileHover={reduceMotion ? {} : { x: '100%' }}
+                  transition={reduceMotion ? { duration: 0 } : motionTiers.normal}
                   className="absolute inset-0 bg-brand-black"
                 />
               </div>
@@ -123,10 +146,10 @@ export const BrandStory = () => {
 
       {/* Atmospheric Background Element */}
       <motion.div
-        style={{ scale: textScale }}
-        className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/3 rotate-[-90deg] hidden xl:block opacity-[0.03] pointer-events-none"
+        style={reduceMotion ? {} : { scale: textScale }}
+        className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/3 -rotate-90 hidden xl:block opacity-5 pointer-events-none"
       >
-        <span className="text-[250px] font-serif uppercase tracking-[0.2em] whitespace-nowrap italic">
+        <span className="text-9xl font-serif uppercase tracking-wide whitespace-nowrap italic">
           SILENT DIALOGUE
         </span>
       </motion.div>
