@@ -1,774 +1,581 @@
-# Dotfumes Guided Checkout Ritual
+# Dotfumes Private Fragrance Reservation Ritual
 
-Date: 2026-07-29
-Status: proposed for implementation
-Scope: checkout route, confirmation route, checkout state, order submission service, and Google Apps Script order POST flow
+**Date:** 2026-07-29
+**Status:** Revised design for user review
+**Scope:** Checkout perception, copy, hierarchy, spacing, and interaction feel only
 
-## 1. Purpose
+## 1. Objective
 
-Transform checkout from a premium-styled intake form into a guided luxury purchase with trustworthy payment handling.
+Transform the existing checkout from a visible verification form into a private fragrance reservation ritual.
 
-The design preserves the existing Dotfumes identity:
+The customer should feel:
 
-- Playfair Display and Inter;
-- brand white, ivory, black, gold, and existing semantic tokens;
-- sharp corners;
-- product photography;
-- current route structure;
-- current customer field names and field order;
-- React Router, Zustand, Google Sheets, Google Drive, and Apps Script.
+> A private fragrance house is holding my selection and guiding me through a personally handled order.
 
-This is not a storefront redesign, payment-gateway migration, database rewrite, or brand refresh.
+The customer should not feel:
 
-## 2. Success criteria
+> I am completing a multi-step payment form for an internal system.
 
-The completed system must:
+The implementation must preserve the existing:
 
-1. guide the buyer through Intent, Delivery, Payment, Proof, and Confirmation;
-2. keep the selected fragrance and amount visible or one expansion away;
-3. keep the primary CTA enabled until a network request begins;
-4. make every CTA state perform a useful action;
-5. show the selected payment destination and exact payable amount before proof upload;
-6. keep proof files private in Google Drive;
-7. prevent the frontend from setting prices, totals, payment status, or order status;
-8. recalculate the order from the Products and Settings sheets;
-9. use one stable order ID as an idempotency key;
-10. return an existing order for a safe duplicate retry;
-11. distinguish confirmed success, local preparation, backend failure, and unknown timeout outcome;
-12. pass desktop, mobile, accessibility, error-state, duplicate, and hydration QA.
+- `INTENT -> DELIVERY -> PAYMENT -> PROOF -> CONFIRMATION` flow;
+- quote and pricing behavior;
+- backend and API contracts;
+- idempotency behavior;
+- validation and state-machine logic;
+- payment and order status behavior;
+- field names, order, autofill contracts, and submission payload;
+- Dotfumes tokens, typography, sharp geometry, and brand identity.
 
-## 3. Current-state diagnosis
+## 2. Hard Scope Boundary
 
-### UX and hierarchy
+### Allowed
 
-- The campaign-sized heading and top padding delay useful controls.
-- Decorative progress cards repeat section headings without adding navigation.
-- The order summary follows the full form on mobile.
-- Payment methods do not reveal any account or wallet destination.
-- Proof upload appears before the buyer has enough information to pay.
-- The disabled CTA hides why progress is blocked.
-- Reassurance copy is duplicated near the final action.
-- Empty checkout still exposes the full form.
+- Checkout copy and labels.
+- Visual hierarchy and spacing.
+- CTA labels and supporting guidance.
+- Presentation of payment instructions.
+- Presentation of payment proof.
+- Order-summary placement and product storytelling.
+- Motion used to communicate existing state changes.
+- Responsive composition inside the checkout route.
+- Accessibility refinements that do not alter business logic.
 
-### State and performance
+### Not allowed
 
-- `CheckoutPage.tsx` owns layout, local form state, validation, proof preview, submission, copy, animation, and summary behavior.
-- Validation runs during render and after every field change.
-- Form state cannot survive a refresh or component extraction.
-- The cart initially trusts fallback catalog data and can become invalid after remote hydration.
-- Currency is hardcoded to USD even though catalog settings expose a currency.
+- Backend or Apps Script changes.
+- API contract changes.
+- New state-machine states.
+- Pricing or quote changes.
+- Zustand ownership changes.
+- Validation-rule changes.
+- New persistence or architecture layers.
+- New design tokens, fonts, colors, radii, shadows, or icon families.
+- Changes outside checkout.
 
-### Trust and backend integrity
+### Explicitly excluded files
 
-- The browser sends line prices, subtotal, delivery fee, total, payment status, order status, and generated operational copy.
-- Apps Script writes those client values.
-- Proof files are changed to `ANYONE_WITH_LINK`.
-- The same order ID can be submitted repeatedly.
-- A retry after a client timeout can create another file, row, stock decrement, and notification.
-- Customer email failures are swallowed, while confirmation can still claim an email was sent.
-- The frontend-only fallback says the request was received when it only exists in local storage.
+The implementation plan must not modify:
 
-## 4. Approved experience model
+- `apps-script/**`;
+- `src/lib/googleSheetsBackend.ts`;
+- `src/services/orderSubmissionService.ts`;
+- pricing, quote, idempotency, order-status, or inventory logic;
+- Zustand store state shapes;
+- backend payload types.
 
-```mermaid
-flowchart LR
-    A["Intent: selected fragrance"] --> B["Delivery"]
-    B --> C["Payment method"]
-    C --> D["Payment instructions"]
-    D --> E["Private proof"]
-    E --> F["Submit for verification"]
-    F --> G["Confirmation with order ID"]
-```
+Apps Script and Zustand guidance are guardrails for verifying this boundary, not implementation targets.
 
-Intent is not a separate page or extra field. It is the selected fragrance, scent cue, quantity, and total carried into checkout.
+## 3. Evidence-Based UX Reality Audit
 
-The checkout remains one route with progressive disclosure:
+The current flow was captured in the in-app browser at:
 
-1. Delivery is the first open section.
-2. Payment becomes the next active section when delivery is valid.
-3. Selecting a method prepares the instruction reveal.
-4. The CTA requests a server-authored quote, then reveals the selected instructions.
-5. Proof upload becomes available only after instructions are visible.
-6. A valid proof changes the CTA to the final verification action.
-7. Confirmation reports the actual backend result.
+- desktop: `1440 x 1000`;
+- mobile: `390 x 844`.
 
-Section headings remain visible so the buyer understands the whole flow. Inactive sections are calm and non-interactive until the guiding CTA advances them.
+Audit evidence is stored locally in:
 
-## 5. Page composition
+`/.tmp/checkout-audit-2026-07-29/`
 
-### CheckoutHeader
+### Step 1: Checkout arrival
 
-- Compact `Checkout` title.
-- One short line: `Complete your delivery details, transfer the exact amount, and submit proof for private review.`
-- No campaign-scale two-line headline.
-- No second operational paragraph.
+**Health:** Needs major perception refinement.
 
-### CheckoutProgress
+The opening uses a campaign-sized heading and 2 explanatory paragraphs before the customer reaches any action. It names the mechanics of payment proof and handoff too early.
 
-- Semantic ordered list: Delivery, Payment, Proof, Confirmation.
-- Current item uses text, icon, and color.
-- Completed items expose a check icon and accessible completed text.
-- It does not render as four equal cards.
-- It is informational, not clickable navigation.
+Emotional effect:
 
-### OrderSummary
+- desire changes into paperwork;
+- the product is not the opening subject;
+- the customer is told what the system needs before being reassured what Dotfumes is doing for them.
+
+### Step 2: Product selection in checkout
+
+**Health:** Functional on desktop, emotionally weak.
+
+The sticky summary keeps the product visible, which is a good foundation. However, it reads as a receipt:
+
+- title is `Your Selection`;
+- product line emphasizes price and SKU;
+- no scent cue remains;
+- no reservation language exists;
+- inventory and quantity controls carry more visual weight than product desire.
+
+On mobile, the summary appears after the complete form and payment flow. The product therefore disappears during the highest-friction part of the journey.
+
+### Step 3: Delivery details
+
+**Health:** Usable but form-heavy.
+
+The large input grid, tracked labels, step numbers, progress cards, and generous control height make the page feel like a long application.
+
+The customer sees:
+
+- a large heading;
+- 2 progress cards;
+- a numbered section heading;
+- 6 equally prominent controls.
+
+This repeats system structure instead of creating a calm guided rhythm.
+
+### Step 4: Payment selection
+
+**Health:** Clear selection, weak trust transition.
+
+The selected method receives strong contrast, but the copy immediately talks about attaching proof. It does not frame the payment moment as a calm, exact handoff.
+
+The visual sequence feels like:
+
+`choose method -> upload file`
+
+It should feel like:
+
+`choose method -> receive exact private details -> complete transfer with confidence`
+
+### Step 5: Proof handover
+
+**Health:** Technically understandable, emotionally clinical.
+
+`Payment Proof Upload`, file formats, and the file-size limit lead the section. Privacy and manual handling appear later in a separate information card.
+
+The customer is asked for a file before the interface first establishes:
+
+- why the proof is needed;
+- who reviews it;
+- that it is privately handled;
+- that the order has a trackable identity.
+
+### Step 6: Final CTA
+
+**Health:** Blocking.
+
+The grey `Place Order Request` control reads as unavailable and gives no clear next action. The paragraph beneath it claims that the request is sent now before submission has happened.
+
+This creates the strongest trust break in the flow:
+
+- the interface appears stuck;
+- the CTA language is administrative;
+- the supporting copy contradicts the visible state.
+
+## 4. Emotional Problems Map
+
+| Moment | Current perception | Emotional cost | Target perception |
+| --- | --- | --- | --- |
+| Arrival | Checkout instructions | Desire drops | Private reservation begins |
+| Progress | Numbered task cards | System awareness rises | Quiet orientation |
+| Delivery | Dense form grid | Effort feels large | Concierge gathers delivery details |
+| Product summary | Receipt and stock controls | Product emotion fades | Fragrance is held and protected |
+| Payment | Method selection | Anxiety about what happens next | Exact details are shared calmly |
+| Proof | File upload | Privacy uncertainty | Secure handover to the house |
+| CTA | Disabled request button | User feels blocked | Clear invitation to the next useful action |
+| Completion | Operational handoff | Uncertain closure | Personally handled review |
+
+## 5. Visual Approaches Considered
+
+### A. Quiet Reservation Layer
+
+**Recommended.**
+
+Preserve the current light checkout, sharp geometry, serif display type, and gold accent. Reduce step chrome, make the product summary feel held, and use calm concierge copy.
+
+Advantages:
+
+- best fit with the existing Dotfumes system;
+- smallest implementation risk;
+- strongest luxury effect through restraint;
+- no new visual language;
+- works with the existing state machine.
+
+Trade-off:
+
+- depends on excellent copy and spacing rather than dramatic visual novelty.
+
+### B. Editorial Gallery Checkout
+
+Use a more image-led composition with a larger product still life and a narrower form column.
+
+Advantages:
+
+- keeps desire visibly alive;
+- strong luxury-editorial effect.
+
+Trade-offs:
+
+- greater layout change;
+- may reduce form efficiency;
+- higher responsive risk;
+- product image could compete with payment clarity.
+
+### C. Concierge Note-Led Checkout
+
+Use more conversational messages between stages and treat each section as a short exchange.
+
+Advantages:
+
+- strongest human tone;
+- makes manual review feel intentional.
+
+Trade-offs:
+
+- can become verbose;
+- risks sounding theatrical or artificial;
+- more copy can increase vertical length.
+
+### Decision
+
+Proceed with **Quiet Reservation Layer**, using only a small amount of Concierge Note language.
+
+## 6. Target Experience
+
+### Design read
+
+Preservation redesign for high-intent fragrance buyers, with a private-house, trust-first language.
+
+### Design dials
+
+- `DESIGN_VARIANCE: 6`
+- `MOTION_INTENSITY: 4`
+- `VISUAL_DENSITY: 3`
+
+### Target emotional sequence
+
+1. **Desire:** the fragrance remains the subject.
+2. **Reassurance:** the selection is being held.
+3. **Guidance:** one calm next action is always clear.
+4. **Trust:** payment details are exact and privately shared.
+5. **Control:** proof is framed as a secure handover.
+6. **Closure:** the house takes responsibility for manual review.
+
+## 7. Checkout Composition
+
+### 7.1 Opening
+
+Replace the campaign-sized checkout introduction with a compact private-order opening.
+
+Recommended copy:
+
+- Eyebrow: `Private Order`
+- Heading: `Your selection, reserved.`
+- Support: `We will hold your fragrances while you complete a private, manually reviewed order.`
+
+Rules:
+
+- one heading;
+- one support line;
+- no early mention of file types, WhatsApp, email, or system mechanics;
+- opening and first delivery control visible in the first desktop viewport;
+- product summary visible beside the opening on desktop;
+- product summary immediately follows the opening on mobile.
+
+### 7.2 Progress
+
+Keep semantic progress behavior but reduce its visual dominance.
+
+Presentation:
+
+- use one quiet text line or hairline status row;
+- labels: `Delivery`, `Payment`, `Private Review`;
+- remove numbered card treatment;
+- completed state uses existing gold;
+- current state uses existing black;
+- upcoming state uses existing muted text;
+- do not add decorative dots, badges, pills, or animation.
+
+Progress remains available to assistive technology through the existing semantic status.
+
+### 7.3 Delivery
+
+Section title:
+
+`Where should we send your fragrance?`
+
+Support line:
+
+`These details are used only to arrange your delivery and order updates.`
+
+Keep all current fields, order, names, autocomplete values, validation, and required status.
+
+Perception refinements:
+
+- reduce repeated uppercase system labels;
+- group name fields without adding a card;
+- let address breathe as the primary delivery field;
+- use one divider after the section;
+- show errors only through the current validation behavior;
+- keep errors directly below the related control.
+
+### 7.4 Payment
+
+Section title:
+
+`Choose how you would like to complete your order.`
+
+Method supporting copy:
+
+- Bank Transfer: `Receive the exact account and amount for your private order.`
+- Easypaisa: `Receive the exact wallet and amount for your private order.`
+- JazzCash: `Receive the exact wallet and amount for your private order.`
+
+The selected state keeps the existing black, white, and gold treatment.
+
+The payment-instruction reveal is positioned as a trust moment:
+
+- Title: `Your Private Payment Details`
+- Reassurance: `Use the exact amount below. Your selection remains reserved while you complete the transfer.`
+- Fields: recipient, account or wallet, exact amount, and copy actions from the existing quote response.
+- Quiet footer: `These details are shared only for this order.`
+
+No payment data, quote logic, or API behavior changes.
+
+### 7.5 Private proof handover
+
+Section title:
+
+`Send Your Private Confirmation`
+
+Support line:
+
+`Your proof is reviewed manually by the Dotfumes house and is not shown publicly.`
+
+Control label:
+
+`Add Payment Confirmation`
+
+Technical constraints remain visible but secondary:
+
+`JPG, PNG, WEBP, or PDF. Maximum 5 MB.`
+
+Selected state:
+
+- Heading: `Confirmation Ready`
+- File name and size;
+- existing preview behavior;
+- quiet `Choose Another File` or `Remove` action;
+- one short reassurance: `Ready for private review.`
+
+The underlying file input, local preview behavior, validation, and submission behavior remain unchanged.
+
+### 7.6 Trust
+
+Replace 2 bordered information cards and the numbered operational list with one restrained trust block.
+
+Suggested content:
+
+- `Reserved Selection`: `Your fragrance stays attached to this private order.`
+- `Manual House Review`: `A Dotfumes team member verifies each confirmation.`
+- `Order ID Tracking`: `Your request is handled against its unique order ID.`
+
+Use only claims already supported by the current system.
+
+Do not use generic shield badges, bank-security claims, or unverified delivery promises.
+
+### 7.7 Product presence
+
+Rename the summary:
+
+`Reserved for You`
+
+Each product line shows:
+
+- existing product image;
+- fragrance name;
+- one scent cue, maximum 1 line;
+- quantity;
+- price;
+- microcopy: `Held for your private order`;
+- current availability behavior when relevant.
+
+De-emphasize:
+
+- SKU;
+- stock mechanics;
+- administrative labels.
 
 Desktop:
 
-- sticky right column;
-- image, product name, quantity, line amount, and one short scent cue;
-- item count, subtotal, delivery fee when non-zero, and server-configured currency;
-- live inventory change message beside the affected line.
+- keep the summary sticky;
+- align its top with the compact opening;
+- reduce shadow prominence;
+- preserve current column width.
 
 Mobile:
 
-- appears before Delivery;
-- compact closed state shows image, item count, and total;
-- button exposes `aria-expanded` and `aria-controls`;
-- open state shows the full selection and quantity controls.
+- place a compact expandable summary directly after the opening;
+- keep image, fragrance name, scent cue, and total visible when collapsed;
+- keep the product within one interaction throughout checkout;
+- preserve the current cart data and quantity actions.
 
-### DeliveryDetailsSection
+## 8. CTA Psychology
 
-Preserve field names and order:
+The CTA uses the existing state and actions. Only the visible label, supporting guidance, and presentation change.
 
-1. first name;
-2. last name;
-3. optional email;
-4. phone;
-5. delivery address;
-6. city.
-
-Labels remain above inputs. Validation appears on blur or after a guiding CTA attempt, not on the first keystroke. Phone uses `type="tel"` and `inputMode="tel"`. Email disables spellcheck.
-
-### PaymentMethodSection
-
-Use one semantic `fieldset` with a `legend`.
-
-Each method row includes:
-
-- method name;
-- short transfer description;
-- selected icon or mark;
-- complete-row hit target;
-- redundant selected state through border, fill, icon, and text.
-
-Methods remain Bank Transfer, Easypaisa, and JazzCash.
-
-### PaymentInstructionReveal
-
-The selected method reveals:
-
-- bank or wallet name;
-- account title or wallet recipient;
-- account number, IBAN, or wallet number;
-- exact payable amount;
-- `Copy Account Number` or `Copy Wallet Number`;
-- `Copy Exact Amount`;
-- short instruction to keep the transaction reference visible in proof.
-
-Payment destinations are public operational configuration, not source literals. They come from allow-listed Settings sheet keys returned by the public catalog/settings response. No secret, admin token, script URL, or private property is exposed.
-
-Required settings:
-
-- `bankName`;
-- `bankAccountTitle`;
-- `bankAccountNumber`;
-- optional `bankIban`;
-- `easypaisaRecipient`;
-- `easypaisaNumber`;
-- `jazzcashRecipient`;
-- `jazzcashNumber`;
-- `deliveryFee`;
-- `currency`.
-
-If the selected method is not configured, the section displays a blocking inline operational error and the final submit state is unavailable.
-
-### PaymentProofField
-
-- Appears after payment instructions are revealed.
-- Accepts JPG, PNG, WEBP, and PDF up to 5 MB.
-- Keeps `File` and object URL local to the component.
-- Shows a compact attached state: file type, safe filename, size, and replace/remove controls.
-- An image thumbnail may appear in the local form only.
-- Confirmation never renders the proof preview or Drive URL.
-- Removing a file requires no confirmation because it is reversible and local.
-
-### CheckoutTrustBar
-
-Three short claims, each backed by behavior:
-
-- `Manual Verification`: server forces pending-verification status.
-- `Order ID Tracking`: stable order ID and server duplicate lookup.
-- `Private Review`: no public Drive sharing and no proof URL in the customer response.
-
-The bar appears beside the final action. It replaces the two current reassurance cards.
-
-### CheckoutSubmitBar
-
-One primary CTA and one quiet return link.
-
-The CTA keeps the existing primary button visual treatment. The button is enabled until a request starts. Clicking it either advances, focuses the next requirement, opens the proof picker, or submits.
-
-## 6. CTA state machine
-
-| State | Label | Behavior |
+| Existing logical moment | Concierge label | Supporting guidance |
 | --- | --- | --- |
-| Initial stage | `Continue` | Move focus to Delivery and announce the next requirement |
-| Missing untouched delivery | `Add Delivery Details` | Focus the first empty required delivery field |
-| Invalid or partial delivery | `Complete Delivery Details` | Reveal relevant errors and focus the first invalid field |
-| Delivery valid, no payment method | `Select Payment Method` | Focus the payment fieldset |
-| Payment selected, instructions hidden | `Continue to Payment Instructions` | Request an authoritative quote, then reveal and focus the selected method instructions |
-| Quote request active | `Preparing Payment Instructions…` | Disable only during the quote request and expose `aria-busy` |
-| Instructions visible, proof missing or invalid | `Add Payment Proof` | Focus or open the file input and announce proof requirements |
-| Ready | `Submit for Verification - {TOTAL}` | Submit the stable order ID to Apps Script |
-| Request active | `Sending Request…` | Disable only during the active request and expose `aria-busy` |
-
-`Add Payment Proof` is an explicit derived state required by the always-guided rule. Without it, the specified flow would have a dead state after instructions are visible and before proof is attached.
-
-The CTA label is produced by one pure selector from stage, validation, payment method, quote state, instruction visibility, proof state, catalog state, and submission state. Components do not duplicate label conditions.
-
-## 7. Frontend architecture
-
-### Component boundaries
-
-`CheckoutPage.tsx` becomes a route orchestrator. It reads narrow store selectors, composes sections, and owns submission coordination. It does not render every field.
-
-New files:
-
-- `src/components/checkout/CheckoutHeader.tsx`
-- `src/components/checkout/CheckoutProgress.tsx`
-- `src/components/checkout/OrderSummary.tsx`
-- `src/components/checkout/DeliveryDetailsSection.tsx`
-- `src/components/checkout/PaymentMethodSection.tsx`
-- `src/components/checkout/PaymentInstructionReveal.tsx`
-- `src/components/checkout/PaymentProofField.tsx`
-- `src/components/checkout/CheckoutTrustBar.tsx`
-- `src/components/checkout/CheckoutSubmitBar.tsx`
-- `src/components/checkout/CheckoutInput.tsx`
-
-Supporting files:
-
-- `src/store/useCheckoutStore.ts`
-- `src/lib/checkoutGuidance.ts`
-- `src/lib/paymentInstructions.ts`
-- updated `src/hooks/useCheckoutValidation.ts`
-- updated `src/contracts/checkout.contract.ts`
-- updated `src/services/orderSubmissionService.ts`
-- updated `src/lib/googleSheetsBackend.ts`
-- updated `src/models/order.ts`
-
-### State ownership
-
-#### Cart store
-
-Owns:
-
-- items;
-- quantity mutations;
-- existing drawer state.
-
-Cart item price remains display data only. It is never authoritative at submission.
-
-#### Catalog store
-
-Owns:
-
-- products;
-- inventory;
-- public checkout settings;
-- currency;
-- hydration and refresh status;
-- catalog error.
-
-Checkout waits for initial hydration before allowing final submission. If the remote catalog fails, the UI clearly reports that live availability could not be confirmed. It does not silently present fallback stock as verified inventory.
-
-#### Checkout store
-
-Owns:
-
-- current semantic stage;
-- delivery values;
-- selected payment method;
-- touched fields;
-- in-memory validation errors;
-- instruction visibility;
-- current server-authored quote;
-- stable order ID.
-
-Persistence:
-
-- use Zustand `persist` with `sessionStorage`;
-- persist delivery values, selected method, current stage, instruction visibility, order ID, and the current unexpired server-authored quote;
-- do not persist errors, touched state, `File`, object URL, loading state, or backend error;
-- clear the checkout draft only after confirmed backend success;
-- use narrow selectors and `useShallow` for grouped fields.
-
-#### Local component state
-
-`PaymentProofField` owns:
-
-- `File | null`;
-- object preview URL;
-- local file-picker state.
-
-`CheckoutPage` owns:
-
-- active request controller;
-- transient submission error;
-- unknown-outcome recovery state.
-
-### Validation
-
-Validation becomes pure and stage-aware:
-
-- `validateDelivery(values)`;
-- `validatePaymentMethod(method, instructions)`;
-- `validateProof(file)`;
-- `validateCheckout(input)`.
-
-Field errors appear after blur or CTA guidance. The final validation runs again before submission. Error order follows visual and DOM order.
-
-## 8. Authoritative quote before payment
-
-The buyer must know the exact amount before making a transfer. A final-submit-only recalculation is too late because proof is collected after payment.
-
-Selecting a payment method does not reveal a client-calculated amount. `Continue to Payment Instructions` first calls an Apps Script quote action with the stable order ID and item identifiers/quantities.
-
-The quote action:
-
-1. validates the public token, order ID, items, and quantities;
-2. reads current Products and Settings sheet values;
-3. validates active status and stock;
-4. calculates line totals, delivery fee, currency, and total;
-5. creates an HMAC-signed opaque quote token using a private Script Property;
-6. returns the authoritative line items, total, currency, expiry, and quote token.
-
-The quote is valid for 30 minutes. The quote token binds:
-
-- order ID;
-- normalized item identifiers and quantities;
-- server prices;
-- delivery fee;
-- currency;
-- issued-at time;
-- expiry.
-
-The private signing key never leaves Script Properties. The browser may persist the opaque quote token in session storage, but cannot alter a signed amount.
-
-The final order POST verifies the token, order ID, items, quantities, and expiry. It honors the valid server-signed price instead of accepting a browser price. It still revalidates inventory inside the lock.
-
-If the quote expires before proof submission, the UI requests a fresh quote and asks the buyer to confirm the new amount before accepting proof. If stock changes after payment but before proof submission, the backend creates no duplicate or false success; it returns a manual-resolution error tied to the stable order ID so Dotfumes can reconcile the paid customer.
-
-### Quote contract
-
-```ts
-interface CreateOrderQuoteRequest {
-  token: string;
-  honeypot: string;
-  action: 'quote';
-  orderId: string;
-  items: Array<{
-    productId: string;
-    sku?: string;
-    slug: string;
-    quantity: number;
-  }>;
-}
-
-interface CreateOrderQuoteResponse {
-  success: true;
-  orderId: string;
-  currency: string;
-  items: Array<{
-    productId: string;
-    sku?: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    lineTotal: number;
-  }>;
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
-  issuedAt: string;
-  expiresAt: string;
-  quoteToken: string;
-}
-```
-
-## 9. Browser-to-server order contract
-
-The POST payload contains only claims the customer is allowed to make:
-
-```ts
-interface SubmitOrderRequest {
-  token: string;
-  honeypot: string;
-  idempotencyKey: string;
-  quoteToken: string;
-  customer: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    email: string;
-    address: string;
-    city: string;
-  };
-  paymentMethod: 'bank-transfer' | 'easypaisa' | 'jazzcash';
-  items: Array<{
-    productId: string;
-    sku?: string;
-    slug: string;
-    quantity: number;
-  }>;
-  proof: {
-    fileName: string;
-    mimeType: string;
-    fileSize: number;
-    base64: string;
-  };
-}
-```
-
-The request excludes:
-
-- product name as authority;
-- unit price;
-- line total;
-- subtotal;
-- delivery fee;
-- total;
-- payment status;
-- order status;
-- admin notes;
-- WhatsApp message;
-- created timestamp as authority.
-
-The response contains:
-
-```ts
-interface SubmitOrderResponse {
-  success: true;
-  orderId: string;
-  duplicate: boolean;
-  createdAt: string;
-  currency: string;
-  items: Array<{
-    productId: string;
-    sku?: string;
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    lineTotal: number;
-  }>;
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
-  paymentMethod: PaymentMethod;
-  paymentStatus: 'Pending Verification';
-  orderStatus: 'New';
-  notifications: {
-    ownerEmail: 'sent' | 'failed';
-    customerEmail: 'not-requested' | 'sent' | 'failed';
-  };
-}
-```
-
-It excludes:
-
-- Drive file ID;
-- Drive file URL;
-- proof preview URL;
-- admin-only notes;
-- admin token or script properties.
-
-## 10. Apps Script integrity design
-
-### Request gate
-
-Before file decoding or writes:
-
-1. parse payload;
-2. validate honeypot and public form token;
-3. validate the idempotency key format;
-4. verify the quote token signature, order ID, item quantities, and expiry;
-5. validate customer fields;
-6. validate payment method against the allow-list;
-7. validate item identifiers and quantities;
-8. validate proof metadata and base64 size/type.
-
-### Idempotency and critical section
-
-Acquire the script lock before checking or mutating order state.
-
-Inside the lock:
-
-1. find the Orders row by Order ID;
-2. if found, return the stored authoritative order with `duplicate: true`;
-3. read public settings and the Products sheet;
-4. resolve each item by product ID, SKU, or slug;
-5. reject missing, inactive, or insufficient-stock items;
-6. read current product names and stock;
-7. use the verified server-signed quote prices, delivery fee, currency, and total;
-8. force payment status to `Pending Verification`;
-9. force order status to `New`;
-10. upload the proof without changing Drive sharing;
-11. append one authoritative order row;
-12. decrement stock once;
-13. release the lock.
-
-Notifications run after the critical section. Their failures do not roll back a stored order, but their real outcome is returned to the frontend.
-
-### Failure compensation
-
-The write helper records the created Drive file and appended row. If a storage or stock mutation fails before the critical section completes:
-
-- restore any changed stock cells from captured original values;
-- remove the incomplete order row;
-- move the uploaded proof file to trash;
-- return a generic customer-safe error;
-- log the order ID and internal error for the operator without logging proof content or customer details.
-
-### Private proof
-
-Remove:
-
-```js
-file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-```
-
-The file inherits the private folder permissions. The admin sheet may retain the private Drive URL for authorized operators. Customer-facing responses and persisted frontend order state do not receive it.
-
-### Server pricing
-
-`readProductSheetState_` adds price and currency-relevant data. Quote calculation uses finite, non-negative prices and integer quantities. It rejects invalid catalog prices rather than falling back to a client value.
-
-Delivery fee comes from the Settings sheet. The server owns the default when the setting is absent. Final submission accepts only a valid server-signed quote and never a browser total.
-
-## 11. Submission outcomes
-
-### Confirmed backend success
-
-- save the authoritative response;
-- clear cart and checkout draft;
-- refresh catalog;
-- navigate to confirmation;
-- show order ID, total, pending-verification status, and real notification status.
-
-### Duplicate success
-
-- treat as successful recovery;
-- do not create new local order data;
-- navigate to the same confirmation state;
-- show `Submission confirmed` rather than another success claim.
-
-### Validation or stock rejection
-
-- keep cart and draft;
-- show the server message beside the relevant section;
-- refresh catalog when stock or price changed;
-- focus the affected summary or field.
-
-### Timeout or connection loss
-
-- keep cart, proof, draft, and stable order ID;
-- do not claim success or failure;
-- show `We could not confirm the result. Retry safely with the same order ID.`;
-- retry uses the same idempotency key;
-- do not clear any state until the server confirms.
-
-### Frontend-only fallback
-
-Fallback is used only when the Apps Script backend is intentionally unconfigured, not as a silent response to a network error.
-
-- validate locally;
-- prepare a local order summary;
-- do not claim the order was received;
-- do not clear the cart;
-- confirmation mode says `Prepared locally`;
-- primary action is `Send Request on WhatsApp`;
-- customer attaches proof manually in WhatsApp;
-- no private-proof promise appears because the backend did not receive the file.
-
-## 12. Confirmation design
-
-The confirmation route keeps:
-
-- selected product;
-- authoritative total;
-- order ID;
-- payment method;
-- pending-verification status;
-- WhatsApp handoff where useful.
-
-It changes:
-
-- no proof preview or Drive URL;
-- no unconditional email-sent claim;
-- notification copy derives from returned notification status;
-- frontend fallback is clearly `Prepared locally`;
-- confirmed backend orders say `Submitted for verification`;
-- duplicate recovery says `Submission confirmed`;
-- one primary next action per mode.
-
-## 13. Motion and visual behavior
-
-Design read: preserve-mode luxury ecommerce checkout for a trust-sensitive manual transfer flow.
-
-Design dials:
-
-- variance: 6;
-- motion: 4;
-- density: 4.
-
-Motion is limited to:
-
-- payment selected state;
-- instruction reveal;
-- proof attached state;
-- request-state transition;
-- confirmation entrance.
-
-All motion:
-
-- uses existing duration and easing tokens;
-- uses transform and opacity;
-- is interruptible;
-- respects reduced motion;
-- has strict effect cleanup.
-
-No parallax, marquee, scroll animation, decorative loop, new gradient, glow, or new radius is added.
-
-## 14. Accessibility
-
-- Maintain the global skip link and main landmark.
-- Use an ordered list for semantic progress.
-- Use `fieldset` and `legend` for payment methods.
-- Keep labels above all fields.
-- Use `aria-invalid` and `aria-describedby`.
-- Use one `aria-live="polite"` status region for guidance and submission updates.
-- Use `aria-busy` on the form during request.
-- Keep the primary CTA enabled until request start.
-- Focus the first invalid field or next required section.
-- Restore focus after mobile summary collapse and proof-picker interactions.
-- Provide 44px mobile targets.
-- Keep filename and product-name containers break-safe.
-- Preserve zoom, browser autofill, keyboard navigation, paste, and reduced motion.
-
-## 15. QA plan
-
-### Automated frontend
-
-Add checkout-focused Playwright coverage for:
-
-1. empty cart recovery;
-2. default CTA focuses Delivery;
-3. partial delivery reveals and focuses the first invalid field;
-4. valid delivery advances to Payment;
-5. each payment method requests and reveals the correct server-authored quote and instruction set;
-6. quote payload omits browser price and status fields;
-7. invalid, expired, or altered quote tokens fail;
-8. copy controls copy the intended public value and quoted amount;
-9. proof remains unavailable before instructions;
-10. invalid type, empty file, and oversized proof;
-11. ready CTA includes the server-quoted total;
-12. final request payload omits all authoritative price and status fields;
-13. network activity is the only disabled CTA state;
-14. server rejection preserves cart and draft;
-15. timeout preserves the order ID and retries safely;
-16. duplicate response becomes confirmed success;
-17. frontend fallback uses honest local-preparation copy;
-18. catalog hydration blocks quote/final submission and reports changed inventory;
-19. mobile summary precedes Delivery and expands accessibly;
-20. desktop summary remains sticky;
-21. keyboard order and error focus;
-22. reduced-motion state transitions.
-
-### Apps Script verification
-
-Before production deployment, verify in a staging sheet and Drive folder:
-
-1. client price/status fields are ignored or absent;
-2. quote uses the current sheet price and configured delivery fee;
-3. altered or expired quote tokens fail;
-4. invalid and inactive products fail;
-5. insufficient stock fails;
-6. valid order creates one row, one private file, and one stock decrement;
-7. repeat order ID returns the same order with no new mutation;
-8. proof file is not link-public;
-9. owner and customer notification statuses match real outcomes;
-10. forced payment and order statuses cannot be overridden;
-11. compensation removes partial row/file and restores stock after injected failure.
-
-There is no `.clasp.json` or Apps Script test harness in the repository. Production ship readiness therefore requires either adding a controlled staging deployment workflow or completing these checks through the existing Apps Script deployment process. The code must not be presented as production-ready solely because local TypeScript and browser tests pass.
-
-### Visual and design QA
-
-Source visual truth:
-
-- the approved Guided Closing Ritual design specification;
-- reference patterns `07`, `13`, `18`, and `20`;
-- the current rendered checkout as brand and structure ground truth.
-
-Required captures:
-
-- desktop 1440 x 900;
-- mobile 390 x 844;
-- default;
-- partial validation;
-- each payment method;
-- instruction reveal;
-- proof attached;
-- loading;
-- error;
-- confirmation;
-- empty cart;
-- catalog hydration delay.
-
-The final `design-qa.md` must compare source and implementation in one combined comparison input. It passes only with no P0, P1, or P2 findings.
-
-## 16. File-level impact and risk
-
-| Area | Files | Risk | Control |
+| Initial delivery | `Reserve Your Selection` | `Start with the delivery details for this private order.` |
+| Partial delivery | `Continue Your Private Order` | `We will guide you to the next detail.` |
+| Payment method needed | `Choose Payment Method` | `Select how you would like to complete the order.` |
+| Method selected, instructions available | `View Your Payment Details` | `Receive the exact details for this order.` |
+| Proof needed | `Add Private Confirmation` | `Send the confirmation for manual house review.` |
+| Ready to submit | `Send for Private Review - {TOTAL}` | `Your order will be handled against its unique ID.` |
+| Request active | `Sending to the House…` | `Keep this page open while the request is sent.` |
+
+Rules:
+
+- label stays on one line at desktop;
+- CTA remains visually actionable except during the existing active request;
+- no grey dead-end presentation;
+- the action explains what happens next;
+- supporting copy never claims an action already happened;
+- current focus and validation behavior remains unchanged;
+- do not introduce a new state or transition.
+
+## 9. Motion
+
+Motion communicates existing state changes only.
+
+Use:
+
+- `180-260 ms` opacity and small vertical transform for payment instructions;
+- a quiet selected-state transition for payment method;
+- a short confirmation reveal after proof selection;
+- current loading feedback during submission.
+
+Do not use:
+
+- looping motion;
+- parallax;
+- scroll choreography;
+- progress animation;
+- decorative shimmer;
+- layout movement that shifts the form while typing.
+
+All motion must honor reduced-motion preference and use existing motion tokens.
+
+## 10. Accessibility and Web Interface Requirements
+
+- Submit guidance stays available until the existing request-active state.
+- Labels remain associated with controls.
+- Errors remain inline and the first relevant field receives focus.
+- Payment methods remain one radio group with a shared legend.
+- Payment instructions and proof status use a polite live region.
+- All icon-only controls keep accessible names.
+- Decorative icons are hidden from assistive technology.
+- File constraints use `5 MB`, not `5MB`.
+- Loading labels use the ellipsis character.
+- Headings use balanced wrapping.
+- Focus indicators use the existing gold focus token.
+- Mobile targets remain at least 44 px.
+- Motion respects reduced-motion preference.
+- Product names, filenames, and totals wrap without horizontal overflow.
+
+## 11. Component-Level Impact
+
+| File or component | Planned perception change | Logic impact | Risk |
 | --- | --- | --- | --- |
-| Route composition | `src/pages/CheckoutPage.tsx` | Medium | Component extraction, e2e flow tests |
-| Checkout components | `src/components/checkout/*` | Medium | Existing tokens, semantic markup, visual QA |
-| Checkout state | `src/store/useCheckoutStore.ts` | Medium | Narrow selectors, session-only partial persistence |
-| Validation and CTA | `src/hooks/useCheckoutValidation.ts`, `src/lib/checkoutGuidance.ts`, contract | Medium | Pure selectors and field-order tests |
-| Cart/catalog | both existing stores | Medium | Hydration gate, no cart-store expansion |
-| Quote and submission contract | models, service, Google Sheets helper | High | Signed quote verification, runtime response validation, intercepted request tests |
-| Apps Script pricing/idempotency | `apps-script/dotfumes-order-webapp.gs` | High | Lock, duplicate lookup, authoritative calculation, staging tests |
-| Drive privacy | Apps Script upload helper | High | Remove link sharing, verify file permissions |
-| Confirmation | `src/pages/OrderConfirmationPage.tsx`, storage | Medium | Mode-aware state tests, no proof reference |
-| E2E QA | `tests/e2e/checkout.spec.ts` | Low | Deterministic route and response fixtures |
+| `src/pages/CheckoutPage.tsx` | Compact opening, quiet progress, section hierarchy, trust block, summary placement, CTA copy | None | Medium |
+| `CheckoutSummary` inside checkout | Reserved language, scent cue, mobile expansion, calmer hierarchy | None | Medium |
+| Payment method presentation | Trust-oriented notes and selected styling refinement | None | Low |
+| Payment instruction presentation | Private-detail framing and exact-amount hierarchy | None | Low |
+| Proof presentation | Private-confirmation framing and technical-copy de-emphasis | None | Low |
+| `src/contracts/checkout.contract.ts` | Customer-facing copy only if this remains the copy source | None | Low |
+| Existing UI primitives | Reuse only; no token or variant additions unless implementation proves unavoidable | None | Low |
+| Backend, API, stores, pricing | No changes | None | Prohibited |
 
-## 17. Delivery sequence
+## 12. Verification Plan
 
-1. Add failing tests for the current CTA, request contract, timeout retry, and duplicate behavior.
-2. Introduce typed contracts and pure guidance/validation helpers.
-3. Add checkout store with session-only safe persistence.
-4. Extract checkout components without changing brand tokens.
-5. Implement progressive disclosure and the CTA state machine.
-6. Add the server-authored quote endpoint, signed quote token, public payment-instruction settings, and exact-amount display.
-7. Harden Apps Script final request validation, statuses, privacy, compensation, and idempotency.
-8. Update submission outcomes and confirmation copy.
-9. Test desktop, mobile, quote expiry, hydration, failure, timeout, and fallback flows.
-10. Capture same-state source and implementation evidence.
-11. Run design QA until no P0, P1, or P2 findings remain.
-12. Run lint, build, e2e, and staging Apps Script verification.
+### Visual states
 
-## 18. Explicit non-goals
+- empty selection;
+- selected fragrance;
+- untouched delivery;
+- partial delivery;
+- invalid delivery;
+- each payment method;
+- payment instructions visible;
+- proof idle;
+- proof selected;
+- ready to submit;
+- request active;
+- error;
+- mobile collapsed summary;
+- mobile expanded summary.
 
-- New payment gateway.
-- SQL or managed backend migration.
-- Account login or customer portal.
-- New product recommendations or upsells.
-- Storefront or admin redesign.
-- New brand tokens, fonts, colors, radii, or icon family.
-- New URL routes or renamed customer fields.
-- Public proof links.
-- Fabricated security badges, reviews, press, or delivery promises.
+### Behavior invariants
 
-## 19. Acceptance statement
+- same CTA actions;
+- same state transitions;
+- same validation results;
+- same quote requests;
+- same payload;
+- same submission and retry behavior;
+- same order ID and pricing behavior;
+- same file validation;
+- same backend results.
 
-The checkout is ready to ship only when the buyer can always understand and act on the next step, a server-authored exact amount and payment instructions precede proof, product context remains present, the server owns financial and status truth, proof files remain private, retries cannot duplicate an order, and confirmation copy reflects the actual submission outcome.
+### Design QA
+
+Design QA begins only after:
+
+1. a single approved Superdesign visual target exists;
+2. the implementation is rendered at the same viewport and state.
+
+The source and implementation must be placed in one comparison input. All P0, P1, and P2 findings must be fixed and re-captured. The project-root `design-qa.md` must end with exactly:
+
+`final result: passed`
+
+before handoff.
+
+## 13. Risks
+
+### Medium
+
+- Reordering the mobile summary could accidentally alter keyboard order.
+- More conversational CTA labels could wrap at narrow widths.
+- Scent copy could increase line height and summary height.
+- Reducing progress chrome could make current state too subtle.
+
+### Low
+
+- Copy changes could become overly poetic.
+- Trust claims could drift beyond verified behavior.
+- A softer proof section could hide file requirements.
+
+### Mitigations
+
+- Keep DOM order aligned with visual order.
+- Test labels at 320 px and desktop.
+- Clamp scent cue to 1 line on desktop and 2 lines on mobile.
+- Keep semantic progress and visible current-state contrast.
+- Use plain, specific copy.
+- Keep technical file constraints present but secondary.
+- Confirm every trust statement against existing behavior.
+
+## 14. Acceptance Criteria
+
+The perception redesign is ready when:
+
+- the product is visible or one expansion away throughout checkout;
+- the opening frames a reservation, not a form;
+- progress no longer dominates the page;
+- payment selection leads into a calm, exact trust moment;
+- proof feels like private confirmation handover;
+- the CTA always communicates a useful next action;
+- no supporting copy claims an event before it happens;
+- no backend, API, store, pricing, validation, or state-machine behavior changes;
+- no new design tokens or visual language are introduced;
+- desktop and mobile have no horizontal overflow;
+- reduced motion and keyboard flow remain correct;
+- design QA has passed against the approved visual target.
+
+## 15. Success Measure
+
+Target customer perception:
+
+> My fragrance is being held, my payment details are clear, and a real Dotfumes team member will handle this order privately.
+
+Target internal score after implementation:
+
+- Luxury concierge perception: `9/10`
+- Trust clarity: `9/10`
+- Product emotional continuity: `9/10`
+- System-friction visibility: `2/10` or lower
