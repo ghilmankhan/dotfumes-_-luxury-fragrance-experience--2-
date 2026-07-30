@@ -2,6 +2,53 @@ import type { CheckoutFormValues, PaymentMethod } from '../models/order';
 
 export const checkoutContract = {
   progressLabel: 'Checkout progress',
+  experience: {
+    opening: {
+      eyebrow: 'Private Order',
+      heading: 'Your selection, reserved.',
+      support:
+        'We will hold your fragrances while you complete a private, manually reviewed order.',
+    },
+    progress: ['Delivery', 'Payment', 'Private Review'],
+    delivery: {
+      heading: 'Where should we send your fragrance?',
+      support: 'These details are used only to arrange your delivery and order updates.',
+    },
+    payment: {
+      heading: 'Choose how you would like to complete your order.',
+    },
+    proof: {
+      heading: 'Send Your Private Confirmation',
+      support: 'Your confirmation is reviewed manually by the Dotfumes house.',
+      control: 'Add Payment Confirmation',
+      constraints: 'JPG, PNG, WEBP, or PDF. Maximum 5 MB.',
+      selected: 'Confirmation Ready',
+      ready: 'Ready for manual house review.',
+    },
+    trust: [
+      {
+        title: 'Reserved Selection',
+        body: 'Your fragrance stays attached to this order while you complete checkout.',
+      },
+      {
+        title: 'Manual House Review',
+        body: 'A Dotfumes team member reviews each payment confirmation.',
+      },
+      {
+        title: 'Order Reference',
+        body: 'A unique order ID is created when your request is sent.',
+      },
+    ],
+    cta: {
+      reviewSelection: 'Review Your Reserved Selection',
+      initial: 'Reserve Your Selection',
+      partial: 'Continue Your Private Order',
+      payment: 'Choose Payment Method',
+      proof: 'Add Private Confirmation',
+      readyPrefix: 'Send for Private Review',
+      submitting: 'Sending to the House…',
+    },
+  },
   fields: {
     firstName: {
       name: 'firstName',
@@ -90,7 +137,7 @@ export const checkoutContract = {
       required: 'Please upload your payment slip.',
       type: 'Please upload JPG, PNG, WEBP, or PDF payment proof.',
       empty: 'The selected file is empty. Please upload a valid payment slip.',
-      size: 'Your payment slip exceeds 5MB. Please upload a smaller file.',
+      size: 'Your payment slip exceeds 5 MB. Please upload a smaller file.',
     },
   },
   steps: [

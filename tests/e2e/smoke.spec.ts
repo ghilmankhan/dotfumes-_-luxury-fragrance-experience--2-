@@ -446,10 +446,7 @@ test.describe('core interactions', () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/product/bold-decision');
-    await page
-      .getByRole('button', { name: /Add to Cart/i })
-      .first()
-      .click();
+    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
 
     const drawer = page.getByRole('dialog', { name: 'Shopping cart' });
     await expect(drawer).toBeVisible();
@@ -475,7 +472,10 @@ test.describe('core interactions', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 320, height: 812 });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
 
     const dismissButton = page.getByRole('button', { name: 'Dismiss notification' });
     await expect(dismissButton).toBeVisible();
@@ -536,9 +536,7 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('button', { name: 'Reserve Your Selection' })).toBeEnabled();
 
     await firstName.fill('Amina');
-    await expect(
-      page.getByRole('button', { name: 'Continue Your Private Order' }),
-    ).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Continue Your Private Order' })).toBeEnabled();
 
     for (const fieldName of checkoutContract.steps[0].fields) {
       const field = checkoutFields[fieldName];
@@ -563,9 +561,7 @@ test.describe('core interactions', () => {
   test('checkout hidden controls expose visible focus on their labels', async ({ page }) => {
     await page.goto('/checkout');
 
-    const paymentInput = page.locator(
-      `input[name="${checkoutFields.paymentMethod.name}"]`,
-    ).first();
+    const paymentInput = page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first();
     const paymentLabel = paymentInput.locator('xpath=..');
     await paymentInput.focus();
     await expect(paymentInput).toBeFocused();
@@ -726,7 +722,9 @@ test.describe('core interactions', () => {
     expect(widths.page).toBeLessThanOrEqual(widths.viewport);
   });
 
-  test('checkout frames the order as a reservation with honest trust language', async ({ page }) => {
+  test('checkout frames the order as a reservation with honest trust language', async ({
+    page,
+  }) => {
     await page.goto('/checkout');
 
     await expect(page.getByText('Private Order', { exact: true })).toBeVisible();
