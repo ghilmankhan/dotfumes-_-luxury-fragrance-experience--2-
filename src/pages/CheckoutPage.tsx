@@ -98,7 +98,7 @@ export const CheckoutPage = () => {
   });
 
   return (
-    <section className="min-h-screen bg-brand-white px-6 pb-24 pt-36 text-brand-black md:px-16 md:pt-44 lg:px-24">
+    <section className="min-h-screen bg-brand-white px-6 pb-24 pt-36 text-brand-black md:px-16 md:pt-48 lg:px-24 lg:pt-60">
       <Grid layout="content-sidebar" gap={12} className="mx-auto max-w-7xl">
         <CheckoutFlow
           items={items}
@@ -380,7 +380,7 @@ const CheckoutFlow = ({
         </p>
 
         <ol
-          className="mt-8 flex items-center gap-3 border-y border-on-light-subtle py-4"
+          className="mt-8 grid grid-cols-3 gap-2 border-y border-on-light-subtle py-4 sm:flex sm:items-center sm:gap-3"
           aria-label={checkoutContract.progressLabel}
         >
           {experience.progress.map((label, index) => (
@@ -388,18 +388,22 @@ const CheckoutFlow = ({
               key={label}
               aria-current={progressStates[index] === 'current' ? 'step' : undefined}
               className={cn(
-                'flex min-w-0 flex-1 items-center gap-3 text-caption uppercase tracking-wide',
+                'flex min-w-0 flex-col gap-2 uppercase tracking-wide sm:flex-1 sm:flex-row sm:items-center sm:gap-3',
+                index === experience.progress.length - 1 && 'sm:flex-none',
                 progressStates[index] === 'upcoming' ? 'text-on-light-muted' : 'text-brand-black',
               )}
             >
+              <span className="w-full text-center text-micro leading-4 sm:w-auto sm:whitespace-nowrap sm:text-left sm:text-caption">
+                {label}
+              </span>
               <span
                 className={cn(
-                  'h-px min-w-4 flex-1',
+                  'h-px w-full sm:min-w-4 sm:flex-1',
+                  index === experience.progress.length - 1 && 'sm:hidden',
                   progressStates[index] === 'upcoming' ? 'bg-on-light-subtle' : 'bg-brand-gold',
                 )}
                 aria-hidden="true"
               />
-              <span className="truncate">{label}</span>
             </li>
           ))}
         </ol>
@@ -654,11 +658,11 @@ const CheckoutFlow = ({
                   <AssetImage
                     src={slipPreviewUrl}
                     alt={`Slip preview ${slipFile.name}`}
-                    wrapperClassName="mt-3 aspect-4/3 w-full bg-neutral-100"
+                    wrapperClassName="mt-3 aspect-4/3 w-full max-w-sm bg-neutral-100"
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="mt-3 flex aspect-4/3 w-full items-center justify-center bg-neutral-100 text-center text-label uppercase tracking-wide text-on-light-secondary">
+                  <div className="mt-3 flex aspect-4/3 w-full max-w-sm items-center justify-center bg-neutral-100 text-center text-label uppercase tracking-wide text-on-light-secondary">
                     PDF file selected
                   </div>
                 )}
@@ -730,7 +734,7 @@ const CheckoutSummary = ({
       as="aside"
       variant="light"
       padding="none"
-      className="order-2 h-fit shadow-sm lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28"
+      className="order-2 h-fit shadow-sm lg:order-3 lg:col-start-2 lg:row-span-2 lg:mt-12 lg:sticky lg:top-28"
     >
       <button
         type="button"

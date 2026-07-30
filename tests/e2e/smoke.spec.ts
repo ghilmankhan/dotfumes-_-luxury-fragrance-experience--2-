@@ -235,7 +235,9 @@ test.describe('core interactions', () => {
         configurable: true,
         value: scrollBehaviors,
       });
-      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        options?: boolean | ScrollIntoViewOptions,
+      ) {
         scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
       };
     });
@@ -256,7 +258,10 @@ test.describe('core interactions', () => {
   test('reduced motion disables smooth checkout error recovery', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
     await page.getByRole('button', { name: 'Checkout' }).click();
     await page.evaluate(() => {
       const scrollBehaviors: Array<ScrollBehavior | undefined> = [];
@@ -264,7 +269,9 @@ test.describe('core interactions', () => {
         configurable: true,
         value: scrollBehaviors,
       });
-      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        options?: boolean | ScrollIntoViewOptions,
+      ) {
         scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
       };
     });
@@ -422,9 +429,7 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('dialog', { name: 'Shopping cart' })).toBeVisible();
   });
 
-  test('mobile navigation releases its modal state at the desktop breakpoint', async ({
-    page,
-  }) => {
+  test('mobile navigation releases its modal state at the desktop breakpoint', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Open navigation menu' }).click();
@@ -446,7 +451,10 @@ test.describe('core interactions', () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
 
     const drawer = page.getByRole('dialog', { name: 'Shopping cart' });
     await expect(drawer).toBeVisible();
@@ -552,7 +560,10 @@ test.describe('core interactions', () => {
     await page.locator(`input[name="${checkoutContract.slip.name}"]`).setInputFiles({
       name: checkoutContract.testFixtures.validSlip.name,
       mimeType: checkoutContract.testFixtures.validSlip.type,
-      buffer: Buffer.from(checkoutContract.testFixtures.validSlip.contents),
+      buffer: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
     });
 
     await expect(page.getByRole('button', { name: /^Send for Private Review - / })).toBeEnabled();
@@ -595,12 +606,21 @@ test.describe('core interactions', () => {
     await page.locator(`input[name="${checkoutContract.slip.name}"]`).setInputFiles({
       name: checkoutContract.testFixtures.validSlip.name,
       mimeType: checkoutContract.testFixtures.validSlip.type,
-      buffer: Buffer.from(checkoutContract.testFixtures.validSlip.contents),
+      buffer: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
     });
     await expect(page.locator(`input[name="${checkoutContract.slip.name}"]`)).toHaveJSProperty(
       'files.length',
       1,
     );
+    const confirmationPreview = page.getByRole('img', {
+      name: `Slip preview ${checkoutContract.testFixtures.validSlip.name}`,
+    });
+    const confirmationPreviewBox = await confirmationPreview.locator('..').boundingBox();
+    expect(confirmationPreviewBox).not.toBeNull();
+    expect(confirmationPreviewBox?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(384);
 
     const submitButton = page.getByRole('button', { name: /^Send for Private Review - / });
     await expect(submitButton).toBeEnabled();
@@ -720,6 +740,23 @@ test.describe('core interactions', () => {
     }));
 
     expect(widths.page).toBeLessThanOrEqual(widths.viewport);
+  });
+
+  test('checkout progress labels remain readable at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 812 });
+    await page.goto('/checkout');
+
+    const progress = page.getByLabel(checkoutContract.progressLabel);
+    for (const label of ['Delivery', 'Payment', 'Private Review']) {
+      const dimensions = await progress.getByText(label, { exact: true }).evaluate((element) => ({
+        visibleWidth: element.clientWidth,
+        contentWidth: element.scrollWidth,
+        textOverflow: getComputedStyle(element).textOverflow,
+      }));
+
+      expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.visibleWidth);
+      expect(dimensions.textOverflow).not.toBe('ellipsis');
+    }
   });
 
   test('checkout frames the order as a reservation with honest trust language', async ({
