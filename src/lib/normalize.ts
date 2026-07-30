@@ -1,5 +1,5 @@
 // Shared type-coercion helpers for normalizing untrusted API payloads
-// (Google Apps Script dashboard + product catalog responses) into typed values.
+// (Supabase catalog/order responses) into typed values.
 
 export type JsonObject = Record<string, unknown>;
 

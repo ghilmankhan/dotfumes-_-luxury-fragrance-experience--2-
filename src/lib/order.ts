@@ -1,5 +1,5 @@
 import { CartItem } from '../models/types';
-import { CheckoutFormValues, OrderPayload, OrderSubmissionMode, PaymentMethod } from '../models/order';
+import { CheckoutFormValues, OrderPayload, PaymentMethod } from '../models/order';
 import { appConfig } from './config';
 
 const orderPrefix = 'DF';
@@ -81,8 +81,6 @@ export const buildOrderPayload = (params: {
   slipFile: File;
   slipPreviewUrl?: string;
   slipReferenceUrl?: string;
-  slipDriveFileId?: string;
-  submissionMode?: OrderSubmissionMode;
 }): OrderPayload => {
   const {
     orderId,
@@ -91,8 +89,6 @@ export const buildOrderPayload = (params: {
     slipFile,
     slipPreviewUrl,
     slipReferenceUrl,
-    slipDriveFileId,
-    submissionMode = 'frontend-fallback',
   } = params;
 
   const items = cartItems.map((item) => ({
@@ -120,7 +116,7 @@ export const buildOrderPayload = (params: {
     total,
     paymentStatus: 'Pending Verification',
     orderStatus: 'New',
-    submissionMode,
+    submissionMode: 'supabase',
     whatsappMessage: '',
     items,
     customer: {
@@ -138,7 +134,6 @@ export const buildOrderPayload = (params: {
       mimeType: slipFile.type,
       referenceUrl: slipReferenceUrl ?? createSlipReferenceUrl(orderId, slipFile.name),
       ...(slipPreviewUrl ? { previewUrl: slipPreviewUrl } : {}),
-      ...(slipDriveFileId ? { driveFileId: slipDriveFileId } : {}),
     },
   };
 

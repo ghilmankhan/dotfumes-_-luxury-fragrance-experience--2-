@@ -118,17 +118,6 @@ export const OrderConfirmationPage = () => {
             </span>
           </div>
 
-          {order.submissionMode !== 'google-sheets' ? (
-            <p
-              className={cn(
-                'mt-4 inline-block border border-status-warning bg-status-warning-surface px-3 py-1.5 text-caption uppercase text-amber-200',
-                tracking.normal,
-              )}
-            >
-              Order stored locally only — not yet synced to backend system
-            </p>
-          ) : null}
-
           <h1 className="mt-6 font-serif text-5xl italic leading-none md:text-7xl">
             We received <br />
             <span className="text-on-dark-muted">your order request.</span>
@@ -255,9 +244,7 @@ export const OrderConfirmationPage = () => {
           </p>
 
           <p className="mt-6 text-small text-on-dark-secondary">
-            {order.submissionMode === 'google-sheets'
-              ? 'Dotfumes reviews payment proof manually and confirms next steps soon.'
-              : 'Please send the prefilled support message so Dotfumes can confirm your request.'}
+            Dotfumes reviews payment proof manually and confirms next steps soon.
           </p>
 
           <Link

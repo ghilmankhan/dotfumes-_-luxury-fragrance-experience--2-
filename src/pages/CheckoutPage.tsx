@@ -351,7 +351,7 @@ const CheckoutFlow = ({
       saveLatestOrder(result.order);
       clearCart();
       void useProductCatalogStore.getState().refresh();
-      pushToast(result.message, result.mode === 'google-sheets' ? 'success' : 'neutral');
+      pushToast(result.message, 'success');
       navigate('/order-confirmation');
     } catch (error) {
       const message =
