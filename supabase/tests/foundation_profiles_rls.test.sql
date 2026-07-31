@@ -12,7 +12,7 @@
 -- never against the remote project.
 
 begin;
-select plan(18);
+select plan(20);
 
 -- ── Local-database guard (fail closed) ──────────────────────────────────
 -- Added 2026-08-01 (Foundation Artifact Preservation pass). Not a pgTAP
@@ -59,6 +59,23 @@ select ok(
       and column_name in ('id', 'email', 'created_at')
   ),
   'authenticated cannot UPDATE id, email, or created_at on public.profiles'
+);
+-- Added 2026-08-01 (Foundation Correction pass): the original
+-- add_profiles_foundation migration granted UPDATE(updated_at) to
+-- authenticated. A pending, not-yet-applied local migration
+-- (restrict_profile_updated_at_grant) revokes it, since the
+-- profiles_set_updated_at trigger is the sole intended owner of this
+-- column. This assertion will only pass once that pending migration has
+-- actually been applied to whatever database `supabase test db` runs
+-- against.
+select ok(
+  not exists (
+    select 1 from information_schema.column_privileges
+    where table_schema = 'public' and table_name = 'profiles'
+      and grantee = 'authenticated' and privilege_type = 'UPDATE'
+      and column_name = 'updated_at'
+  ),
+  'authenticated cannot UPDATE updated_at on public.profiles (owned exclusively by the profiles_set_updated_at trigger)'
 );
 
 -- ── Fixtures: two auth users, inserted as postgres (bypasses RLS) ───────
@@ -152,13 +169,32 @@ select throws_ok(
   'User A cannot directly modify email (insufficient_privilege)'
 );
 
--- User A cannot meaningfully control updated_at (grant exists, but trigger overrides it)
-update public.profiles
-set full_name = 'Trigger Check', updated_at = '2000-01-01T00:00:00Z'
-where id = '11111111-1111-1111-1111-111111111111';
+-- User A cannot directly modify updated_at at all (2026-08-01 correction: the
+-- column-level UPDATE grant on updated_at is revoked by the pending
+-- restrict_profile_updated_at_grant migration, so a client that includes
+-- updated_at in its SET list now fails with insufficient_privilege before
+-- the trigger ever runs — this replaces the previous version of this test,
+-- which asserted the trigger silently overwrote a client-supplied value;
+-- that assertion is no longer accurate once the grant itself is gone).
+select throws_ok(
+  $$ update public.profiles set updated_at = '2000-01-01T00:00:00Z' where id = '11111111-1111-1111-1111-111111111111' $$,
+  '42501',
+  'User A cannot directly modify updated_at (insufficient_privilege, after the updated_at grant restriction)'
+);
+
+-- The profiles_set_updated_at trigger still exists and remains the sole
+-- writer of updated_at for permitted updates (structural check — a
+-- transaction-local now()-equality check would be unreliable here since
+-- this entire file runs inside one enclosing transaction, where now()
+-- does not advance between statements).
 select ok(
-  (select now() - updated_at < interval '1 minute' from public.profiles where id = '11111111-1111-1111-1111-111111111111'),
-  'client-supplied updated_at is overwritten by the private.set_updated_at trigger'
+  exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.profiles'::regclass
+      and tgname = 'profiles_set_updated_at'
+      and not tgisinternal
+  ),
+  'the profiles_set_updated_at trigger exists on public.profiles and owns updated_at'
 );
 
 -- ── Auth email sync (as postgres, simulating an Auth-service-driven update) ─

@@ -1,0 +1,33 @@
+-- Follow-up least-privilege correction for public.profiles.
+--
+-- Context: the original migration (20260731174520_add_profiles_foundation.sql)
+-- was already applied to the remote project and granted
+-- `update (full_name, phone, updated_at) on public.profiles to authenticated`.
+-- That historical migration file is preserved unmodified above and remains
+-- the exact record of what was applied remotely — this file does NOT edit it,
+-- because doing so would misrepresent what actually ran against the remote
+-- database. This is a separate, additive follow-up migration instead.
+--
+-- Defect being corrected: `updated_at` was included in that original grant
+-- alongside the two genuinely user-editable fields (`full_name`, `phone`),
+-- even though `private.set_updated_at()` (a BEFORE UPDATE trigger) is the
+-- sole intended owner of this column's value. The trigger already overwrites
+-- any client-supplied value, so the practical impact was low (a user's
+-- attempted `updated_at` write was always discarded), but the grant itself
+-- was broader than necessary — see docs/supabase-migration/10-foundation-verification.md,
+-- which flagged this precisely as a "Low-severity correctness/defense-in-depth
+-- gap, not a live vulnerability."
+--
+-- Intended permission model after this migration:
+--   authenticated CAN update: full_name, phone
+--   authenticated CANNOT directly update: id, email, created_at, updated_at
+--   the profiles_set_updated_at trigger remains the only writer of updated_at,
+--   firing automatically on any permitted update to full_name/phone.
+--
+-- STATUS: this migration file is LOCAL ONLY. It has NOT been applied to the
+-- remote project. Applying it (via `supabase db push` / `apply_migration` or
+-- equivalent) requires separate explicit approval and prior verification
+-- against a local or staging database once one is available — per this
+-- task's safety rules, no remote SQL is executed as part of authoring this
+-- file.
+revoke update (updated_at) on public.profiles from authenticated;

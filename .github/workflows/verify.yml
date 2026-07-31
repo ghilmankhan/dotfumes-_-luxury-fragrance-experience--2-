@@ -31,7 +31,16 @@ jobs:
       # owned by a separate tool and are NOT covered by this check. See
       # docs/supabase-migration/06-testing-and-ci-inventory.md for the full
       # reasoning behind this scoping decision.
-      - name: Check generated Supabase types are committed and current
+      #
+      # Corrected 2026-08-01 (Foundation Correction pass): renamed from "Check
+      # generated Supabase types are committed and current" — that name
+      # overstated what this step proves. This only shows that the normal
+      # frontend build (which does not regenerate database.types.ts) did not
+      # itself modify the committed file. It does NOT prove the committed
+      # types still match the live/local database schema — that comparison
+      # requires a real schema to generate against, which only the `database`
+      # job (below) has access to.
+      - name: Verify frontend build did not modify committed Supabase types
         run: git diff --exit-code -- src/lib/database.types.ts
 
   database:
@@ -67,7 +76,22 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Pinned 2026-08-01 (Foundation Correction pass) to the version
+          # directly verified in this environment via `npx --yes supabase
+          # --version` (see docs/supabase-migration/06-testing-and-ci-inventory.md).
+          # `latest` was replaced because an unpinned CLI version can change
+          # behavior between runs without any change to this repository.
+          version: 2.111.0
       - run: supabase start
       - run: supabase db reset
       - run: supabase test db
+      # Added 2026-08-01 (Foundation Correction pass): this is the actual
+      # schema-vs-committed-types comparison the frontend job's renamed step
+      # (above) explicitly does NOT perform. Types are generated from the
+      # just-rebuilt LOCAL database (never the remote project) into a
+      # temporary file — the committed src/lib/database.types.ts is never
+      # overwritten by CI, only compared against.
+      - name: Generate types from the local database
+        run: supabase gen types typescript --local > /tmp/database.types.ts
+      - name: Compare committed types against local-schema-generated types
+        run: diff -u src/lib/database.types.ts /tmp/database.types.ts

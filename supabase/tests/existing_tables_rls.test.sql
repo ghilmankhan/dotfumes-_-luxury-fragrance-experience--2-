@@ -51,10 +51,10 @@ values
   ('test-private-setting', '{"note":"hidden"}'::jsonb, false);
 
 insert into public.orders (
-  order_code, customer_name, customer_phone, items, subtotal, delivery_fee, total,
+  order_code, customer_name, phone, address, items, subtotal, delivery_fee, total,
   payment_method, order_status, payment_status
 ) values (
-  'TEST-0001', 'Test Customer', '923000000000', '[]'::jsonb, 10.00, 0.00, 10.00,
+  'TEST-0001', 'Test Customer', '923000000000', '123 Test Street', '[]'::jsonb, 10.00, 0.00, 10.00,
   'bank-transfer', 'new', 'pending'
 );
 
