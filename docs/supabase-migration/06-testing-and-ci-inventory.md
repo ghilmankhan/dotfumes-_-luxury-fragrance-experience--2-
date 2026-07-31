@@ -67,12 +67,12 @@ task's own verification directive: "exists" is not "passing."
 |---|---|---|---|---|---|---|
 | `.github/workflows/verify.yml` | **Yes** | **No — untracked** (`git ls-files .github` returns nothing) | Yes, this pass | N/A (not a test) | **No — never triggered**, since the file has never been pushed/committed | N/A |
 | `supabase/seed.sql` | **Yes** | **No — untracked** (`git ls-files supabase` returns nothing) | Yes, this pass | No — requires `supabase db reset` against a local stack, blocked (14-local-rebuild-and-test-results.md) | N/A | N/A |
-| `supabase/tests/foundation_profiles_rls.test.sql` | **Yes** | No — untracked | Yes — `plan(18)` matches 18 actual assertions (corrected 2026-08-01: added a same-value email-sync regression test, the previous 17-count file only exercised the changed-value branch) | **No** | **No** | **Not run — cannot be "passing" or "failing," only "written"** |
+| `supabase/tests/foundation_profiles_rls.test.sql` | **Yes** | No — untracked | Yes — `plan(20)` matches 20 actual assertions (corrected 2026-08-01, Foundation Correction pass: added a structural check that `authenticated` has no UPDATE grant on `updated_at`, and replaced the now-invalid "trigger overwrites client input" behavioral test — invalidated by that same grant revocation — with a `throws_ok` insufficient-privilege test plus a structural trigger-existence check; prior to that, corrected 2026-08-01: added a same-value email-sync regression test, the original 17-count file only exercised the changed-value branch) | **No** | **No** | **Not run — cannot be "passing" or "failing," only "written"** |
 | `supabase/tests/authorization_is_admin.test.sql` | **Yes** | No — untracked | Yes — `plan(8)` matches 8 actual assertions | **No** | **No** | Not run |
-| `supabase/tests/existing_tables_rls.test.sql` | **Yes** | No — untracked | Yes — `plan(10)` matches 10 actual assertions | **No** | **No** | Not run |
+| `supabase/tests/existing_tables_rls.test.sql` | **Yes** | No — untracked | Yes — `plan(10)` matches 10 actual assertions. **Fixture defect corrected 2026-08-01 (Foundation Correction pass):** the `orders` insert used a nonexistent `customer_phone` column (the real column is `phone`) and was missing the required, non-nullable `address` column entirely — verified against `src/lib/database.types.ts` and `03-data-model-inventory.md`. This file could not have executed successfully even once a local stack existed; it is now statically corrected but still unexecuted. | **No** | **No** | Not run |
 
-Total: 3 pgTAP files, 36 assertions (18+8+10, corrected 2026-08-01 — see foundation_profiles_rls.test.sql
-row above), all statically reviewed, **none executed**, since no
+Total: 3 pgTAP files, 38 assertions (20+8+10, corrected 2026-08-01, Foundation Correction pass — see
+foundation_profiles_rls.test.sql row above), all statically reviewed, **none executed**, since no
 local Docker stack exists in this environment (unchanged blocker, see
 14-local-rebuild-and-test-results.md).
 

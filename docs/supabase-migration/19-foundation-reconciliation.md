@@ -105,3 +105,28 @@ No file under `.claude/`, `.superdesign/`, `.tmp/`, `design-system/`, `src/gener
 read, modified, staged, or committed this pass. No remote Supabase migration, Edge Function
 deployment, administrator account, or Auth configuration change was made this pass — every
 correction above is a local documentation or workflow-file edit.
+
+---
+
+## Correction (2026-08-01, Foundation Correction Commit and Local-Execution Preparation pass)
+
+Everything above this line describes the Foundation Evidence Reconciliation pass specifically and is
+kept as its historical record. Two further passes have since run — Foundation Artifact Preservation
+(which committed the work described above into git, `3d63fdf`/`42df0bc`, without pushing) and this
+one, which corrected additional defects found by direct re-reading of the actual files (not by
+trusting this document or any other prior report as evidence, per this task's own verification
+directive). Summary, cross-referenced to where each is described in full:
+
+| Defect found this pass | Corrected in |
+|---|---|
+| `existing_tables_rls.test.sql` fixture referenced a nonexistent `customer_phone` column and omitted the required `address` column | The test file itself; see 08-migration-risks.md |
+| `supabase/migrations/README.md` overstated what `supabase db pull` would prove about the 3 uncaptured original migrations | The README itself; see 08-migration-risks.md Risk 7 |
+| `public.profiles` granted `update (updated_at)` to `authenticated`, broader than intended | New, not-yet-applied migration; see 08-migration-risks.md Risk 6 |
+| Idempotency design: retry compare-and-swap could overwrite `request_hash`, `complete_order_for_claim` had no attempt-ownership guard, stale-processing recovery was a raw example rather than a real function, error mapping blindly mapped every `P0001` to `OUT_OF_STOCK` | 17-order-idempotency-design.md, substantially revised again |
+| Abuse-control design: rate-limit key could collide across policies sharing a dimension, caller could supply arbitrary limits/windows | 18-create-order-abuse-controls.md, substantially revised again |
+| CI used an unpinned CLI version and a misleadingly-named type-check step; database job had no real schema-vs-types comparison | `.github/workflows/verify.yml` |
+
+This document is not further rewritten beyond this section — its Phase 1-10 content above remains
+the historical record of the pass that produced it, per this project's established convention of
+marking superseded sections rather than deleting them (see 15-next-stage-readiness.md for the same
+pattern).

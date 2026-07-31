@@ -88,11 +88,49 @@ is out of scope), but should be flagged so it isn't mistaken for a foundation-st
   is also, as originally written, a check that would fail on every run today (only 2 of 5
   migrations exist locally) — Phase 8 of the Foundation Evidence Reconciliation task requires this
   not be a required-and-known-failing check; see that pass's correction to `verify.yml` itself.
-- Three pgTAP test files now exist (36 assertions total, corrected 2026-08-01 — added a same-value
-  email-sync regression test — statically reviewed, **none executed** —
-  same Docker/local-stack blocker as before). The one e2e test still mocks out all network calls,
-  so it still provides zero coverage of the real backend integration, RLS behavior, or the edge
-  function.
+- Three pgTAP test files now exist (38 assertions total, corrected 2026-08-01, Foundation Correction
+  pass — `foundation_profiles_rls.test.sql` grew from 18 to 20 assertions after the `updated_at`
+  grant-restriction correction below; `existing_tables_rls.test.sql`'s `orders` fixture was also
+  found to reference a nonexistent `customer_phone` column and was missing the required `address`
+  column, both now fixed — statically reviewed, **none executed** — same Docker/local-stack blocker
+  as before). The one e2e test still mocks out all network calls, so it still provides zero coverage
+  of the real backend integration, RLS behavior, or the edge function.
+
+## Risk 6 (new this pass, 2026-08-01, Foundation Correction Commit pass): `public.profiles` grant was broader than intended
+
+The already-applied migration `20260731174520_add_profiles_foundation.sql` grants
+`update (full_name, phone, updated_at) on public.profiles to authenticated`. `updated_at` should not
+have been included — `private.set_updated_at()` (a trigger) is the sole intended owner of that
+column's value; 10-foundation-verification.md had already flagged this precisely as a "Low-severity
+correctness/defense-in-depth gap, not a live vulnerability" (the trigger silently overwrites any
+client-supplied value, so no actual exploitation path existed). **Correction:** rather than editing
+the already-applied historical migration file (which would misrepresent what actually ran remotely),
+a new, local-only, **not-yet-applied** migration
+(`supabase/migrations/20260801120000_restrict_profile_updated_at_grant.sql`) was authored this pass:
+`revoke update (updated_at) on public.profiles from authenticated;`. Applying it remotely requires
+separate explicit approval — this task's safety rules forbid applying it as part of this correction
+pass. `supabase/tests/foundation_profiles_rls.test.sql` was updated to assert the grant's absence and
+to replace its now-invalidated "trigger overwrites client input" test with a `throws_ok` test (a
+direct `update ... set updated_at = ...` now fails with insufficient-privilege before the trigger
+would even run) plus a structural trigger-existence check, preserving coverage of the trigger without
+relying on a flawed same-transaction `now()`-equality comparison (Postgres's `now()` does not advance
+between statements inside one transaction, and this entire test file runs inside one enclosing
+transaction).
+
+## Risk 7 (new this pass, 2026-08-01, Foundation Correction Commit pass): migration-history README overstated what `db pull` proves
+
+`supabase/migrations/README.md` previously stated that `supabase db pull` would "backfill the 3
+[missing original] migrations... as real files from the actual remote history." **Corrected:** `db
+pull` produces a baseline representing the remote schema's *current end state*, not a retrieval of
+the original historical DDL — two different SQL histories can converge on the same end state, so a
+generated baseline is not proof it matches the original migrations' exact source. The corrected
+README now documents what must be manually reviewed (tables, constraints, functions, triggers, RLS,
+grants, `private`-schema objects, Storage policies, Auth-schema customizations) before any such
+baseline — or `supabase db reset` run against it — can be trusted, and separately flags that Storage
+bucket *configuration* (privacy, size limits, MIME allowlist) is not schema DDL and would not be
+reproduced by a schema pull at all. See `supabase/migrations/README.md` directly for the full
+corrected text. This does not change Risk 2's underlying PARTIAL status — it corrects what closing
+that gap would actually prove, not the fact that it remains open.
 
 None of these block a *safe, additive* foundation step (new tables, new RLS, all behind `deny by
 default`), but they do mean there's no automated safety net to catch mistakes in that work before

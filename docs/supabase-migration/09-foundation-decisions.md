@@ -2,6 +2,15 @@
 
 All items below are **Open** unless marked otherwise. None have been silently resolved in code.
 
+**Correction (2026-08-01, Foundation Correction Commit and Local-Execution Preparation pass):** this
+pass added no new decision items and resolved none of the existing ones — it corrected technical
+defects in the idempotency/abuse-control designs referenced by decisions elsewhere in this repository
+and authored one new, not-yet-applied migration (`20260801120000_restrict_profile_updated_at_grant.sql`,
+see 08-migration-risks.md Risk 6). Applying that migration to the remote project is itself an
+additional decision requiring explicit approval, not covered by any existing numbered item below —
+recorded here so it isn't lost: **"Apply the `updated_at` grant-restriction migration to the remote
+project" — Open, not approved.**
+
 ## 1. Guest checkout model
 **Why it matters:** determines whether `profiles`/`auth.users` rows are required to place an
 order at all.

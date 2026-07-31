@@ -132,7 +132,7 @@ truth for Floor 1 readiness.
 | Has `create-order` been audited? | **Yes** (11-edge-function-audit.md) — 2 P1, 3 P2/informational findings, 0 P0. Deployed behavior unchanged. |
 | Have existing RLS policies been audited? | **Yes** (12-rls-and-authorization-audit.md) |
 | Has `private.is_admin()` been audited? | **Yes** (12) |
-| Do database tests execute? | **No** — 3 pgTAP files exist (36 assertions, corrected 2026-08-01), statically reviewed, never run (no local stack) |
+| Do database tests execute? | **No** — 3 pgTAP files exist (38 assertions, corrected 2026-08-01, Foundation Correction pass), statically reviewed, never run (no local stack) |
 | Does CI exist? | **As a file, yes; as a running pipeline, no.** Untracked in git, never triggered. The `database` job is no longer configured as an always-failing required check (corrected this pass). |
 | Is the authorization source of truth approved? | **Yes** — single verified authority (`app_metadata.role` via `private.is_admin()`), `user_roles` explicitly deferred by user decision |
 | Is guest order ownership approved? | **No — Open.** Preferred candidate Option B (anonymous Auth) recommended, not approved; anonymous sign-ins not enabled. |
@@ -160,3 +160,60 @@ New gates surfaced by this reconciliation pass, not previously stated this preci
 
 This task stops here per its own stop condition — see 19-foundation-reconciliation.md for the full
 contradiction matrix and file-by-file correction list.
+
+---
+
+## Correction (2026-08-01, Foundation Correction Commit and Local-Execution Preparation pass)
+
+Everything above this line reflects state as of the Foundation Evidence Reconciliation pass. Since
+then, the following changed (all covered in more detail in 08-migration-risks.md and the two hardened
+design documents):
+
+- **The foundation work described above as "untracked in git" is now committed** (two commits,
+  `3d63fdf` and `42df0bc`, from the Foundation Artifact Preservation pass) — but still **not pushed**.
+  Operational risk #3 from the prior correction section (uncommitted work vulnerable to accidental
+  loss) is closed for what was committed in those two commits; this pass adds a third, later local
+  commit for the corrections described below, also not pushed.
+- **A real fixture defect was found and fixed** in `existing_tables_rls.test.sql` (wrong column name,
+  missing required column — see 08-migration-risks.md) — this file could not have passed even once
+  the local-execution blocker is resolved, until this correction.
+- **A real over-broad grant was found and a corrective (not-yet-applied) migration was authored** for
+  `public.profiles.updated_at` (see 08-migration-risks.md, Risk 6).
+- **The idempotency and abuse-control designs were hardened further** — request-hash immutability,
+  attempt-ownership guards, corrected error-code mapping, and (for abuse control) a server-controlled
+  policy-table configuration model replacing caller-suppliable limits/windows. Both remain **Design
+  Corrected — Not Implemented — Awaiting Approval**; neither status has changed to approved or
+  implemented.
+- **CI was corrected**: the Supabase CLI version is now pinned (was `latest`); the frontend job's
+  type-check step was renamed to accurately describe what it proves (that the committed types weren't
+  modified by the build, not that they match the live schema); the manual `database` job now also
+  generates types from the locally-rebuilt database and diffs them against the committed file — this
+  is the actual schema-vs-committed-types comparison, and it only runs via `workflow_dispatch`, same
+  gating as before.
+
+None of this changes the fundamental Floor 1 gates below — the environment classification is still
+unconfirmed, the original 3 migrations are still uncaptured, no test (old or new) has executed, and
+Docker/CLI-authentication remain unavailable in this environment.
+
+### Floor 1 readiness — corrected direct answers, 2026-08-01 (Foundation Correction Commit pass)
+
+| Question | Answer |
+|---|---|
+| Is the remote environment classified? | **Still partially — "Development Candidate," not user-confirmed** — unchanged |
+| Is the schema reproducible locally? | **No — still PARTIAL** — unchanged; the migration-history README's claim about what `db pull` would prove has been corrected (it was overstated — see 08-migration-risks.md Risk 7), but the underlying gap (3 migrations uncaptured) is unchanged |
+| Have the original migrations been captured? | **No** — unchanged. Three local migration files now exist (the two profiles-related ones, plus the new not-yet-applied `restrict_profile_updated_at_grant` migration), all correctly tracked in git as of this pass; the original 3 remain remote-only |
+| Do database tests execute? | **No** — 38 assertions now (up from 36), statically reviewed, never run |
+| Does CI exist? | **As a file, and now committed to git** — but still never triggered in GitHub Actions (would require a push, not performed this pass) |
+| Is guest order ownership approved? | **No — Open** — unchanged |
+| Is idempotency design approved? | **No — Open.** Hardened further this pass (attempt ownership, hash immutability, error mapping) — still not approved or implemented |
+| Is abuse-control design approved? | **No — Open.** Hardened further this pass (policy-table configuration) — still not approved or implemented |
+| Is a staging environment available? | **[Unverified] / effectively no** — unchanged |
+
+### Overall readiness for Floor 1 — current, 2026-08-01 (Foundation Correction Commit pass)
+
+**Still not ready.** The same two fundamental gates from the prior correction section remain open
+(environment classification unconfirmed; the two P1 `create-order` findings still unimplemented in
+the deployed system, designs now hardened twice over but neither approved). The third gate from that
+section (uncommitted work) is now closed for the two prior commits, but this pass's own corrections
+are a new round of local-only changes not yet committed at the time this document was written — see
+the final report for this pass for the actual commit hashes once created.

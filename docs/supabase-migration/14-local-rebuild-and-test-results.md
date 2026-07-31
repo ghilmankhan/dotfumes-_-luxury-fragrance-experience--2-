@@ -147,3 +147,27 @@ from the local migration set, but does **not** change the underlying REPRODUCIBL
 status: the original 3 migrations are still not captured as files anywhere in this repository, and
 `db pull`/`db reset` remain blocked by the same CLI-auth and missing-Docker constraints documented
 above. **Migration baseline status remains: PARTIAL.**
+
+### Correction (2026-08-01, Foundation Correction Commit and Local-Execution Preparation pass)
+
+Docker and CLI authentication remain unavailable in this environment — neither blocker changed this
+pass, and neither `supabase db reset` nor `supabase test db` was run (attempting them would have
+been indistinguishable from fabricating a result, which this task's verification directive
+prohibits). Three changes this pass are relevant to what happens *once* the blocker is resolved, but
+do not resolve it:
+
+1. `supabase/migrations/README.md` was corrected to no longer overstate what `supabase db pull` would
+   prove about the 3 uncaptured original migrations (see 08-migration-risks.md, Risk 7) — this
+   changes what closing this gap would actually demonstrate, not whether the gap is closed.
+2. A new, local-only, not-yet-applied migration
+   (`supabase/migrations/20260801120000_restrict_profile_updated_at_grant.sql`) now exists locally —
+   once a local stack is available, `supabase db reset` would apply it along with the others, and
+   `supabase test db` would then be able to exercise the two new pgTAP assertions that depend on it
+   (`foundation_profiles_rls.test.sql`, now `plan(20)`, up from `plan(18)`).
+3. `existing_tables_rls.test.sql`'s `orders` fixture was corrected (wrong/missing columns — see
+   08-migration-risks.md) — previously, even if the local-execution blocker were resolved today, this
+   specific test file would have failed to run at all due to the fixture defect, independent of
+   anything test-logic-related. It is now statically correct, still unexecuted.
+
+**No test in this repository — old or new — has ever been executed. This remains true after this
+pass.**
