@@ -1,1 +1,20 @@
 project_id = "jguewximloxmbhpsoxjb"
+
+# Declarative local reproduction of the remote "payment-slips" bucket
+# (id/name/public/file_size_limit/allowed_mime_types verified read-only against
+# the remote project via MCP execute_sql on 2026-08-01 — see
+# docs/supabase-migration/19-foundation-reconciliation.md, Local Supabase
+# Execution and Migration Baseline Verification correction). Bucket rows and
+# Storage RLS policies are not schema DDL and are never produced by
+# `supabase db pull` — this is the CLI's documented mechanism for
+# representing them locally instead.
+# No `objects_path` is set: this creates an empty bucket only. No real payment
+# slips or customer files are seeded.
+# Applying this to the LOCAL stack only requires `supabase start` /
+# `supabase db reset` (or `supabase seed buckets` without `--linked`).
+# `supabase seed buckets --linked` would push bucket config to the remote
+# project and is explicitly NOT run by this pass.
+[storage.buckets.payment-slips]
+public = false
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "application/pdf"]

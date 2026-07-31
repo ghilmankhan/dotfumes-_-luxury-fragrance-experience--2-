@@ -130,3 +130,65 @@ This document is not further rewritten beyond this section — its Phase 1-10 co
 the historical record of the pass that produced it, per this project's established convention of
 marking superseded sections rather than deleting them (see 15-next-stage-readiness.md for the same
 pattern).
+
+---
+
+## Correction (2026-08-01, Local Supabase Execution and Migration Baseline Verification pass)
+
+Direct re-verification this pass, superseding nothing above (git state, function inventory, and
+grant state are simply re-confirmed, not previously wrong):
+
+- **Git state**: re-verified directly via `git show --stat` on all four commits
+  (`3d63fdf`/`42df0bc`/`29de0fc`/`27d73a3`). Branch `supabase`, ahead of `origin/supabase` by 4
+  commits, nothing pushed, no secrets found in any committed foundation file (grepped for token/key/
+  password/PEM patterns across all four commits' diffs — no matches).
+- **Docker**: still `command not found` — **Docker Unavailable**, unchanged.
+- **Supabase CLI auth**: `supabase projects list` still returns `LegacyPlatformAuthRequiredError` —
+  **BLOCKED**, unchanged. No `SUPABASE_ACCESS_TOKEN` set in this environment.
+- **Remote migration history** (verified read-only via the Supabase MCP `list_migrations` tool, which
+  authenticates independently of the CLI): exactly the 5 expected versions
+  (`20260730181201_init_commerce_schema`, `20260730181213_payment_slips_bucket`,
+  `20260730185111_harden_rls_and_atomic_order_creation`, `20260731174520_add_profiles_foundation`,
+  `20260731174630_revoke_anon_grants_on_profiles`). The new local
+  `20260801120000_restrict_profile_updated_at_grant.sql` is correctly **not** in this list — confirms
+  it has not been applied remotely, consistent with Phase 14 of this task's own instructions.
+- **`public.profiles.updated_at` grant, re-checked live** (`information_schema.column_privileges`,
+  read-only): `authenticated` still holds `UPDATE` on `updated_at` remotely — expected, since the
+  correction migration is local-only and unapplied.
+- **Storage bucket, read-only remote inspection** (`storage.buckets` row via `execute_sql`, read-only):
+  `payment-slips` — `public = false`, `file_size_limit = 5242880` bytes (5 MiB), `allowed_mime_types =
+  [image/png, image/jpeg, image/webp, application/pdf]`. Two Storage RLS policies exist on
+  `storage.objects` scoped to this bucket, both `authenticated` + `private.is_admin()`: admin `SELECT`
+  and admin `DELETE`. **No `INSERT` policy was found for this bucket** — consistent with slip uploads
+  being performed server-side (`service_role`, which bypasses RLS) rather than directly by a client
+  role; not independently confirmed against the Edge Function source this pass, flagged
+  **[Unverified]**.
+- **New finding, corrected this pass**: neither `supabase/config.toml` nor `supabase/seed.sql`
+  declared the `payment-slips` bucket at all — a clean `supabase db reset` against a fresh local stack
+  would not have created it. Verified against current Supabase CLI documentation
+  (`search_docs`: "Sync storage buckets") that `[storage.buckets.<name>]` in `config.toml` is the
+  CLI's supported, current mechanism for this (bucket rows/Storage RLS are not schema DDL and are
+  never produced by `db pull`). Added a `[storage.buckets.payment-slips]` block to
+  `supabase/config.toml` reproducing the verified remote configuration, with no `objects_path` (no
+  real or fake slip files are seeded). This is a **local-only** declarative addition — it takes effect
+  only via `supabase start`/`supabase db reset`/`supabase seed buckets` (without `--linked`) against
+  the local stack; it was **not** applied to the remote project (`supabase seed buckets --linked` was
+  not run).
+- **Function inventory, read-only** (`pg_proc`/`pg_namespace`, read-only): confirms
+  `private.handle_new_user`, `private.is_admin`, `private.set_updated_at`, `private.sync_user_email`,
+  `public.create_order` all exist as expected. One additional function was observed,
+  `public.rls_auto_enable` (`security_definer = true`, owned by `postgres`) — **[Inference]** this
+  appears to be a Supabase-platform-managed function rather than one introduced by any migration in
+  this repository; not independently confirmed against Supabase platform documentation this pass.
+- **Local execution (Phases 8-11 of this task)**: **not attempted**. Docker Unavailable blocks
+  `supabase start`/`db reset`/`test db`; CLI auth BLOCKED separately blocks `link`/`db pull`. No
+  fabricated result is reported for any of these. The migration-baseline status therefore remains
+  **PARTIAL** (see 14-local-rebuild-and-test-results.md) — this pass added real, verified read-only
+  evidence about the remote schema (via MCP, not the CLI) and one genuine local-only config
+  correction, but did not and could not execute a local reset or any pgTAP test.
+- **Frontend/CI validation, re-run this pass**: `npx tsc --noEmit` PASS, `npm run lint` PASS,
+  `npm run build` PASS (regenerates the same pre-existing unrelated `src/generated/*.json` drift as
+  every prior pass — not staged), YAML parse of `.github/workflows/verify.yml` PASS, `npx prettier
+  --check .github/workflows/verify.yml` PASS. `.github/workflows/verify.yml` itself was not modified
+  this pass (already correct from the prior pass) — re-read and re-verified line-by-line against this
+  task's Phase 13 checklist, no defects found.
