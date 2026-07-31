@@ -27,14 +27,9 @@ export const appConfig = {
   hasConfiguredWhatsAppNumber: Boolean(configuredWhatsAppNumber),
   hasConfiguredOrderEmail: Boolean(configuredOrderEmail),
   baseUrl: trimValue(env.VITE_BASE_URL),
-  googleAppsScriptWebAppUrl: firstNonEmpty(
-    env.VITE_GOOGLE_APPS_SCRIPT_WEB_APP_URL,
-    env.VITE_GOOGLE_APPS_SCRIPT_URL,
+  supabaseUrl: trimValue(env.VITE_SUPABASE_URL),
+  supabasePublishableKey: firstNonEmpty(
+    env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    env.VITE_SUPABASE_ANON_KEY,
   ),
-  orderFormPublicToken: firstNonEmpty(
-    env.VITE_ORDER_FORM_PUBLIC_TOKEN,
-    env.VITE_PUBLIC_FORM_TOKEN,
-  ),
-  adminPassword: trimValue(env.VITE_ADMIN_PASSWORD),
-  adminReadToken: trimValue(env.VITE_ADMIN_READ_TOKEN),
 };

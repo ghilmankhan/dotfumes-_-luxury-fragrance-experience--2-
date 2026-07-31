@@ -2,7 +2,6 @@ import { expect, test, type Page } from '@playwright/test';
 import { checkoutContract } from '../../src/contracts/checkout.contract';
 
 const checkoutFields = checkoutContract.fields;
-const checkoutSubmission = checkoutContract.submission;
 
 const appRoutes = [
   '/',
@@ -236,7 +235,9 @@ test.describe('core interactions', () => {
         configurable: true,
         value: scrollBehaviors,
       });
-      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        options?: boolean | ScrollIntoViewOptions,
+      ) {
         scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
       };
     });
@@ -257,7 +258,10 @@ test.describe('core interactions', () => {
   test('reduced motion disables smooth checkout error recovery', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
     await page.getByRole('button', { name: 'Checkout' }).click();
     await page.evaluate(() => {
       const scrollBehaviors: Array<ScrollBehavior | undefined> = [];
@@ -265,7 +269,9 @@ test.describe('core interactions', () => {
         configurable: true,
         value: scrollBehaviors,
       });
-      Element.prototype.scrollIntoView = function scrollIntoView(options?: boolean | ScrollIntoViewOptions) {
+      Element.prototype.scrollIntoView = function scrollIntoView(
+        options?: boolean | ScrollIntoViewOptions,
+      ) {
         scrollBehaviors.push(typeof options === 'object' ? options.behavior : undefined);
       };
     });
@@ -423,9 +429,7 @@ test.describe('core interactions', () => {
     await expect(page.getByRole('dialog', { name: 'Shopping cart' })).toBeVisible();
   });
 
-  test('mobile navigation releases its modal state at the desktop breakpoint', async ({
-    page,
-  }) => {
+  test('mobile navigation releases its modal state at the desktop breakpoint', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
     await page.getByRole('button', { name: 'Open navigation menu' }).click();
@@ -476,7 +480,10 @@ test.describe('core interactions', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 320, height: 812 });
     await page.goto('/product/bold-decision');
-    await page.getByRole('button', { name: /Add to Cart/i }).first().click();
+    await page
+      .getByRole('button', { name: /Add to Cart/i })
+      .first()
+      .click();
 
     const dismissButton = page.getByRole('button', { name: 'Dismiss notification' });
     await expect(dismissButton).toBeVisible();
@@ -494,7 +501,7 @@ test.describe('core interactions', () => {
       .first()
       .click();
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(page.getByRole('heading', { name: 'Your Selection' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reserved for You' })).toBeVisible();
     await expect(page.locator('aside').getByText('Soft Promise', { exact: true })).toBeVisible();
   });
 
@@ -511,10 +518,12 @@ test.describe('core interactions', () => {
     await page.getByRole('button', { name: 'Checkout' }).click();
     await expect(page).toHaveURL(/\/checkout$/);
 
-    const submitButton = page.getByRole('button', { name: checkoutSubmission.label });
-    await expect(submitButton).toBeDisabled();
+    const guidanceButton = page.getByRole('button', { name: 'Reserve Your Selection' });
+    await expect(guidanceButton).toBeEnabled();
+    await guidanceButton.click();
+    await expect(page.getByText(checkoutFields.firstName.messages.required)).toBeVisible();
+    await expect(page.getByLabel(checkoutFields.firstName.label)).toBeFocused();
 
-    await page.getByLabel(checkoutFields.firstName.label).focus();
     await page.getByLabel(checkoutFields.firstName.label).blur();
     await page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first().focus();
     await page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first().blur();
@@ -526,12 +535,44 @@ test.describe('core interactions', () => {
     await expect(page.getByText(checkoutContract.slip.messages.required)).toBeVisible();
   });
 
+  test('checkout guidance remains actionable and names the next useful step', async ({ page }) => {
+    await page.goto('/product/bold-decision');
+    await page.getByRole('button', { name: /Add to Cart/i }).click();
+    await page.getByRole('button', { name: 'Checkout' }).click();
+
+    const firstName = page.getByLabel(checkoutFields.firstName.label);
+    await expect(page.getByRole('button', { name: 'Reserve Your Selection' })).toBeEnabled();
+
+    await firstName.fill('Amina');
+    await expect(page.getByRole('button', { name: 'Continue Your Private Order' })).toBeEnabled();
+
+    for (const fieldName of checkoutContract.steps[0].fields) {
+      const field = checkoutFields[fieldName];
+      await page.getByLabel(field.label).fill(checkoutContract.testFixtures.validValues[fieldName]);
+    }
+
+    await expect(page.getByRole('button', { name: 'Choose Payment Method' })).toBeEnabled();
+
+    const paymentMethod = checkoutContract.paymentMethods[0];
+    await page.getByText(paymentMethod.label, { exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Add Private Confirmation' })).toBeEnabled();
+
+    await page.locator(`input[name="${checkoutContract.slip.name}"]`).setInputFiles({
+      name: checkoutContract.testFixtures.validSlip.name,
+      mimeType: checkoutContract.testFixtures.validSlip.type,
+      buffer: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
+    });
+
+    await expect(page.getByRole('button', { name: /^Send for Private Review - / })).toBeEnabled();
+  });
+
   test('checkout hidden controls expose visible focus on their labels', async ({ page }) => {
     await page.goto('/checkout');
 
-    const paymentInput = page.locator(
-      `input[name="${checkoutFields.paymentMethod.name}"]`,
-    ).first();
+    const paymentInput = page.locator(`input[name="${checkoutFields.paymentMethod.name}"]`).first();
     const paymentLabel = paymentInput.locator('xpath=..');
     await paymentInput.focus();
     await expect(paymentInput).toBeFocused();
@@ -565,14 +606,23 @@ test.describe('core interactions', () => {
     await page.locator(`input[name="${checkoutContract.slip.name}"]`).setInputFiles({
       name: checkoutContract.testFixtures.validSlip.name,
       mimeType: checkoutContract.testFixtures.validSlip.type,
-      buffer: Buffer.from(checkoutContract.testFixtures.validSlip.contents),
+      buffer: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
     });
     await expect(page.locator(`input[name="${checkoutContract.slip.name}"]`)).toHaveJSProperty(
       'files.length',
       1,
     );
+    const confirmationPreview = page.getByRole('img', {
+      name: `Slip preview ${checkoutContract.testFixtures.validSlip.name}`,
+    });
+    const confirmationPreviewBox = await confirmationPreview.locator('..').boundingBox();
+    expect(confirmationPreviewBox).not.toBeNull();
+    expect(confirmationPreviewBox?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(384);
 
-    const submitButton = page.getByRole('button', { name: checkoutSubmission.label });
+    const submitButton = page.getByRole('button', { name: /^Send for Private Review - / });
     await expect(submitButton).toBeEnabled();
     await submitButton.click();
     await expect(page).toHaveURL(/\/order-confirmation$/);
@@ -644,33 +694,111 @@ test.describe('core interactions', () => {
     );
   });
 
-  test('mobile checkout shows heading before selection summary', async ({ page }) => {
+  test('mobile checkout keeps the reserved fragrance one interaction from the opening', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto('/checkout');
+    await page.goto('/product/soft-promise');
+    await page
+      .getByRole('button', { name: /^Buy Now$/i })
+      .first()
+      .click();
 
-    const checkoutHeading = page.getByRole('heading', { name: /Complete/i });
-    const selectionHeading = page.getByRole('heading', { name: 'Your Selection' });
+    const checkoutHeading = page.getByRole('heading', { name: 'Your selection, reserved.' });
+    const summaryToggle = page.getByRole('button', { name: /Reserved for You/i });
+    const deliveryHeading = page.getByRole('heading', {
+      name: 'Where should we send your fragrance?',
+    });
 
     await expect(checkoutHeading).toBeVisible();
-    await expect(selectionHeading).toBeVisible();
+    await expect(summaryToggle).toBeVisible();
+    await expect(deliveryHeading).toBeVisible();
 
     const headingBox = await checkoutHeading.boundingBox();
-    const selectionBox = await selectionHeading.boundingBox();
+    const summaryBox = await summaryToggle.boundingBox();
+    const deliveryBox = await deliveryHeading.boundingBox();
 
     expect(headingBox).not.toBeNull();
-    expect(selectionBox).not.toBeNull();
-    expect((headingBox?.y ?? 0) < (selectionBox?.y ?? 0)).toBeTruthy();
+    expect(summaryBox).not.toBeNull();
+    expect(deliveryBox).not.toBeNull();
+    expect((headingBox?.y ?? 0) < (summaryBox?.y ?? 0)).toBeTruthy();
+    expect((summaryBox?.y ?? 0) < (deliveryBox?.y ?? 0)).toBeTruthy();
+
+    await expect(summaryToggle).toHaveAttribute('aria-expanded', 'false');
+    await summaryToggle.click();
+    await expect(summaryToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByText('Held for your private order', { exact: true })).toBeVisible();
   });
 
-  test('checkout shows customer reassurance copy', async ({ page }) => {
+  test('checkout does not overflow at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 812 });
     await page.goto('/checkout');
-    const steps = page.getByLabel(checkoutContract.progressLabel);
-    for (const step of checkoutContract.steps) {
-      await expect(steps.getByText(step.label)).toBeVisible();
+
+    const widths = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      page: document.documentElement.scrollWidth,
+    }));
+
+    expect(widths.page).toBeLessThanOrEqual(widths.viewport);
+  });
+
+  test('checkout progress labels remain readable at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 812 });
+    await page.goto('/checkout');
+
+    const progress = page.getByLabel(checkoutContract.progressLabel);
+    for (const label of ['Delivery', 'Payment', 'Private Review']) {
+      const dimensions = await progress.getByText(label, { exact: true }).evaluate((element) => ({
+        visibleWidth: element.clientWidth,
+        contentWidth: element.scrollWidth,
+        textOverflow: getComputedStyle(element).textOverflow,
+      }));
+
+      expect(dimensions.contentWidth).toBeLessThanOrEqual(dimensions.visibleWidth);
+      expect(dimensions.textOverflow).not.toBe('ellipsis');
     }
-    await expect(page.getByText(/What Happens Next/i)).toBeVisible();
-    await expect(page.getByText(/Dotfumes reviews your payment proof manually/i)).toBeVisible();
-    await expect(page.getByText(/contact you as early as possible/i).first()).toBeVisible();
+  });
+
+  test('checkout frames the order as a reservation with honest trust language', async ({
+    page,
+  }) => {
+    await page.goto('/checkout');
+
+    await expect(page.getByText('Private Order', { exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Your selection, reserved.' })).toBeVisible();
+
+    const progress = page.getByLabel(checkoutContract.progressLabel);
+    for (const label of ['Delivery', 'Payment', 'Private Review']) {
+      await expect(progress.getByText(label, { exact: true })).toBeVisible();
+    }
+
+    await expect(page.getByText('Manual House Review', { exact: true })).toBeVisible();
+    await expect(page.getByText('Order Reference', { exact: true })).toBeVisible();
+    await expect(page.getByText(/not shown publicly/i)).toHaveCount(0);
+    await expect(page.getByText(/secure payment/i)).toHaveCount(0);
+  });
+
+  test('checkout preserves all three payment choices and their selected state', async ({
+    page,
+  }) => {
+    await page.goto('/checkout');
+
+    for (const paymentMethod of checkoutContract.paymentMethods) {
+      await expect(page.getByText(paymentMethod.label, { exact: true })).toBeVisible();
+    }
+
+    const easypaisa = checkoutContract.paymentMethods.find(
+      (method) => method.value === 'easypaisa',
+    );
+    expect(easypaisa).toBeDefined();
+
+    await page.getByText(easypaisa!.label, { exact: true }).click();
+    await expect(
+      page.locator(`input[name="${checkoutFields.paymentMethod.name}"][value="easypaisa"]`),
+    ).toBeChecked();
+    await expect(page.getByText(easypaisa!.note, { exact: true })).toBeVisible();
+    await expect(page.getByText(/Easypaisa selected/i)).toBeVisible();
+    await expect(page.getByText(/account number|wallet number/i)).toHaveCount(0);
   });
 
   test('cart blocks checkout when cart quantity exceeds available stock', async ({ page }) => {
@@ -694,9 +822,10 @@ test.describe('core interactions', () => {
 
     await page.goto('/checkout');
     await expect(page).toHaveURL(/\/checkout$/);
-    await expect(
-      page.getByRole('button', { name: checkoutSubmission.label }),
-    ).toBeDisabled();
+    const reviewButton = page.getByRole('button', { name: 'Review Your Reserved Selection' });
+    await expect(reviewButton).toBeEnabled();
+    await reviewButton.click();
+    await expect(page.getByText(/no longer available|out of stock/i).first()).toBeVisible();
     await expect(page.getByText('Out of stock — remove to continue').first()).toBeVisible();
   });
 });

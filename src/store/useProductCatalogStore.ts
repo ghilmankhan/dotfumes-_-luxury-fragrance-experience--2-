@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { FEATURED_PRODUCTS } from '../constants/products';
 import {
-  fetchProductCatalogFromGoogleSheets,
-  isGoogleSheetsBackendEnabled,
-  type GoogleSheetsFrontendSettings,
-  type GoogleSheetsProductRow,
-} from '../lib/googleSheetsBackend';
+  fetchProductCatalogFromSupabase,
+  isSupabaseBackendEnabled,
+  type CatalogProductRow,
+  type CatalogSettings,
+} from '../lib/supabaseBackend';
 import { Product } from '../models/types';
 
-export type ProductCatalogSource = 'local' | 'google-sheets';
+export type ProductCatalogSource = 'local' | 'supabase';
 
 export interface ProductCatalogState {
   products: Product[];
   allProducts: Product[];
-  settings: GoogleSheetsFrontendSettings;
+  settings: CatalogSettings;
   source: ProductCatalogSource;
   isLoading: boolean;
   hydrated: boolean;
@@ -22,8 +22,7 @@ export interface ProductCatalogState {
   refresh: () => Promise<void>;
 }
 
-const defaultSettings: GoogleSheetsFrontendSettings = {
-  sheetProductDatabase: false,
+const defaultSettings: CatalogSettings = {
   hideInactiveProducts: false,
   showOutOfStockProducts: true,
   allowOutOfStockCheckout: false,
@@ -55,10 +54,10 @@ const normalizeCategory = (value: string | undefined, fallback: Product['categor
   return fallback;
 };
 
-const buildSheetLookup = (rows: GoogleSheetsProductRow[]) => {
-  const bySlug = new Map<string, GoogleSheetsProductRow>();
-  const byProductId = new Map<string, GoogleSheetsProductRow>();
-  const byName = new Map<string, GoogleSheetsProductRow>();
+const buildCatalogLookup = (rows: CatalogProductRow[]) => {
+  const bySlug = new Map<string, CatalogProductRow>();
+  const byProductId = new Map<string, CatalogProductRow>();
+  const byName = new Map<string, CatalogProductRow>();
 
   rows.forEach((row) => {
     const slug = normalize(row.slug);
@@ -79,8 +78,11 @@ const buildSheetLookup = (rows: GoogleSheetsProductRow[]) => {
   return { bySlug, byProductId, byName };
 };
 
-const mergeLocalWithSheetProducts = (localProducts: Product[], rows: GoogleSheetsProductRow[]): Product[] => {
-  const lookup = buildSheetLookup(rows);
+// Supabase is the source of truth for price/stock/active; local product
+// constants only supply static creative content (images, copy, notes) that
+// has no equivalent column in the products table.
+const mergeLocalWithCatalogProducts = (localProducts: Product[], rows: CatalogProductRow[]): Product[] => {
+  const lookup = buildCatalogLookup(rows);
 
   return localProducts.map((localProduct) => {
     const match =
@@ -111,7 +113,7 @@ const mergeLocalWithSheetProducts = (localProducts: Product[], rows: GoogleSheet
   });
 };
 
-const applyVisibilityRules = (products: Product[], settings: GoogleSheetsFrontendSettings) => {
+const applyVisibilityRules = (products: Product[], settings: CatalogSettings) => {
   return products.filter((product) => {
     if (settings.hideInactiveProducts && product.active === false) {
       return false;
@@ -128,50 +130,25 @@ const applyVisibilityRules = (products: Product[], settings: GoogleSheetsFronten
 const loadCatalog = async (): Promise<{
   allProducts: Product[];
   products: Product[];
-  settings: GoogleSheetsFrontendSettings;
+  settings: CatalogSettings;
   source: ProductCatalogSource;
 }> => {
-  if (!isGoogleSheetsBackendEnabled()) {
-    const localProducts = FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true }));
-    return {
-      allProducts: localProducts,
-      products: localProducts,
-      settings: defaultSettings,
-      source: 'local',
-    };
+  if (!isSupabaseBackendEnabled()) {
+    throw new Error(
+      'Product backend is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.',
+    );
   }
 
-  try {
-    const catalog = await fetchProductCatalogFromGoogleSheets();
-    const merged = mergeLocalWithSheetProducts(FEATURED_PRODUCTS, catalog.products);
+  const catalog = await fetchProductCatalogFromSupabase();
+  const merged = mergeLocalWithCatalogProducts(FEATURED_PRODUCTS, catalog.products);
+  const visible = applyVisibilityRules(merged, catalog.settings);
 
-    if (!catalog.settings.sheetProductDatabase) {
-      const localProducts = FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true }));
-      return {
-        allProducts: localProducts,
-        products: localProducts,
-        settings: { ...defaultSettings, ...catalog.settings },
-        source: 'local',
-      };
-    }
-
-    const visible = applyVisibilityRules(merged, catalog.settings);
-
-    return {
-      allProducts: merged,
-      products: visible,
-      settings: { ...defaultSettings, ...catalog.settings },
-      source: 'google-sheets',
-    };
-  } catch {
-    const localProducts = FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true }));
-    return {
-      allProducts: localProducts,
-      products: localProducts,
-      settings: defaultSettings,
-      source: 'local',
-    };
-  }
+  return {
+    allProducts: merged,
+    products: visible,
+    settings: { ...defaultSettings, ...catalog.settings },
+    source: 'supabase',
+  };
 };
 
 export const useProductCatalogStore = create<ProductCatalogState>((set, get) => ({
@@ -189,17 +166,26 @@ export const useProductCatalogStore = create<ProductCatalogState>((set, get) => 
 
     set({ isLoading: true, lastError: '' });
 
-    const next = await loadCatalog();
-
-    set({
-      allProducts: next.allProducts,
-      products: next.products,
-      settings: next.settings,
-      source: next.source,
-      hydrated: true,
-      isLoading: false,
-      lastError: '',
-    });
+    try {
+      const next = await loadCatalog();
+      set({
+        allProducts: next.allProducts,
+        products: next.products,
+        settings: next.settings,
+        source: next.source,
+        hydrated: true,
+        isLoading: false,
+        lastError: '',
+      });
+    } catch (error) {
+      // Live catalog failed to load: keep the static placeholder catalog on
+      // screen but do not mark it as hydrated/live, and surface the error so
+      // callers know pricing/stock are not confirmed.
+      set({
+        isLoading: false,
+        lastError: error instanceof Error ? error.message : 'Unable to load the product catalog.',
+      });
+    }
   },
   refresh: async () => {
     if (get().isLoading) {

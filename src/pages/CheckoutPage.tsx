@@ -1,6 +1,7 @@
-import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Upload, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Upload } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   createCartAvailabilitySelector,
@@ -17,7 +18,6 @@ import { saveLatestOrder } from '../lib/storage';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { createOrderSubmissionService } from '../services/orderSubmissionService';
 import { createSlipPreviewUrl, revokeSlipPreviewUrl } from '../lib/paymentSlip';
-import { isGoogleSheetsBackendEnabled } from '../lib/googleSheetsBackend';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import { cn } from '../lib/utils';
 import { CartLineItem } from '../components/cart/CartLineItem';
@@ -61,7 +61,9 @@ const scrollToFirstError = (errs: CheckoutErrors) => {
   if (!target) {
     return;
   }
-  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ? 'auto'
+    : 'smooth';
   target.scrollIntoView({ behavior, block: 'center' });
   if (target instanceof HTMLElement) {
     target.focus({ preventScroll: true });
@@ -96,10 +98,11 @@ export const CheckoutPage = () => {
   });
 
   return (
-    <section className="min-h-screen bg-brand-white px-6 pb-24 pt-36 text-brand-black md:px-16 md:pt-44 lg:px-24">
+    <section className="min-h-screen bg-brand-white px-6 pb-24 pt-36 text-brand-black md:px-16 md:pt-48 lg:px-24 lg:pt-60">
       <Grid layout="content-sidebar" gap={12} className="mx-auto max-w-7xl">
         <CheckoutFlow
           items={items}
+          total={total}
           allProducts={allProducts}
           allowOutOfStockCheckout={allowOutOfStockCheckout}
           shouldBlockCheckout={shouldBlockCheckout}
@@ -119,14 +122,94 @@ export const CheckoutPage = () => {
 
 interface CheckoutFlowProps {
   items: ReturnType<typeof selectCartItems>;
+  total: number;
   allProducts: Parameters<typeof createCartAvailabilitySelector>[0];
   allowOutOfStockCheckout: boolean;
   shouldBlockCheckout: boolean;
   availabilityMessage: string;
 }
 
+interface CheckoutGuidance {
+  label: string;
+  support: string;
+}
+
+interface GetCheckoutGuidanceOptions {
+  hasItems: boolean;
+  shouldBlockCheckout: boolean;
+  hasStartedDelivery: boolean;
+  deliveryComplete: boolean;
+  hasPaymentMethod: boolean;
+  hasSlip: boolean;
+  canSubmit: boolean;
+  isSubmitting: boolean;
+  total: number;
+}
+
+const getCheckoutGuidance = ({
+  hasItems,
+  shouldBlockCheckout,
+  hasStartedDelivery,
+  deliveryComplete,
+  hasPaymentMethod,
+  hasSlip,
+  canSubmit,
+  isSubmitting,
+  total,
+}: GetCheckoutGuidanceOptions): CheckoutGuidance => {
+  const labels = checkoutContract.experience.cta;
+
+  if (isSubmitting) {
+    return {
+      label: labels.submitting,
+      support: 'Keep this page open while your request is sent.',
+    };
+  }
+  if (!hasItems || shouldBlockCheckout) {
+    return {
+      label: labels.reviewSelection,
+      support: 'Review the fragrance attached to this order before continuing.',
+    };
+  }
+  if (!hasStartedDelivery) {
+    return {
+      label: labels.initial,
+      support: 'Start with the delivery details for this private order.',
+    };
+  }
+  if (!deliveryComplete) {
+    return {
+      label: labels.partial,
+      support: 'We will guide you to the next delivery detail.',
+    };
+  }
+  if (!hasPaymentMethod) {
+    return {
+      label: labels.payment,
+      support: 'Select how you would like to complete the order.',
+    };
+  }
+  if (!hasSlip) {
+    return {
+      label: labels.proof,
+      support: 'Add the confirmation for manual house review.',
+    };
+  }
+  if (canSubmit) {
+    return {
+      label: `${labels.readyPrefix} - ${formatCurrency(total)}`,
+      support: 'A unique order ID will be created when the request is sent.',
+    };
+  }
+  return {
+    label: labels.partial,
+    support: 'Review the highlighted detail to continue.',
+  };
+};
+
 const CheckoutFlow = ({
   items,
+  total,
   allProducts,
   allowOutOfStockCheckout,
   shouldBlockCheckout,
@@ -139,7 +222,7 @@ const CheckoutFlow = ({
   const [slipPreviewUrl, setSlipPreviewUrl] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const reduceMotion = useReducedMotion();
-  const googleSheetsEnabled = isGoogleSheetsBackendEnabled();
+  const { experience } = checkoutContract;
   const {
     values,
     slipFile,
@@ -157,6 +240,27 @@ const CheckoutFlow = ({
     hasAvailabilityIssues: shouldBlockCheckout && items.length > 0,
     isSubmitting,
   });
+  const deliveryFieldNames = checkoutContract.steps[0].fields;
+  const hasStartedDelivery = deliveryFieldNames.some((field) => values[field].trim().length > 0);
+  const selectedPaymentMethod = checkoutContract.paymentMethods.find(
+    (method) => method.value === values.paymentMethod,
+  );
+  const guidance = getCheckoutGuidance({
+    hasItems: items.length > 0,
+    shouldBlockCheckout,
+    hasStartedDelivery,
+    deliveryComplete: stepStatus.details,
+    hasPaymentMethod: Boolean(values.paymentMethod),
+    hasSlip: Boolean(slipFile),
+    canSubmit,
+    isSubmitting,
+    total,
+  });
+  const progressStates = [
+    stepStatus.details ? 'complete' : 'current',
+    !stepStatus.details ? 'upcoming' : stepStatus.payment ? 'complete' : 'current',
+    stepStatus.payment ? 'current' : 'upcoming',
+  ] as const;
 
   useEffect(() => {
     return () => {
@@ -247,7 +351,7 @@ const CheckoutFlow = ({
       saveLatestOrder(result.order);
       clearCart();
       void useProductCatalogStore.getState().refresh();
-      pushToast(result.message, result.mode === 'google-sheets' ? 'success' : 'neutral');
+      pushToast(result.message, 'success');
       navigate('/order-confirmation');
     } catch (error) {
       const message =
@@ -266,50 +370,48 @@ const CheckoutFlow = ({
     <>
       <div className="order-1 lg:col-start-1 lg:row-start-1">
         <span className="text-small font-bold uppercase tracking-wider text-brand-gold">
-          Checkout
+          {experience.opening.eyebrow}
         </span>
-        <h1 className="mt-8 font-serif text-6xl italic leading-none tracking-tight md:text-8xl">
-          Complete <br />
-          <span className="text-neutral-300">Your Order.</span>
+        <h1 className="mt-4 max-w-2xl text-balance font-serif text-5xl leading-tight tracking-tight md:text-6xl">
+          {experience.opening.heading}
         </h1>
-        <p className="mt-8 max-w-xl text-body leading-7 text-on-light-secondary">
-          Submit your details, choose your payment method, and upload payment proof so Dotfumes can
-          review your order request.
-        </p>
-        <p className="mt-3 max-w-xl text-body leading-7 text-on-light-secondary">
-          After submission, you can send a prefilled WhatsApp or email summary for faster
-          confirmation.
+        <p className="mt-4 max-w-xl text-body leading-7 text-on-light-secondary">
+          {experience.opening.support}
         </p>
 
-        <Grid cols={{ sm: 2 }} gap={2} className="mt-8" aria-label={checkoutContract.progressLabel}>
-          {checkoutContract.steps.map((step) => (
-            <Card
-              key={step.id}
-              variant="light"
+        <ol
+          className="mt-8 grid grid-cols-3 gap-2 border-y border-on-light-subtle py-4 sm:flex sm:items-center sm:gap-3"
+          aria-label={checkoutContract.progressLabel}
+        >
+          {experience.progress.map((label, index) => (
+            <li
+              key={label}
+              aria-current={progressStates[index] === 'current' ? 'step' : undefined}
               className={cn(
-                'flex items-center gap-2 px-4 py-3 text-caption uppercase tracking-wide transition-colors',
-                stepStatus[step.id]
-                  ? 'border-accent-muted bg-accent-gold-subtle text-brand-black'
-                  : 'bg-surface-glass-strong text-on-light-secondary',
+                'flex min-w-0 flex-col gap-2 uppercase tracking-wide sm:flex-1 sm:flex-row sm:items-center sm:gap-3',
+                index === experience.progress.length - 1 && 'sm:flex-none',
+                progressStates[index] === 'upcoming' ? 'text-on-light-muted' : 'text-brand-black',
               )}
             >
-              {stepStatus[step.id] ? (
-                <CheckCircle2 size={13} className="shrink-0 text-brand-gold" />
-              ) : (
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full bg-surface-overlay-muted"
-                  aria-hidden="true"
-                />
-              )}
-              {step.label}
-            </Card>
+              <span className="w-full text-center text-micro leading-4 sm:w-auto sm:whitespace-nowrap sm:text-left sm:text-caption">
+                {label}
+              </span>
+              <span
+                className={cn(
+                  'h-px w-full sm:min-w-4 sm:flex-1',
+                  index === experience.progress.length - 1 && 'sm:hidden',
+                  progressStates[index] === 'upcoming' ? 'bg-on-light-subtle' : 'bg-brand-gold',
+                )}
+                aria-hidden="true"
+              />
+            </li>
           ))}
-        </Grid>
+        </ol>
       </div>
 
       <form
         onSubmit={submitOrder}
-        className="order-2 space-y-12 lg:col-start-1 lg:row-start-2 lg:order-2"
+        className="order-3 space-y-14 lg:order-2 lg:col-start-1 lg:row-start-2"
         noValidate
       >
         <AnimatePresence mode="wait">
@@ -328,7 +430,7 @@ const CheckoutFlow = ({
               className="flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-body text-red-700"
               role="alert"
             >
-              <AlertTriangle size={16} className="mt-0.5" />
+              <AlertTriangle size={16} className="mt-0.5" aria-hidden="true" />
               <p>{errors.cart}</p>
             </motion.div>
           ) : null}
@@ -347,18 +449,21 @@ const CheckoutFlow = ({
               className="flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-body text-red-700"
               role="alert"
             >
-              <AlertTriangle size={16} className="mt-0.5" />
+              <AlertTriangle size={16} className="mt-0.5" aria-hidden="true" />
               <p>{submitError}</p>
             </motion.div>
           ) : null}
         </AnimatePresence>
 
-        <div className="space-y-8">
-          <h2
-            className={cn('text-small font-bold uppercase text-on-light-secondary', tracking.wide)}
-          >
-            {checkoutContract.steps[0].label}
-          </h2>
+        <section className="space-y-8" aria-labelledby="delivery-details-heading">
+          <div>
+            <h2 id="delivery-details-heading" className="font-serif text-2xl">
+              {experience.delivery.heading}
+            </h2>
+            <p className="mt-2 text-label leading-6 text-on-light-muted">
+              {experience.delivery.support}
+            </p>
+          </div>
           <Grid cols={{ md: 2 }} gap={5}>
             <CheckoutInput
               label={checkoutContract.fields.firstName.label}
@@ -420,14 +525,10 @@ const CheckoutFlow = ({
               autoComplete={checkoutContract.fields.city.autoComplete}
             />
           </Grid>
-        </div>
+        </section>
 
-        <div className="space-y-8">
-          <h2
-            className={cn('text-small font-bold uppercase text-on-light-secondary', tracking.wide)}
-          >
-            2. Payment Method
-          </h2>
+        <fieldset className="space-y-8">
+          <legend className="font-serif text-2xl">{experience.payment.heading}</legend>
 
           <Stack
             gap={3}
@@ -469,7 +570,16 @@ const CheckoutFlow = ({
             })}
           </Stack>
           {errors.paymentMethod ? <FieldError message={errors.paymentMethod} /> : null}
-        </div>
+          <p
+            className="text-label leading-6 text-on-light-secondary"
+            role="status"
+            aria-live="polite"
+          >
+            {selectedPaymentMethod
+              ? `${selectedPaymentMethod.label} selected. ${selectedPaymentMethod.note}`
+              : 'Choose one of the available payment methods to continue.'}
+          </p>
+        </fieldset>
 
         <div className="sr-only" aria-hidden>
           <label htmlFor="website">Website</label>
@@ -484,12 +594,15 @@ const CheckoutFlow = ({
           />
         </div>
 
-        <div className="space-y-4">
-          <h2
-            className={cn('text-small font-bold uppercase text-on-light-secondary', tracking.wide)}
-          >
-            Payment Proof Upload
-          </h2>
+        <section className="space-y-4" aria-labelledby="payment-confirmation-heading">
+          <div>
+            <h2 id="payment-confirmation-heading" className="font-serif text-2xl">
+              {experience.proof.heading}
+            </h2>
+            <p className="mt-2 text-label leading-6 text-on-light-muted">
+              {experience.proof.support}
+            </p>
+          </div>
 
           <label
             className={cn(
@@ -507,14 +620,14 @@ const CheckoutFlow = ({
             />
             <div className="flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-on-light-muted">
-                <Upload size={16} />
+                <Upload size={16} aria-hidden="true" />
               </div>
               <div>
                 <p className="text-small font-bold uppercase tracking-wide">
-                  Upload Slip (JPG / PNG / WEBP / PDF)
+                  {experience.proof.control}
                 </p>
                 <p className="mt-1 text-label text-on-light-secondary">
-                  Required for payment verification. Maximum file size: 5MB.
+                  {experience.proof.constraints}
                 </p>
               </div>
             </div>
@@ -526,24 +639,30 @@ const CheckoutFlow = ({
             {slipFile ? (
               <motion.div
                 key="slip-preview"
+                role="status"
+                aria-live="polite"
                 initial={reduceMotion ? false : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
                 exit={reduceMotion ? {} : { opacity: 0, y: -6 }}
-                transition={{ duration: reduceMotion ? 0 : 0.3, ease: easing.standard }}
+                transition={{
+                  duration: reduceMotion ? 0 : duration.fast,
+                  ease: easing.standard,
+                }}
                 className="border border-on-light-muted p-4"
               >
-                <p className="text-caption uppercase tracking-wide text-on-light-secondary">
-                  Slip Preview
+                <p className="text-caption uppercase tracking-wide text-brand-gold">
+                  {experience.proof.selected}
                 </p>
+                <p className="mt-2 text-label text-on-light-secondary">{experience.proof.ready}</p>
                 {slipPreviewUrl ? (
                   <AssetImage
                     src={slipPreviewUrl}
                     alt={`Slip preview ${slipFile.name}`}
-                    wrapperClassName="mt-3 aspect-4/3 w-full bg-neutral-100"
+                    wrapperClassName="mt-3 aspect-4/3 w-full max-w-sm bg-neutral-100"
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="mt-3 flex aspect-4/3 w-full items-center justify-center bg-neutral-100 text-center text-label uppercase tracking-wide text-on-light-secondary">
+                  <div className="mt-3 flex aspect-4/3 w-full max-w-sm items-center justify-center bg-neutral-100 text-center text-label uppercase tracking-wide text-on-light-secondary">
                     PDF file selected
                   </div>
                 )}
@@ -555,61 +674,38 @@ const CheckoutFlow = ({
                   onClick={removeSlip}
                   className="mt-3 flex min-h-11 items-center px-2 py-2 normal-case tracking-normal text-label uppercase tracking-wide text-on-light-secondary underline decoration-on-light-muted underline-offset-2 hover:text-brand-black md:min-h-0 md:px-0 md:py-0"
                 >
-                  Remove slip
+                  Remove Confirmation
                 </Button>
               </motion.div>
             ) : null}
           </AnimatePresence>
-        </div>
+        </section>
 
-        <Card
-          variant="light"
-          className="bg-brand-ivory px-4 py-4 text-body leading-6 text-on-light-secondary"
+        <section
+          className="grid gap-6 border-y border-on-light-subtle py-8 md:grid-cols-3"
+          aria-label="How Dotfumes handles this order"
         >
-          <div className="flex items-start gap-3">
-            <ShieldCheck size={16} className="mt-1 text-brand-gold" />
-            {googleSheetsEnabled ? (
-              <p>
-                Your order request and payment proof are received first, then reviewed manually by
-                Dotfumes. The team will contact you as early as possible for confirmation and
-                delivery coordination.
-              </p>
-            ) : (
-              <p>
-                Your order request is prepared and saved locally. Use the prefilled WhatsApp or
-                email summary on the next page so Dotfumes can confirm your order quickly.
-              </p>
-            )}
-          </div>
-        </Card>
-
-        <Card variant="light">
-          <p className="text-small font-bold uppercase tracking-wide text-on-light-secondary">
-            What Happens Next
-          </p>
-          <ol className="mt-4 space-y-2 text-body leading-6 text-on-light-secondary">
-            <li>1. Submit your order details and payment slip.</li>
-            <li>2. Dotfumes reviews your payment proof manually.</li>
-            <li>3. Dotfumes contacts you by WhatsApp or email for confirmation.</li>
-            <li>4. Delivery coordination starts right after confirmation.</li>
-          </ol>
-        </Card>
+          {experience.trust.map((item) => (
+            <div key={item.title}>
+              <h2 className="text-small font-bold uppercase tracking-wide text-brand-black">
+                {item.title}
+              </h2>
+              <p className="mt-2 text-label leading-6 text-on-light-secondary">{item.body}</p>
+            </div>
+          ))}
+        </section>
 
         <Button
           type="submit"
           variant="primary"
           loading={isSubmitting}
-          disabled={!canSubmit}
-          className="w-full px-8 py-4 tracking-wider"
+          disabled={isSubmitting}
+          className="w-full px-5 py-4 tracking-wide sm:px-8 sm:tracking-wider"
         >
-          {isSubmitting
-            ? googleSheetsEnabled
-              ? checkoutContract.submission.submittingLabel
-              : checkoutContract.submission.preparingLabel
-            : checkoutContract.submission.label}
+          {guidance.label}
         </Button>
-        <p className="text-center text-small text-on-light-secondary">
-          Your order request is sent now. Dotfumes will contact you as early as possible.
+        <p className="text-center text-small leading-6 text-on-light-secondary" aria-live="polite">
+          {guidance.support}
         </p>
       </form>
     </>
@@ -630,55 +726,92 @@ const CheckoutSummary = ({
   total,
   latestProductById,
   availabilityIssueByItem,
-}: CheckoutSummaryProps) => (
-  <Card
-    as="aside"
-    variant="light"
-    className="order-3 h-fit p-6 shadow-md lg:order-3 lg:col-start-2 lg:row-span-2 lg:sticky lg:top-28"
-  >
-    <h2 className={headingMd}>Your Selection</h2>
-    <div className="mt-8 space-y-6">
-      {items.length === 0 ? (
-        <div className="py-14 text-center">
-          <p className="text-small uppercase tracking-wide text-on-light-muted">
-            Your selection is empty.
-          </p>
-          <Link
-            to="/collection"
-            className={cn(
-              'mt-8 inline-flex border-b border-on-light-muted pb-1 text-caption uppercase',
-              tracking.wide,
-              focusRing,
-            )}
-          >
-            Explore Collection
-          </Link>
-        </div>
-      ) : (
-        items.map((item) => (
-          <CartLineItem
-            key={item.id}
-            itemId={item.id}
-            variant="checkout"
-            stock={latestProductById.get(item.id)?.stock ?? item.stock}
-            isUnavailable={availabilityIssueByItem.has(item.id)}
-          />
-        ))
-      )}
-    </div>
+}: CheckoutSummaryProps) => {
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
 
-    <div className="mt-8 space-y-3 border-t border-on-light-muted pt-6">
-      <div className="flex items-end justify-between">
-        <span className="text-caption uppercase tracking-wider text-on-light-muted">Items</span>
-        <span className="text-body text-on-light-secondary">{totalItems}</span>
+  return (
+    <Card
+      as="aside"
+      variant="light"
+      padding="none"
+      className="order-2 h-fit shadow-sm lg:order-3 lg:col-start-2 lg:row-span-2 lg:mt-12 lg:sticky lg:top-28"
+    >
+      <button
+        type="button"
+        className={cn(
+          'flex w-full items-center justify-between gap-4 p-5 text-left lg:hidden',
+          focusRing,
+        )}
+        aria-expanded={isSummaryExpanded}
+        aria-controls="checkout-summary-details"
+        onClick={() => setIsSummaryExpanded((expanded) => !expanded)}
+      >
+        <span className="min-w-0">
+          <span className="block font-serif text-heading">Reserved for You</span>
+          <span className="mt-1 block truncate text-label text-on-light-muted">
+            {items[0]?.name ?? 'Your selection'} · {formatCurrency(total)}
+          </span>
+        </span>
+        <span className="text-caption uppercase tracking-wide text-brand-gold">
+          {isSummaryExpanded ? 'Close' : 'View'}
+        </span>
+      </button>
+
+      <div
+        id="checkout-summary-details"
+        className={cn(
+          'border-t border-on-light-subtle p-5 lg:block lg:border-t-0 lg:p-6',
+          isSummaryExpanded ? 'block' : 'hidden',
+        )}
+      >
+        <h2 className={cn(headingMd, 'hidden lg:block')}>Reserved for You</h2>
+        <div className="mt-6 space-y-6 lg:mt-8">
+          {items.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-small uppercase tracking-wide text-on-light-muted">
+                Your selection is empty.
+              </p>
+              <Link
+                to="/collection"
+                className={cn(
+                  'mt-8 inline-flex border-b border-on-light-muted pb-1 text-caption uppercase',
+                  tracking.wide,
+                  focusRing,
+                )}
+              >
+                Explore Collection
+              </Link>
+            </div>
+          ) : (
+            items.map((item) => (
+              <CartLineItem
+                key={item.id}
+                itemId={item.id}
+                variant="checkout"
+                stock={latestProductById.get(item.id)?.stock ?? item.stock}
+                isUnavailable={availabilityIssueByItem.has(item.id)}
+              />
+            ))
+          )}
+        </div>
+        <div className="mt-8 space-y-3 border-t border-on-light-muted pt-6">
+          <div className="flex items-end justify-between">
+            <span className="text-caption uppercase tracking-wider text-on-light-muted">
+              Fragrances
+            </span>
+            <span className="text-body text-on-light-secondary">{totalItems}</span>
+          </div>
+          <div className="flex items-end justify-between gap-4">
+            <span className="text-caption uppercase tracking-wider text-on-light-muted">
+              Total reserved
+            </span>
+            <span className={headingMd}>{formatCurrency(total)}</span>
+          </div>
+        </div>
       </div>
-      <div className="flex items-end justify-between">
-        <span className="text-caption uppercase tracking-wider text-on-light-muted">Subtotal</span>
-        <span className={headingMd}>{formatCurrency(total)}</span>
-      </div>
-    </div>
-  </Card>
-);
+    </Card>
+  );
+};
 
 const CheckoutInput = ({
   label,
@@ -709,6 +842,7 @@ const CheckoutInput = ({
       required={required}
       name={name}
       type={type}
+      spellCheck={type === 'email' ? false : undefined}
       value={value}
       autoComplete={autoComplete}
       aria-describedby={error ? `${name}-error` : undefined}

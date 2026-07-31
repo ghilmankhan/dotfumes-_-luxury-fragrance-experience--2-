@@ -9,7 +9,7 @@ export type OrderStatus =
   | 'Cancelled'
   | 'Processing'
   | 'Completed';
-export type OrderSubmissionMode = 'frontend-fallback' | 'google-sheets';
+export type OrderSubmissionMode = 'supabase';
 
 export interface CheckoutFormValues {
   firstName: string;
@@ -46,7 +46,6 @@ export interface SlipDetails {
   fileSize: number;
   mimeType: string;
   previewUrl?: string;
-  driveFileId?: string;
   referenceUrl: string;
 }
 
@@ -87,14 +86,4 @@ export interface OrderSubmissionResult {
   mode: OrderSubmissionMode;
   message: string;
   slipUrl?: string;
-  driveFileId?: string;
-}
-
-export interface GoogleAppsScriptOrderResponse {
-  success: boolean;
-  orderId?: string;
-  slipUrl?: string;
-  driveFileId?: string;
-  message?: string;
-  whatsappUrl?: string;
 }

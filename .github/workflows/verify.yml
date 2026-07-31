@@ -1,0 +1,97 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, supabase]
+  # `database` (below) is workflow_dispatch-only — see that job's own comment
+  # for why it is deliberately NOT wired to pull_request/push yet. Do not add
+  # a `database:` trigger key scoped to that job only; GitHub Actions triggers
+  # are workflow-level, so this workflow_dispatch entry covers manual runs of
+  # any job in this file, and `database` is the only one meant to be run this
+  # way today.
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    # Always runs on pull_request/push — not gated, not known to fail.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      # Scoped deliberately to ONLY the Supabase-generated types file. `npm
+      # run build` also rewrites several unrelated src/generated/*.json files
+      # (via the skill-compiler/self-healing pre-build scripts) — those are
+      # owned by a separate tool and are NOT covered by this check. See
+      # docs/supabase-migration/06-testing-and-ci-inventory.md for the full
+      # reasoning behind this scoping decision.
+      #
+      # Corrected 2026-08-01 (Foundation Correction pass): renamed from "Check
+      # generated Supabase types are committed and current" — that name
+      # overstated what this step proves. This only shows that the normal
+      # frontend build (which does not regenerate database.types.ts) did not
+      # itself modify the committed file. It does NOT prove the committed
+      # types still match the live/local database schema — that comparison
+      # requires a real schema to generate against, which only the `database`
+      # job (below) has access to.
+      - name: Verify frontend build did not modify committed Supabase types
+        run: git diff --exit-code -- src/lib/database.types.ts
+
+  database:
+    name: Local schema rebuild and RLS tests
+    runs-on: ubuntu-latest
+    # Corrected 2026-08-01 (Foundation Evidence Reconciliation pass, Phase 8):
+    # this job is intentionally NOT triggered by `pull_request`/`push` (see
+    # the `on:` block above — only `workflow_dispatch` reaches it). It is run
+    # manually until the migration baseline is complete.
+    #
+    # Why: as of this workflow's creation, only 2 of 5 applied migrations
+    # exist as local files — the original 3 (init_commerce_schema,
+    # payment_slips_bucket, harden_rls_and_atomic_order_creation) have not yet
+    # been captured, because capturing them requires an authenticated
+    # `supabase db pull` that could not be run from this environment (see
+    # docs/supabase-migration/14-local-rebuild-and-test-results.md). Wiring
+    # this job to run automatically on every PR/push today would make it a
+    # required-looking check that fails by design on every run, which this
+    # project's own CI-design rules (Phase 8 of the Foundation Evidence
+    # Reconciliation task) explicitly forbid. Once the 3 original migrations
+    # are backfilled locally (see the doc above for the remediation steps),
+    # move the trigger for this job back onto `pull_request`/`push` — e.g. by
+    # splitting this workflow into two files, or by adding a job-level `if:`
+    # condition keyed off a tracked "baseline complete" marker — and delete
+    # this comment block.
+    #
+    # This job intentionally does NOT require SUPABASE_ACCESS_TOKEN even once
+    # re-enabled automatically: `supabase start` + `db reset` + `test db` run
+    # entirely against a disposable local Postgres container and never touch
+    # the remote project.
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          # Pinned 2026-08-01 (Foundation Correction pass) to the version
+          # directly verified in this environment via `npx --yes supabase
+          # --version` (see docs/supabase-migration/06-testing-and-ci-inventory.md).
+          # `latest` was replaced because an unpinned CLI version can change
+          # behavior between runs without any change to this repository.
+          version: 2.111.0
+      - run: supabase start
+      - run: supabase db reset
+      - run: supabase test db
+      # Added 2026-08-01 (Foundation Correction pass): this is the actual
+      # schema-vs-committed-types comparison the frontend job's renamed step
+      # (above) explicitly does NOT perform. Types are generated from the
+      # just-rebuilt LOCAL database (never the remote project) into a
+      # temporary file — the committed src/lib/database.types.ts is never
+      # overwritten by CI, only compared against.
+      - name: Generate types from the local database
+        run: supabase gen types typescript --local > /tmp/database.types.ts
+      - name: Compare committed types against local-schema-generated types
+        run: diff -u src/lib/database.types.ts /tmp/database.types.ts

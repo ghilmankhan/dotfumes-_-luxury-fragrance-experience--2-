@@ -192,7 +192,13 @@ export const CartLineItem = memo(function CartLineItem({
   }
 
   return (
-    <div ref={rootRef} className={cn('flex gap-6 border-b border-on-light-subtle pb-6', isUnavailable && 'opacity-50')}>
+    <div
+      ref={rootRef}
+      className={cn(
+        'flex gap-6 border-b border-on-light-subtle pb-6',
+        isUnavailable && 'opacity-50',
+      )}
+    >
       <AssetImage
         src={item.images.front}
         alt={item.name}
@@ -203,13 +209,12 @@ export const CartLineItem = memo(function CartLineItem({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className={headingXs}>{item.name}</p>
-            <p className="mt-2 flex items-baseline gap-2">
-              <span className="text-small font-semibold text-on-light-strong">
-                {formatCurrency(item.price)}
-              </span>
-              <span className="text-caption uppercase tracking-wide text-on-light-muted">
-                {item.sku}
-              </span>
+            <p className="mt-1 line-clamp-2 text-label leading-5 text-on-light-muted lg:line-clamp-1">
+              {item.shortDescription}
+            </p>
+            <p className="mt-2 text-caption text-brand-gold">Held for your private order</p>
+            <p className="mt-3 text-small font-semibold text-on-light-strong">
+              {formatCurrency(item.price)}
             </p>
           </div>
           <Button
@@ -253,9 +258,9 @@ export const CartLineItem = memo(function CartLineItem({
             <Plus size={12} strokeWidth={1.5} />
           </Button>
         </div>
-        <p className="mt-3 text-small text-on-light-muted">
-          {isUnavailable ? 'Out of stock — remove to continue' : `Stock: ${availableStock}`}
-        </p>
+        {isUnavailable ? (
+          <p className="mt-3 text-small text-on-light-muted">Out of stock — remove to continue</p>
+        ) : null}
       </div>
     </div>
   );
