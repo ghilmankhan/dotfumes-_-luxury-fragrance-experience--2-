@@ -1,8 +1,6 @@
 -- Executable pgTAP tests for private.is_admin() and the app_metadata-based
--- authorization model. NOT EXECUTED as of this pass — no local Docker stack
--- is available in this environment (see
--- docs/supabase-migration/14-local-rebuild-and-test-results.md). Written to
--- be run once that blocker is resolved.
+-- authorization model. Run via `supabase test db` against a local Supabase
+-- stack.
 --
 -- Uses the same fixture-insert-then-impersonate pattern as
 -- foundation_profiles_rls.test.sql. Only ever run against a local/test

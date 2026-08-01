@@ -9,6 +9,9 @@ test-results/
 audit-artifacts/
 artifacts/
 .agents/skills/
+# Supabase CLI local runtime state (supabase start / db reset), never committed
+supabase/.temp/
+supabase/.branches/
 .env
 .env.local
 .env.*.local

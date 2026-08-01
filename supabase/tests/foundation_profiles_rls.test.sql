@@ -1,10 +1,6 @@
 -- Executable pgTAP tests for public.profiles: structure, RLS, grants, and
 -- trigger behavior. Requires the pgTAP extension and a local Supabase stack
--- (`supabase start` + `supabase test db`). NOT EXECUTED as of this pass — no
--- Docker/local stack is available in this environment (see
--- docs/supabase-migration/14-local-rebuild-and-test-results.md). Written to
--- be run once that blocker is resolved; treat as design-verified, not
--- run-verified, until `supabase test db` output is captured.
+-- (`supabase start` + `supabase test db`).
 --
 -- Test users are inserted directly into `auth.users` inside this file's own
 -- transaction, which is rolled back at the end — this is the standard pgTAP
@@ -116,11 +112,20 @@ select is(
 );
 
 -- ── Anonymous access ─────────────────────────────────────────────────────
+-- Corrected 2026-08-01 (Foundation validation-gate correction pass): anon
+-- holds zero table-level grants on public.profiles (see the assertion above
+-- and 20260731174630_revoke_anon_grants_on_profiles.sql), so a bare SELECT
+-- is rejected by Postgres's privilege check before RLS is ever evaluated.
+-- The correct outcome is a hard permission error (42501), not an
+-- empty RLS-filtered result — `is_empty()` does not catch exceptions, so
+-- asserting it here previously crashed the rest of this test file.
 set local role anon;
 reset "request.jwt.claims";
-select is_empty(
+select throws_ok(
   $$ select 1 from public.profiles $$,
-  'anonymous user cannot read any row from public.profiles'
+  '42501',
+  null,
+  'anonymous user cannot read any row from public.profiles (permission denied, no table-level grant)'
 );
 
 -- ── User A: read own row, cannot read User B's row ──────────────────────
@@ -159,6 +164,7 @@ select is(
 select throws_ok(
   $$ update public.profiles set id = '99999999-9999-9999-9999-999999999999' where id = '11111111-1111-1111-1111-111111111111' $$,
   '42501',
+  null,
   'User A cannot modify their own profile id (insufficient_privilege)'
 );
 
@@ -166,6 +172,7 @@ select throws_ok(
 select throws_ok(
   $$ update public.profiles set email = 'attacker@evil.example' where id = '11111111-1111-1111-1111-111111111111' $$,
   '42501',
+  null,
   'User A cannot directly modify email (insufficient_privilege)'
 );
 
@@ -179,6 +186,7 @@ select throws_ok(
 select throws_ok(
   $$ update public.profiles set updated_at = '2000-01-01T00:00:00Z' where id = '11111111-1111-1111-1111-111111111111' $$,
   '42501',
+  null,
   'User A cannot directly modify updated_at (insufficient_privilege, after the updated_at grant restriction)'
 );
 

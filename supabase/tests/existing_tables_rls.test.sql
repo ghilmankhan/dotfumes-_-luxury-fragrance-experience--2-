@@ -1,8 +1,16 @@
 -- Executable pgTAP tests for the existing public.products, public.orders,
 -- public.settings, and storage.objects (payment-slips bucket) RLS policies.
--- NOT EXECUTED as of this pass — no local Docker stack is available in this
--- environment (see docs/supabase-migration/14-local-rebuild-and-test-results.md).
--- Written to be run once that blocker is resolved.
+-- Run via `supabase test db` against a local Supabase stack
+-- (`supabase start` + `supabase db reset --local`).
+--
+-- Corrected 2026-08-01 (Foundation validation-gate correction pass): tests 2
+-- and 3 previously expected a 42501 permission error for anon/non-admin
+-- UPDATEs on products. That is not what Postgres does here — anon and
+-- authenticated both hold table-level UPDATE via `grant all on table
+-- products to ...` (see 20260730185111_baseline_remote_schema.sql), so RLS,
+-- not the privilege system, is the enforcement point; with no UPDATE policy
+-- matching a non-admin role, the statement succeeds but affects zero rows.
+-- Both assertions now check that the row is unchanged instead.
 --
 -- Fixtures (products/settings/orders/storage rows, one admin auth user) are
 -- inserted as `postgres` (bypasses RLS) inside this file's own transaction,
@@ -72,21 +80,26 @@ select is(
   'anon can see only the active test product, not the inactive one'
 );
 
--- 2. Public cannot modify products
-select throws_ok(
-  $$ update public.products set price = 0.01 where slug = 'test-active-scent' $$,
-  '42501',
-  'anon cannot update products (insufficient_privilege)'
+-- 2. Public cannot modify products (table-level UPDATE grant exists; RLS has
+-- no matching policy for anon, so the statement succeeds but touches 0 rows)
+update public.products set price = 0.01 where slug = 'test-active-scent';
+select is(
+  (select price from public.products where slug = 'test-active-scent'),
+  10.00,
+  'anon cannot update products (RLS filters to zero matching rows; price unchanged)'
 );
 
--- 3. Non-admin authenticated user cannot modify products
+-- 3. Non-admin authenticated user cannot modify products (same reasoning:
+-- table-level grant exists, RLS has no matching UPDATE policy for a
+-- non-admin claim)
 set local role authenticated;
 set local "request.jwt.claims" to
   '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{}}';
-select throws_ok(
-  $$ update public.products set price = 0.01 where slug = 'test-active-scent' $$,
-  '42501',
-  'a non-admin authenticated user cannot update products (insufficient_privilege)'
+update public.products set price = 0.01 where slug = 'test-active-scent';
+select is(
+  (select price from public.products where slug = 'test-active-scent'),
+  10.00,
+  'a non-admin authenticated user cannot update products (RLS filters to zero matching rows; price unchanged)'
 );
 
 -- 4. Admin can modify products

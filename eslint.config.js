@@ -5,7 +5,21 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'audit-artifacts/**', 'test-results/**', '.agents/**', '.claude/**'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'audit-artifacts/**',
+      'test-results/**',
+      '.agents/**',
+      '.claude/**',
+      // Supabase CLI runtime state written locally by `supabase start` /
+      // `supabase db reset` (e.g. a vendored edge-runtime bundle under
+      // .temp/). Never committed (see .gitignore) and not reviewable source
+      // — narrowly scoped so the rest of supabase/ (migrations, tests,
+      // config.toml) stays linted and reviewable.
+      'supabase/.temp/**',
+      'supabase/.branches/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
