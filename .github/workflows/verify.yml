@@ -4,12 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, supabase]
-  # `database` (below) is workflow_dispatch-only — see that job's own comment
-  # for why it is deliberately NOT wired to pull_request/push yet. Do not add
-  # a `database:` trigger key scoped to that job only; GitHub Actions triggers
-  # are workflow-level, so this workflow_dispatch entry covers manual runs of
-  # any job in this file, and `database` is the only one meant to be run this
-  # way today.
+  # `workflow_dispatch` also covers manual reruns of either job below.
   workflow_dispatch:
 
 jobs:
@@ -46,32 +41,18 @@ jobs:
   database:
     name: Local schema rebuild and RLS tests
     runs-on: ubuntu-latest
-    # Corrected 2026-08-01 (Foundation Evidence Reconciliation pass, Phase 8):
-    # this job is intentionally NOT triggered by `pull_request`/`push` (see
-    # the `on:` block above — only `workflow_dispatch` reaches it). It is run
-    # manually until the migration baseline is complete.
+    # Re-enabled on pull_request/push 2026-08-01 (Base Phase 4, environment/CI
+    # readiness pass). This job was previously workflow_dispatch-only because
+    # only 2 of 5 applied migrations existed as local files at the time (see
+    # git history on this file for the original comment). The migration
+    # baseline is now complete and independently verified zero-diff against
+    # the remote project's schema (supabase/migrations/README.md,
+    # docs/supabase-migration/19-foundation-reconciliation.md), so the
+    # original reason to gate this job no longer applies.
     #
-    # Why: as of this workflow's creation, only 2 of 5 applied migrations
-    # exist as local files — the original 3 (init_commerce_schema,
-    # payment_slips_bucket, harden_rls_and_atomic_order_creation) have not yet
-    # been captured, because capturing them requires an authenticated
-    # `supabase db pull` that could not be run from this environment (see
-    # docs/supabase-migration/14-local-rebuild-and-test-results.md). Wiring
-    # this job to run automatically on every PR/push today would make it a
-    # required-looking check that fails by design on every run, which this
-    # project's own CI-design rules (Phase 8 of the Foundation Evidence
-    # Reconciliation task) explicitly forbid. Once the 3 original migrations
-    # are backfilled locally (see the doc above for the remediation steps),
-    # move the trigger for this job back onto `pull_request`/`push` — e.g. by
-    # splitting this workflow into two files, or by adding a job-level `if:`
-    # condition keyed off a tracked "baseline complete" marker — and delete
-    # this comment block.
-    #
-    # This job intentionally does NOT require SUPABASE_ACCESS_TOKEN even once
-    # re-enabled automatically: `supabase start` + `db reset` + `test db` run
-    # entirely against a disposable local Postgres container and never touch
-    # the remote project.
-    if: github.event_name == 'workflow_dispatch'
+    # This job does not require SUPABASE_ACCESS_TOKEN: `supabase start` +
+    # `db reset` + `test db` run entirely against a disposable local Postgres
+    # container and never touch the remote project.
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
