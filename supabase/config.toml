@@ -30,3 +30,18 @@ allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "application/pdf"
 # reproduce deployed behavior. No business logic is affected.
 [functions.create-order]
 verify_jwt = false
+
+# TOTP MFA (Base Phase 3 — administrator MFA readiness/enforcement). The CLI's
+# own built-in default for a project that omits this section entirely is
+# `enroll_enabled = false` / `verify_enabled = false` (confirmed by diffing
+# against a fresh `supabase init` template on 2026-08-01 — this project's
+# config.toml only ever lists sections it has evidence-backed, non-default
+# values for, so [auth.mfa.totp] was never present before now). Without this,
+# `supabase.auth.mfa.enroll({ factorType: 'totp' })` fails locally with
+# "MFA enroll is disabled for TOTP", even though the TOTP MFA API itself is
+# documented as free and enabled by default at the platform level — the local
+# CLI stack still requires this explicit opt-in. See
+# docs/supabase-migration/20-admin-mfa-recovery-ux.md.
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
