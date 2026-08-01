@@ -191,6 +191,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -207,9 +231,33 @@ export type Database = {
         }
         Returns: Json
       }
+      get_my_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      grant_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user: string
+        }
+        Returns: undefined
+      }
+      revoke_role: {
+        Args: {
+          target_role: Database["public"]["Enums"]["app_role"]
+          target_user: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "customer"
+        | "support"
+        | "inventory_manager"
+        | "payment_reviewer"
+        | "admin"
+        | "owner"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -336,6 +384,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "customer",
+        "support",
+        "inventory_manager",
+        "payment_reviewer",
+        "admin",
+        "owner",
+      ],
+    },
   },
 } as const
