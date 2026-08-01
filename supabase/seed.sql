@@ -21,6 +21,28 @@ values
   ('seed-discontinued-scent', 'Discontinued Scent (seed data, inactive)', 30.00, 0, false, 'Unisex')
 on conflict (slug) do nothing;
 
+-- ── Demo-catalog checkout fixture ─────────────────────────────────────────
+-- Added 2026-08-01. `tests/e2e/smoke.spec.ts` exercises the real checkout
+-- flow (real frontend UI -> real `create-order` Edge Function -> real
+-- `public.create_order` RPC) against the frontend's static demo/fallback
+-- catalog product `bold-decision` (src/constants/products.ts), not against
+-- the generic `seed-*` fixtures above. `create_order` looks products up by
+-- slug only (supabase/migrations/20260730185111_baseline_remote_schema.sql),
+-- so without a matching local row the RPC correctly raises `UNAVAILABLE:
+-- bold-decision` even though the frontend still renders the static product
+-- as available (its local-constants fallback defaults `active` to true when
+-- no Supabase row exists — see `mergeLocalWithCatalogProducts` in
+-- src/store/useProductCatalogStore.ts). This row exists solely to give the
+-- local database an authoritative product matching the frontend's existing
+-- static "Bold Decision" demo product, so the E2E checkout test exercises
+-- the real server-side pricing/stock authority instead of failing on a
+-- lookup gap. Field values (sku, name, price, category) are copied verbatim
+-- from the static catalog entry to avoid inventing new product data.
+insert into public.products (slug, sku, name, price, stock, active, category)
+values
+  ('bold-decision', 'DTF-BD-50ML', 'Bold Decision', 220.00, 10, true, 'Men')
+on conflict (slug) do nothing;
+
 -- ── Settings: minimal checkout configuration the create_order RPC reads ──
 insert into public.settings (key, value, is_public)
 values
