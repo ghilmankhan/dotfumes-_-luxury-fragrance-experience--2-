@@ -103,9 +103,16 @@ test.describe('route smoke', () => {
   }
 
   test('/admin opens with lock screen', async ({ page }) => {
+    // Corrected 2026-08-01 (Foundation E2E gate resolution pass): this test
+    // was written (68a5417) against a local mock "Unlock Dashboard" gate.
+    // Commit 8f484cf ("migrate order backend and admin auth to Supabase")
+    // intentionally replaced that with real Supabase auth and a "Sign In"
+    // button (see AdminPage.tsx handleSignIn) — the button copy was never
+    // updated here to match. Verified via `git log -S "Unlock Dashboard"`
+    // that this text never existed anywhere in the app after that migration.
     await page.goto('/admin');
     await expect(page.getByRole('heading', { name: 'Secure Access' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Unlock Dashboard' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
   });
 
   test('/random-test-page shows not found page', async ({ page }) => {
