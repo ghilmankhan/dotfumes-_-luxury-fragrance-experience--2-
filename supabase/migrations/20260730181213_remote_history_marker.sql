@@ -1,0 +1,22 @@
+-- Remote migration history marker (no-op).
+--
+-- The timestamp `20260730181213` is independently verified to exist in the
+-- remote project's migration history (`supabase_migrations.schema_migrations`
+-- on project jguewximloxmbhpsoxjb, confirmed read-only via
+-- `supabase migration list --linked` and MCP `list_migrations`).
+--
+-- The original SQL executed under this timestamp is not present in the
+-- current repository or in the evidence package collected for this
+-- reconciliation, and has not been recovered.
+--
+-- This file is NOT the original migration. It contains no reconstructed DDL.
+-- Its only purpose is to occupy this timestamp in local migration history so
+-- that `supabase migration list --linked` reports this timestamp as paired
+-- (local present) rather than remote-only, without local execution silently
+-- diverging from what the remote project actually ran at this timestamp.
+--
+-- All verified end-state DDL spanning this timestamp and the other two
+-- missing remote-only timestamps (`20260730181201`, `20260730185111`) is
+-- reconstructed, as a single combined baseline with unknown per-timestamp
+-- attribution, in `20260730185111_baseline_remote_schema.sql`.
+select 1;

@@ -77,3 +77,28 @@ overstate a classification that has not been confirmed by the user.
 is an exact copy of what was executed — this is a materially different provenance than a `db pull`
 baseline, since these two were captured as their own original migration text, not reconstructed from
 end-state introspection.
+
+## Correction (2026-08-01, Migration-Baseline Reconciliation pass)
+
+The gap described above is now closed with three new files:
+
+- `20260730181201_remote_history_marker.sql` — no-op. Occupies a remote-verified timestamp whose
+  original SQL was not recovered. Contains no DDL.
+- `20260730181213_remote_history_marker.sql` — no-op, same reasoning.
+- `20260730185111_baseline_remote_schema.sql` — reconstructs the verified combined remote end
+  state spanning all three missing timestamps (private schema, `orders`/`products`/`settings`
+  tables, their constraints/indexes/triggers/RLS/policies, `private.set_updated_at()`,
+  `private.is_admin()`, `public.create_order()`, `public.rls_auto_enable()` and its event trigger).
+
+None of these three files claim to reproduce the original three-step DDL history: attribution of
+any individual object to one specific original migration (`init_commerce_schema` /
+`payment_slips_bucket` / `harden_rls_and_atomic_order_creation`) is unknown and is not claimed.
+Each file's own header comment repeats this in full. See
+`docs/supabase-migration/` reconciliation evidence and the accompanying evidence-package matrix
+(`17-reconciliation-matrix.md`, outside this repository) for the complete object-by-object
+sourcing. This correction does not change the "Development Candidate — Awaiting User
+Confirmation" environment classification.
+
+The `payment-slips` storage bucket (data, not schema DDL) remains reproduced separately via
+`[storage.buckets.payment-slips]` in `supabase/config.toml`, per the prior correction above — not
+part of these three migration files.
