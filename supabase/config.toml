@@ -18,3 +18,15 @@ project_id = "jguewximloxmbhpsoxjb"
 public = false
 file_size_limit = "5MiB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/webp", "application/pdf"]
+
+# create-order Edge Function local-serve config, reproducing the verify_jwt
+# setting retrieved from the remote deployment via
+# `supabase functions list --project-ref jguewximloxmbhpsoxjb` on 2026-08-01
+# (see dotfumes-supabase-evidence-20260801/39-functions-list.txt): verify_jwt
+# is false because customers are anonymous (publishable keys, not JWTs); the
+# function's own comment header states this explicitly. Without this entry
+# the local CLI default (verify_jwt = true) would reject every anonymous
+# checkout request that the deployed function accepts, which would not
+# reproduce deployed behavior. No business logic is affected.
+[functions.create-order]
+verify_jwt = false
