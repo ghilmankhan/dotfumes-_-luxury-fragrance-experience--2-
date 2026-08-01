@@ -8,7 +8,7 @@
 -- ever run against a local/test database, never the remote project.
 
 begin;
-select plan(32);
+select plan(35);
 
 -- ── Local-database guard (fail closed) ──────────────────────────────────
 do $$
@@ -222,12 +222,26 @@ select ok(
   'the service_role-bootstrapped user passes private.is_owner()'
 );
 
--- ── 25-26. RLS enforcement under actual authenticated claims ────────────
+-- ── 25-27. RLS enforcement under actual authenticated claims ────────────
+-- Base security-closure pass (20260801193503_enforce_aal2_on_privileged_access.sql):
+-- user_roles_select_admin now requires private.is_admin_mfa() (admin AND
+-- aal2), not just private.is_admin(), since cross-user role visibility is
+-- part of the same privileged role-management surface as grant_role()/
+-- revoke_role(). Test 25 requires aal2; test 26 is the paired direct-API
+-- bypass check proving an aal1 admin session is restricted to the same
+-- select-own visibility as any other authenticated user.
 set local "request.jwt.claims" to
-  '{"sub":"a0000000-0000-0000-0000-000000000006","role":"authenticated","app_metadata":{}}';
+  '{"sub":"a0000000-0000-0000-0000-000000000006","role":"authenticated","app_metadata":{},"aal":"aal2"}';
 select ok(
   (select count(*)::int from public.user_roles) > 5,
-  'an admin (user_roles_select_admin policy) can see every user_roles row, not just their own'
+  'an admin with an aal2 session (user_roles_select_admin policy) can see every user_roles row'
+);
+set local "request.jwt.claims" to
+  '{"sub":"a0000000-0000-0000-0000-000000000006","role":"authenticated","app_metadata":{}}';
+select is(
+  (select count(*)::int from public.user_roles),
+  2,
+  'an admin at aal1 (no MFA) sees only their own two user_roles rows (auto-assigned customer + granted admin), not every user''s (direct-API bypass check)'
 );
 set local "request.jwt.claims" to
   '{"sub":"a0000000-0000-0000-0000-000000000003","role":"authenticated","app_metadata":{}}';
@@ -255,6 +269,20 @@ select ok(
   (select prosecdef from pg_proc where oid = 'public.grant_role(uuid, public.app_role)'::regprocedure)
   and (select prosecdef from pg_proc where oid = 'public.revoke_role(uuid, public.app_role)'::regprocedure),
   'public.grant_role()/revoke_role() are SECURITY DEFINER (required to write rows the caller does not own)'
+);
+
+-- ── 30. private.has_aal2()/private.is_admin_mfa() are SECURITY INVOKER ──
+select ok(
+  not (select prosecdef from pg_proc where oid = 'private.has_aal2()'::regprocedure)
+  and not (select prosecdef from pg_proc where oid = 'private.is_admin_mfa()'::regprocedure),
+  'private.has_aal2()/is_admin_mfa() are SECURITY INVOKER (safe to grant EXECUTE broadly, and RLS remains the only source of truth)'
+);
+
+-- ── 31. revoke_role() takes an advisory lock before the final-owner count
+-- (concurrency-safety proof for the count-then-delete invariant) ─────────
+select ok(
+  pg_get_functiondef('public.revoke_role(uuid, public.app_role)'::regprocedure) like '%pg_advisory_xact_lock%',
+  'revoke_role() serializes owner-targeting calls with pg_advisory_xact_lock before counting remaining owners'
 );
 
 select * from finish();

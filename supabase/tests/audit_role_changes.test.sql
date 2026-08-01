@@ -8,7 +8,7 @@
 -- database, never the remote project.
 
 begin;
-select plan(14);
+select plan(16);
 
 -- ── Local-database guard (fail closed) ──────────────────────────────────
 do $$
@@ -148,6 +148,23 @@ select ok(
 select ok(
   (select count(*)::int from public.list_role_change_audit_log()) >= 3,
   'public.list_role_change_audit_log() returns the full log for an owner'
+);
+
+-- ── 10a-10b. Owner WITHOUT aal2 cannot read the log (direct-API bypass
+-- check, Base security-closure pass
+-- 20260801193503_enforce_aal2_on_privileged_access.sql: role_changes_select_admin
+-- now requires private.is_admin_mfa(), not just private.is_admin()) ──────
+set local "request.jwt.claims" to
+  '{"sub":"b0000000-0000-0000-0000-000000000001","role":"authenticated","app_metadata":{}}';
+select is(
+  (select count(*)::int from audit.role_changes),
+  0,
+  'an owner at aal1 (no MFA) sees zero audit.role_changes rows despite holding the owner role'
+);
+select is(
+  (select count(*)::int from public.list_role_change_audit_log()),
+  0,
+  'public.list_role_change_audit_log() returns zero rows for an owner at aal1 (RLS-filtered, not an error)'
 );
 
 -- ── 12-13. No client role can write or edit the audit log directly ──────

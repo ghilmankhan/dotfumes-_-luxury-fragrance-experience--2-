@@ -12,13 +12,22 @@
 -- matching a non-admin role, the statement succeeds but affects zero rows.
 -- Both assertions now check that the row is unchanged instead.
 --
+-- Corrected 2026-08-02 (Base security-closure pass,
+-- 20260801193503_enforce_aal2_on_privileged_access.sql): every admin-gated
+-- policy here now requires private.is_admin_mfa() (admin AND aal2), not
+-- just private.is_admin(). Every "admin can X" assertion below now sets
+-- `"aal":"aal2"` on the admin fixture's claims, and each has a paired
+-- "admin at aal1 cannot X" assertion proving the server-side RLS itself
+-- blocks a privileged session that has not completed MFA — not merely the
+-- AdminPage frontend gate, which a direct REST/RPC call would bypass.
+--
 -- Fixtures (products/settings/orders/storage rows, one admin auth user) are
 -- inserted as `postgres` (bypasses RLS) inside this file's own transaction,
 -- which is rolled back at the end. Only ever run against a local/test
 -- database, never the remote project.
 
 begin;
-select plan(10);
+select plan(19);
 
 -- ── Local-database guard (fail closed) ──────────────────────────────────
 -- See supabase/tests/foundation_profiles_rls.test.sql for the full rationale.
@@ -102,27 +111,39 @@ select is(
   'a non-admin authenticated user cannot update products (RLS filters to zero matching rows; price unchanged)'
 );
 
--- 4. Admin can modify products
+-- 4. Admin at aal2 can modify products
 set local "request.jwt.claims" to
-  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
 update public.products set price = 12.34 where slug = 'test-active-scent';
 select is(
   (select price from public.products where slug = 'test-active-scent'),
   12.34,
-  'an admin user can update products'
+  'an admin user with an aal2 session can update products'
+);
+
+-- 5. Admin WITHOUT aal2 cannot modify products (direct-API bypass check:
+-- the server-side RLS itself blocks this, not merely the AdminPage
+-- frontend's own aal2 gate)
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+update public.products set price = 99.99 where slug = 'test-active-scent';
+select is(
+  (select price from public.products where slug = 'test-active-scent'),
+  12.34,
+  'an admin at aal1 (no MFA) cannot update products (RLS filters to zero matching rows; price unchanged)'
 );
 
 -- ── Orders ───────────────────────────────────────────────────────────────
 set local role anon;
 reset "request.jwt.claims";
 
--- 5. Public cannot read orders
+-- 6. Public cannot read orders
 select is_empty(
   $$ select 1 from public.orders $$,
   'anon cannot read any row from public.orders'
 );
 
--- 6. Non-admin authenticated user cannot read orders
+-- 7. Non-admin authenticated user cannot read orders
 set local role authenticated;
 set local "request.jwt.claims" to
   '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{}}';
@@ -131,42 +152,129 @@ select is_empty(
   'a non-admin authenticated user cannot read any row from public.orders'
 );
 
--- 7. Admin can read orders
+-- 8. Admin at aal2 can read orders
 set local "request.jwt.claims" to
-  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
 select isnt_empty(
   $$ select 1 from public.orders where order_code = 'TEST-0001' $$,
-  'an admin user can read orders'
+  'an admin user with an aal2 session can read orders'
+);
+
+-- 9. Admin WITHOUT aal2 cannot read orders
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+select is_empty(
+  $$ select 1 from public.orders where order_code = 'TEST-0001' $$,
+  'an admin at aal1 (no MFA) cannot read any row from public.orders'
+);
+
+-- 10. Admin at aal2 can update orders
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
+update public.orders set order_status = 'processing' where order_code = 'TEST-0001';
+select is(
+  (select order_status from public.orders where order_code = 'TEST-0001'),
+  'processing',
+  'an admin user with an aal2 session can update orders'
+);
+
+-- 11. Admin WITHOUT aal2 cannot update orders. Verification reads as
+-- postgres (RLS-bypassing) rather than under the aal1 claim itself: after
+-- this migration that claim can no longer SELECT orders at all (test 9), so
+-- re-querying under it would trivially return NULL regardless of whether
+-- the UPDATE actually mutated the row — this must independently confirm
+-- the row's true persisted state.
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+update public.orders set order_status = 'cancelled' where order_code = 'TEST-0001';
+set local role postgres;
+reset "request.jwt.claims";
+select is(
+  (select order_status from public.orders where order_code = 'TEST-0001'),
+  'processing',
+  'an admin at aal1 (no MFA) cannot update orders (RLS filters to zero matching rows; status unchanged)'
 );
 
 -- ── Settings ─────────────────────────────────────────────────────────────
 set local role anon;
 reset "request.jwt.claims";
 
--- 8. Public sees only is_public settings; admin sees both
+-- 12. Public sees only is_public settings, never the private one
 select is(
   (select count(*)::int from public.settings where key in ('test-public-setting', 'test-private-setting')),
   1,
   'anon can see only the is_public=true test setting, not the private one'
 );
 
+-- 13. Admin at aal2 can see the private setting too
+set local role authenticated;
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
+select is(
+  (select count(*)::int from public.settings where key in ('test-public-setting', 'test-private-setting')),
+  2,
+  'an admin user with an aal2 session can see both the public and private test settings'
+);
+
+-- 14. Admin WITHOUT aal2 sees only the public setting, same as anon
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+select is(
+  (select count(*)::int from public.settings where key in ('test-public-setting', 'test-private-setting')),
+  1,
+  'an admin at aal1 (no MFA) sees only the is_public=true setting, same as an unprivileged caller'
+);
+
+-- 15. Admin at aal2 can update settings
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
+update public.settings set value = '{"note":"updated"}'::jsonb where key = 'test-private-setting';
+select is(
+  (select value ->> 'note' from public.settings where key = 'test-private-setting'),
+  'updated',
+  'an admin user with an aal2 session can update settings'
+);
+
+-- 16. Admin WITHOUT aal2 cannot update settings. Verification read as
+-- postgres (RLS-bypassing) for the same reason as test 11 above: the aal1
+-- claim can no longer SELECT the private setting at all (test 14), so
+-- re-querying under it would trivially return NULL either way.
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+update public.settings set value = '{"note":"tampered"}'::jsonb where key = 'test-private-setting';
+set local role postgres;
+reset "request.jwt.claims";
+select is(
+  (select value ->> 'note' from public.settings where key = 'test-private-setting'),
+  'updated',
+  'an admin at aal1 (no MFA) cannot update settings (RLS filters to zero matching rows; value unchanged)'
+);
+
 -- ── Storage: payment-slips bucket ───────────────────────────────────────
 set local role anon;
 reset "request.jwt.claims";
 
--- 9. Private slip objects cannot be read publicly
+-- 17. Private slip objects cannot be read publicly
 select is_empty(
   $$ select 1 from storage.objects where bucket_id = 'payment-slips' and name = 'test-order-id/slip.png' $$,
   'anon cannot read payment-slips storage objects'
 );
 
--- 10. Admin can read slip objects
+-- 18. Admin at aal2 can read slip objects
 set local role authenticated;
 set local "request.jwt.claims" to
-  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"},"aal":"aal2"}';
 select isnt_empty(
   $$ select 1 from storage.objects where bucket_id = 'payment-slips' and name = 'test-order-id/slip.png' $$,
-  'an admin user can read payment-slips storage objects'
+  'an admin user with an aal2 session can read payment-slips storage objects'
+);
+
+-- 19. Admin WITHOUT aal2 cannot read slip objects
+set local "request.jwt.claims" to
+  '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","app_metadata":{"role":"admin"}}';
+select is_empty(
+  $$ select 1 from storage.objects where bucket_id = 'payment-slips' and name = 'test-order-id/slip.png' $$,
+  'an admin at aal1 (no MFA) cannot read payment-slips storage objects'
 );
 
 select * from finish();
