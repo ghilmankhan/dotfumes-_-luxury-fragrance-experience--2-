@@ -235,6 +235,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      // audit.role_changes is intentionally not in the exposed PostgREST
+      // schema list (see 20260801183254_establish_audit_boundary.sql), so
+      // `supabase gen types` cannot resolve its row shape here — `unknown[]`
+      // is the accurate generated type, not a placeholder to fix later.
+      list_role_change_audit_log: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown[]
+      }
       grant_role: {
         Args: {
           new_role: Database["public"]["Enums"]["app_role"]
