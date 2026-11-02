@@ -3,6 +3,8 @@ begin;
 alter table public.orders drop constraint if exists orders_payment_method_check;
 alter table public.orders add constraint orders_payment_method_check check (payment_method in ('bank-transfer','nayapay','easypaisa','jazzcash','cash-on-delivery'));
 alter table public.orders alter column slip_path drop not null;
+alter table public.orders alter column payer_name drop not null;
+alter table public.orders alter column payment_reference drop not null;
 alter table public.orders add column if not exists stock_reserved boolean not null default true;
 create index if not exists orders_phone_created_idx on public.orders(phone, created_at desc);
 create index if not exists orders_created_idx on public.orders(created_at desc);
