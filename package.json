@@ -6,6 +6,7 @@
   "scripts": {
     "predev": "tsx tools/skill-compiler/compile.ts && tsx tools/skill-compiler-v2/index.ts && tsx tools/self-healing-engine/index.ts",
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:site": "vite --port=3000 --host=0.0.0.0",
     "skill:compile": "tsx tools/skill-compiler/compile.ts",
     "skill:compile-v2": "tsx tools/skill-compiler-v2/index.ts",
     "self-heal": "tsx tools/self-healing-engine/index.ts",
