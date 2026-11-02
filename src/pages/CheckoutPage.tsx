@@ -19,7 +19,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { createOrderSubmissionService } from '../services/orderSubmissionService';
 import { createSlipPreviewUrl, revokeSlipPreviewUrl } from '../lib/paymentSlip';
 import { isGoogleSheetsBackendEnabled } from '../lib/googleSheetsBackend';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isGuestOrderSubmissionEnabled, isSupabaseConfigured } from '../lib/supabase';
 import { fetchPaymentAccounts, type PaymentAccount } from '../lib/paymentAccounts';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import { cn } from '../lib/utils';
@@ -46,6 +46,7 @@ const initialValues: CheckoutFormValues = {
 };
 
 const paymentOptions: Array<{ value: PaymentMethod; label: string; note: string }> = [
+  { value: 'cash-on-delivery', label: 'Cash on Delivery', note: 'Pay cash when your order is delivered. No receipt is needed.' },
   {
     value: 'bank-transfer',
     label: 'Bank Transfer',
@@ -191,7 +192,8 @@ export const CheckoutPage = () => {
       values.address.trim() &&
       values.city.trim(),
   );
-  const paymentStepComplete = Boolean(values.paymentMethod && values.payerName.trim() && values.paymentReference.trim() && slipFile);
+  const isCashOnDelivery = values.paymentMethod === 'cash-on-delivery';
+  const paymentStepComplete = isCashOnDelivery || Boolean(values.paymentMethod && values.payerName.trim() && values.paymentReference.trim() && slipFile);
   const selectedPaymentAccount = paymentAccounts.find((account) => account.method === values.paymentMethod);
 
   const clearError = (key: keyof CheckoutErrors) => {
@@ -244,7 +246,11 @@ export const CheckoutPage = () => {
     if (isSubmitting) {
       return;
     }
-    if (isSupabaseConfigured && !selectedPaymentAccount) {
+    if (isSupabaseConfigured && !isGuestOrderSubmissionEnabled) {
+      setSubmitError('Order requests are not open yet. Please check back when Dotfumes launches checkout.');
+      return;
+    }
+    if (isSupabaseConfigured && !isCashOnDelivery && !selectedPaymentAccount) {
       setSubmitError('Online payment is not available yet. Please return when Dotfumes has enabled a receiving account.');
       return;
     }
@@ -274,7 +280,7 @@ export const CheckoutPage = () => {
     const nextErrors = validateCheckoutForm(values, slipFile);
     setErrors(nextErrors);
 
-    if (Object.keys(nextErrors).length > 0 || !slipFile) {
+    if (Object.keys(nextErrors).length > 0 || (!isCashOnDelivery && !slipFile)) {
       scrollToFirstError(nextErrors);
       pushToast('Please complete the highlighted checkout details.', 'error');
       return;
@@ -286,10 +292,10 @@ export const CheckoutPage = () => {
       const result = await orderSubmissionService.submit({
         values,
         cartItems: items,
-        slip: {
+        slip: slipFile && !isCashOnDelivery ? {
           file: slipFile,
           previewUrl: slipPreviewUrl,
-        },
+        } : null,
         honeypot,
       });
       saveLatestOrder(result.order);
@@ -321,8 +327,8 @@ export const CheckoutPage = () => {
             <span className="text-neutral-300">Your Order.</span>
           </h1>
           <p className="mt-8 max-w-xl text-sm leading-7 text-black/65">
-            Submit your details, choose your payment method, and upload payment proof so Dotfumes can
-            review your order request.
+            Submit your delivery details and choose Cash on Delivery or an available online payment
+            method. Online payments require a receipt for manual review.
           </p>
           <p className="mt-3 max-w-xl text-sm leading-7 text-black/60">
             After submission, you can send a prefilled WhatsApp or email summary for faster
@@ -477,7 +483,9 @@ export const CheckoutPage = () => {
                 errors.paymentMethod && 'ring-1 ring-red-300 ring-offset-4 ring-offset-brand-white',
               )}
             >
-              {paymentOptions.filter((option) => !isSupabaseConfigured || paymentAccounts.some((account) => account.method === option.value)).map((option) => {
+              {paymentOptions.filter((option) => option.value === 'cash-on-delivery'
+                ? isSupabaseConfigured || !isGoogleSheetsBackendEnabled()
+                : !isSupabaseConfigured || paymentAccounts.some((account) => account.method === option.value)).map((option) => {
                 const selected = values.paymentMethod === option.value;
 
                 return (
@@ -510,7 +518,8 @@ export const CheckoutPage = () => {
               })}
             </Stack>
             {errors.paymentMethod ? <FieldError message={errors.paymentMethod} /> : null}
-            {isSupabaseConfigured && paymentAccounts.length === 0 && <Card variant="light" className="border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-950">Online payment is being set up. Demo account details are not valid for transfers, so checkout is paused until Dotfumes enables an official account.</Card>}
+            {isSupabaseConfigured && !isGuestOrderSubmissionEnabled && <Card variant="light" className="border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-950">Cash on Delivery and online payment are shown for review. Order requests will open after Dotfumes enables the order service.</Card>}
+            {isSupabaseConfigured && paymentAccounts.length === 0 && <p className="text-sm text-black/60">Online payment accounts are being set up. Demo details are not valid for transfers.</p>}
             {paymentAccountsError && <p role="alert" className="text-sm text-red-700">{paymentAccountsError}</p>}
             {selectedPaymentAccount && <Card variant="light" className="space-y-2 border-brand-gold/40 bg-brand-ivory px-5 py-5 text-sm text-black/75">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-black">Send payment to</p>
@@ -521,7 +530,7 @@ export const CheckoutPage = () => {
               {selectedPaymentAccount.instructions && <p>{selectedPaymentAccount.instructions}</p>}
               <p className="pt-2 text-xs">Transfer exactly {formatCurrency(total)}, then enter the sender name and transaction reference below. Dotfumes verifies every receipt manually.</p>
             </Card>}
-            {(!isSupabaseConfigured || selectedPaymentAccount) && <Grid cols={{ sm: 2 }} gap={3}>
+            {!isCashOnDelivery && (!isSupabaseConfigured || selectedPaymentAccount) && <Grid cols={{ sm: 2 }} gap={3}>
               <CheckoutInput label="Name used to pay" name="payerName" value={values.payerName} onChange={(value) => setField('payerName', value)} error={errors.payerName} autoComplete="name" />
               <CheckoutInput label="Transaction reference" name="paymentReference" value={values.paymentReference} onChange={(value) => setField('paymentReference', value)} error={errors.paymentReference} />
             </Grid>}
@@ -540,7 +549,7 @@ export const CheckoutPage = () => {
             />
           </div>
 
-          <div className="space-y-4">
+          {!isCashOnDelivery && <div className="space-y-4">
             <h2 className={cn('text-[11px] font-bold uppercase text-black/60', tracking.wide)}>
               Payment Proof Upload
             </h2>
@@ -611,13 +620,15 @@ export const CheckoutPage = () => {
                 </motion.div>
               ) : null}
             </AnimatePresence>
-          </div>
+          </div>}
 
           <Card variant="light" className="bg-brand-ivory px-5 py-4 text-xs leading-6 text-black/60">
             <div className="flex items-start gap-3">
               <ShieldCheck size={16} className="mt-1 text-brand-gold" />
-              {isSupabaseConfigured && paymentAccounts.length === 0 ? (
-                <p>Checkout is paused until an official payment account is enabled. Please do not send money to any demo details.</p>
+              {isSupabaseConfigured && !isGuestOrderSubmissionEnabled ? (
+                <p>Order requests are paused until Dotfumes enables the order service. Please do not send money to any demo details.</p>
+              ) : isCashOnDelivery ? (
+                <p>Pay cash on delivery. Dotfumes will confirm your order and delivery details before dispatch.</p>
               ) : googleSheetsEnabled ? (
                 <p>
                   Your order request and payment proof are received first, then reviewed manually by
@@ -638,8 +649,8 @@ export const CheckoutPage = () => {
               What Happens Next
             </p>
             <ol className="mt-4 space-y-2 text-sm leading-6 text-black/65">
-              <li>1. Submit your order details and payment slip.</li>
-              <li>2. Dotfumes reviews your payment proof manually.</li>
+              <li>1. Submit your order details{isCashOnDelivery ? '.' : ' and payment slip.'}</li>
+              <li>2. Dotfumes {isCashOnDelivery ? 'confirms your order before dispatch.' : 'reviews your payment proof manually.'}</li>
               <li>3. Dotfumes contacts you by WhatsApp or email for confirmation.</li>
               <li>4. Delivery coordination starts right after confirmation.</li>
             </ol>
@@ -650,7 +661,7 @@ export const CheckoutPage = () => {
             variant="primary"
             loading={isSubmitting}
             disabled={
-              items.length === 0 || (isSupabaseConfigured && !selectedPaymentAccount) || (!allowOutOfStockCheckout && availabilityIssues.length > 0)
+              items.length === 0 || (isSupabaseConfigured && (!isGuestOrderSubmissionEnabled || (!isCashOnDelivery && !selectedPaymentAccount))) || (!allowOutOfStockCheckout && availabilityIssues.length > 0)
             }
             className="w-full px-8 py-5 tracking-[0.35em]"
           >
@@ -661,7 +672,7 @@ export const CheckoutPage = () => {
               : 'Place Order Request'}
           </Button>
           <p className={cn('text-center text-[10px] uppercase text-black/58', tracking.normal)}>
-            {isSupabaseConfigured && !selectedPaymentAccount ? 'Order requests are paused until official payment details are available.' : 'Your order request is sent after submission. Dotfumes will contact you as early as possible.'}
+            {isSupabaseConfigured && !isGuestOrderSubmissionEnabled ? 'Order requests are not open yet.' : 'Your order request is sent after submission. Dotfumes will contact you as early as possible.'}
           </p>
         </form>
 

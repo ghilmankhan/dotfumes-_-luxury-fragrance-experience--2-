@@ -108,7 +108,7 @@ export const OrderConfirmationPage = () => {
       </section>
     );
   }
-  const hasRemoteSlipUrl = order.slip.referenceUrl.startsWith('http');
+  const hasRemoteSlipUrl = order.slip?.referenceUrl.startsWith('http') ?? false;
 
   return (
     <section className="min-h-screen bg-brand-black px-6 pb-24 pt-36 text-white md:px-16 lg:px-24">
@@ -161,8 +161,8 @@ export const OrderConfirmationPage = () => {
               </p>
             </Card>
             <Card variant="dark" className="border-white/10 px-4 py-5 sm:col-span-2">
-              <p className="text-[9px]">Slip Reference</p>
-              {hasRemoteSlipUrl ? (
+              <p className="text-[9px]">{order.slip ? 'Slip Reference' : 'Payment timing'}</p>
+              {order.slip && hasRemoteSlipUrl ? (
                 <a
                   href={order.slip.referenceUrl}
                   target="_blank"
@@ -172,7 +172,7 @@ export const OrderConfirmationPage = () => {
                   {order.slip.referenceUrl}
                 </a>
               ) : (
-                <p className="mt-2 break-all text-[11px] text-white">{order.slip.referenceUrl}</p>
+                <p className="mt-2 break-all text-[11px] text-white">{order.slip?.referenceUrl || 'Pay cash when your order is delivered.'}</p>
               )}
             </Card>
           </Grid>
@@ -257,7 +257,7 @@ export const OrderConfirmationPage = () => {
 
           <p className="mt-6 text-[10px] uppercase tracking-[0.26em] text-white/40">
             {order.submissionMode !== 'frontend-fallback'
-              ? 'Dotfumes reviews payment proof manually and confirms next steps soon.'
+              ? order.paymentMethod === 'cash-on-delivery' ? 'Dotfumes will confirm delivery details. Pay cash when the order arrives.' : 'Dotfumes reviews payment proof manually and confirms next steps soon.'
               : 'Please send the prefilled support message so Dotfumes can confirm your request.'}
           </p>
 
@@ -300,7 +300,7 @@ export const OrderConfirmationPage = () => {
             </div>
           </div>
 
-          <div className="mt-8 border border-white/10 p-4">
+          {order.slip && <div className="mt-8 border border-white/10 p-4">
             <p className="text-[9px] uppercase tracking-[0.28em] text-white/45">Payment Slip</p>
             {order.slip.previewUrl ? (
               <AssetImage
@@ -315,7 +315,7 @@ export const OrderConfirmationPage = () => {
               </p>
             )}
             <p className="mt-3 text-[10px] text-white/55">{order.slip.fileName}</p>
-          </div>
+          </div>}
         </Card>
       </motion.div>
     </section>

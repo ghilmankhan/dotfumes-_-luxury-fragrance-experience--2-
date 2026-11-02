@@ -29,30 +29,35 @@ Deno.serve(async (request) => {
   if (contentLength > MAX_BODY_BYTES) return respond({ success: false, message: 'Order request is too large.' }, 413);
   try {
     const body = await readLimitedJson(request);
-    if (!body || typeof body !== 'object' || body.honeypot || !body.order || !body.slip) return respond({ success: false, message: 'Invalid order.' }, 400);
+    if (!body || typeof body !== 'object' || body.honeypot || !body.order) return respond({ success: false, message: 'Invalid order.' }, 400);
+    const cashOnDelivery = body.order.paymentMethod === 'cash-on-delivery';
+    if (!cashOnDelivery && !body.slip) return respond({ success: false, message: 'Payment proof is required.' }, 400);
     const slip = body.slip;
-    if (!['image/jpeg','image/png','image/webp','application/pdf'].includes(slip.mimeType) || !Number.isInteger(slip.fileSize) || slip.fileSize < 1 || slip.fileSize > 5 * 1024 * 1024 || typeof slip.base64 !== 'string' || slip.base64.length > 7 * 1024 * 1024) {
+    if (!cashOnDelivery && (!['image/jpeg','image/png','image/webp','application/pdf'].includes(slip.mimeType) || !Number.isInteger(slip.fileSize) || slip.fileSize < 1 || slip.fileSize > 5 * 1024 * 1024 || typeof slip.base64 !== 'string' || slip.base64.length > 7 * 1024 * 1024)) {
       return respond({ success: false, message: 'Invalid payment slip.' }, 400);
     }
-    const bytes = Uint8Array.from(atob(slip.base64), (c) => c.charCodeAt(0));
-    if (bytes.length !== slip.fileSize) return respond({ success: false, message: 'Invalid payment slip size.' }, 400);
+    const bytes = cashOnDelivery ? null : Uint8Array.from(atob(slip.base64), (c) => c.charCodeAt(0));
+    if (!cashOnDelivery && bytes?.length !== slip.fileSize) return respond({ success: false, message: 'Invalid payment slip size.' }, 400);
     const signatures: Record<string, boolean> = {
-      'image/jpeg': bytes[0] === 0xff && bytes[1] === 0xd8,
-      'image/png': bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47,
-      'image/webp': String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP',
-      'application/pdf': String.fromCharCode(...bytes.slice(0, 4)) === '%PDF',
+      'image/jpeg': bytes?.[0] === 0xff && bytes?.[1] === 0xd8,
+      'image/png': bytes?.[0] === 0x89 && bytes?.[1] === 0x50 && bytes?.[2] === 0x4e && bytes?.[3] === 0x47,
+      'image/webp': bytes ? String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP' : false,
+      'application/pdf': bytes ? String.fromCharCode(...bytes.slice(0, 4)) === '%PDF' : false,
     };
-    if (!signatures[slip.mimeType]) return respond({ success: false, message: 'Payment slip content does not match its type.' }, 400);
+    if (!cashOnDelivery && !signatures[slip.mimeType]) return respond({ success: false, message: 'Payment slip content does not match its type.' }, 400);
     const url = Deno.env.get('SUPABASE_URL');
     const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!url || !key) return respond({ success: false, message: 'Order service is not configured.' }, 503);
     const client = createClient(url, key, { auth: { persistSession: false } });
-    const extension = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'application/pdf':'pdf' }[slip.mimeType];
-    const path = `${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${extension}`;
-    const uploaded = await client.storage.from('payment-slips').upload(path, bytes, { contentType: slip.mimeType, upsert: false });
-    if (uploaded.error) throw uploaded.error;
+    let path: string | null = null;
+    if (!cashOnDelivery && bytes) {
+      const extension = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'application/pdf':'pdf' }[slip.mimeType];
+      path = `${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${extension}`;
+      const uploaded = await client.storage.from('payment-slips').upload(path, bytes, { contentType: slip.mimeType, upsert: false });
+      if (uploaded.error) throw uploaded.error;
+    }
     const { data, error } = await client.rpc('submit_order', { p_order: body.order, p_slip_path: path });
-    if (error) { await client.storage.from('payment-slips').remove([path]); throw error; }
+    if (error) { if (path) await client.storage.from('payment-slips').remove([path]); throw error; }
     return respond({ success: true, ...data, message: 'Order request received.' });
   } catch (error) {
     if (error instanceof Error && error.message === 'Order request is too large') {

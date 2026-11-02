@@ -72,6 +72,8 @@ export const validateCheckoutForm = (values: CheckoutFormValues, slipFile: File 
     errors.paymentMethod = 'Please select your payment method.';
   }
 
+  if (values.paymentMethod === 'cash-on-delivery') return errors;
+
   if (values.payerName.trim().length < 2) {
     errors.payerName = 'Enter the name used to make the payment.';
   }

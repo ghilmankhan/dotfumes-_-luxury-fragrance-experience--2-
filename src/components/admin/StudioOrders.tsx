@@ -16,7 +16,7 @@ export type StudioOrder = {
   total: number;
   payment_status: string;
   order_status: string;
-  slip_path: string;
+  slip_path: string | null;
   items: Array<{ name: string; quantity: number; lineTotal?: number }>;
 };
 
@@ -39,8 +39,8 @@ export const StudioOrders = ({ orders, busy, onStatus, onProof }: Props) => <div
     </summary>
     <div className="mt-6 grid gap-6 border-t border-stone-100 pt-6 lg:grid-cols-2">
       <div className="space-y-3 text-sm text-stone-700"><h3 className="font-semibold text-stone-900">Customer and delivery</h3><p>{order.phone}{order.email ? ` · ${order.email}` : ''}</p><p>{order.address}, {order.city}</p><h3 className="pt-2 font-semibold text-stone-900">Items</h3>{order.items.map((item, index) => <p key={`${item.name}-${index}`}>{item.name} × {item.quantity}{typeof item.lineTotal === 'number' ? ` · ${formatCurrency(item.lineTotal)}` : ''}</p>)}</div>
-      <div className="space-y-4 text-sm text-stone-700"><h3 className="font-semibold text-stone-900">Payment evidence</h3><p>{formatPaymentMethodLabel(order.payment_method)}</p><p>Paid by: {order.payer_name || 'Not supplied'}</p><p>Reference: <span className="font-medium text-stone-900">{order.payment_reference || 'Not supplied'}</span></p><button className="rounded-md border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-50" onClick={() => onProof(order.slip_path)}>View receipt securely</button></div>
-      <div className="grid gap-4 border-t border-stone-100 pt-6 sm:grid-cols-2 lg:col-span-2"><label className="text-sm font-medium text-stone-700">Payment status<select className={selectClass} disabled={busy} value={order.payment_status} onChange={(event) => onStatus(order.id, { payment_status: event.target.value })}><option>Pending Verification</option><option>Verified</option><option>Rejected</option></select></label><label className="text-sm font-medium text-stone-700">Order status<select className={selectClass} disabled={busy} value={order.order_status} onChange={(event) => onStatus(order.id, { order_status: event.target.value })}><option>New</option><option>Preparing</option><option>Delivered</option><option>Cancelled</option></select></label></div>
+      <div className="space-y-4 text-sm text-stone-700"><h3 className="font-semibold text-stone-900">Payment</h3><p>{formatPaymentMethodLabel(order.payment_method)}</p>{order.payment_method === 'cash-on-delivery' ? <p>Customer pays cash at delivery. No receipt is required.</p> : <><p>Paid by: {order.payer_name || 'Not supplied'}</p><p>Reference: <span className="font-medium text-stone-900">{order.payment_reference || 'Not supplied'}</span></p>{order.slip_path && <button className="rounded-md border border-stone-300 px-4 py-2.5 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-50" onClick={() => onProof(order.slip_path!)}>View receipt securely</button>}</>}</div>
+      <div className="grid gap-4 border-t border-stone-100 pt-6 sm:grid-cols-2 lg:col-span-2"><label className="text-sm font-medium text-stone-700">Payment status<select className={selectClass} disabled={busy} value={order.payment_status} onChange={(event) => onStatus(order.id, { payment_status: event.target.value })}>{order.payment_method === 'cash-on-delivery' && <option>Payment Pending</option>}<option>Pending Verification</option><option>Verified</option><option>Rejected</option></select></label><label className="text-sm font-medium text-stone-700">Order status<select className={selectClass} disabled={busy} value={order.order_status} onChange={(event) => onStatus(order.id, { order_status: event.target.value })}><option>New</option><option>Preparing</option><option>Delivered</option><option>Cancelled</option></select></label></div>
     </div>
   </details>)}
 </div>;

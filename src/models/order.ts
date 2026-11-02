@@ -1,6 +1,6 @@
 import { CartItem } from './types';
 
-export type PaymentMethod = 'bank-transfer' | 'easypaisa' | 'jazzcash';
+export type PaymentMethod = 'bank-transfer' | 'easypaisa' | 'jazzcash' | 'cash-on-delivery';
 export type PaymentStatus = 'Pending Verification' | 'Payment Pending' | 'Verified' | 'Rejected';
 export type OrderStatus =
   | 'New'
@@ -69,7 +69,7 @@ export interface OrderPayload {
   whatsappMessage: string;
   items: OrderLineItem[];
   customer: CustomerDetails;
-  slip: SlipDetails;
+  slip: SlipDetails | null;
 }
 
 export interface PaymentSlipFile {
@@ -80,7 +80,7 @@ export interface PaymentSlipFile {
 export interface OrderDraft {
   values: CheckoutFormValues;
   cartItems: CartItem[];
-  slip: PaymentSlipFile;
+  slip: PaymentSlipFile | null;
   honeypot?: string;
   orderId?: string;
 }

@@ -19,8 +19,8 @@ const buildOrderFromDraft = (draft: OrderDraft, mode: OrderSubmissionMode): Orde
     orderId: draft.orderId ?? createOrderId(),
     values: draft.values,
     cartItems: draft.cartItems,
-    slipFile: draft.slip.file,
-    ...(draft.slip.previewUrl ? { slipPreviewUrl: draft.slip.previewUrl } : {}),
+    ...(draft.slip ? { slipFile: draft.slip.file } : {}),
+    ...(draft.slip?.previewUrl ? { slipPreviewUrl: draft.slip.previewUrl } : {}),
     submissionMode: mode,
   });
 
@@ -63,7 +63,9 @@ export class GoogleSheetsOrderService implements OrderSubmissionService {
 
   async submit(draft: OrderDraft): Promise<OrderSubmissionResult> {
     ensureCartAvailability(draft, this.products, this.allowOutOfStockCheckout);
+    if (!draft.slip) throw new Error('Cash on delivery is not supported by the Google Sheets order service.');
     const localOrder = buildOrderFromDraft(draft, 'google-sheets');
+    if (!localOrder.slip) throw new Error('Payment proof is missing.');
 
     const result = await submitOrderToGoogleSheets({
       order: localOrder,
@@ -106,7 +108,8 @@ export class SupabaseOrderService implements OrderSubmissionService {
     if (!supabase) throw new Error('Supabase is not configured.');
     ensureCartAvailability(draft, this.products, false);
     const localOrder = buildOrderFromDraft(draft, 'supabase');
-    const base64 = await new Promise<string>((resolve, reject) => {
+    const file = draft.slip?.file;
+    const base64 = file ? await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
@@ -114,13 +117,13 @@ export class SupabaseOrderService implements OrderSubmissionService {
         else resolve(result.split(',')[1]);
       };
       reader.onerror = () => reject(new Error('Unable to read payment slip.'));
-      reader.readAsDataURL(draft.slip.file);
-    });
+      reader.readAsDataURL(file);
+    }) : null;
     const { data, error } = await supabase.functions.invoke('submit-order', {
       body: {
         honeypot: draft.honeypot ?? '',
         order: localOrder,
-        slip: { fileName: draft.slip.file.name, mimeType: draft.slip.file.type, fileSize: draft.slip.file.size, base64 },
+        ...(draft.slip && base64 ? { slip: { fileName: draft.slip.file.name, mimeType: draft.slip.file.type, fileSize: draft.slip.file.size, base64 } } : {}),
       },
     });
     if (error || !data?.success || !data?.orderId || !Array.isArray(data?.items)) {
@@ -129,9 +132,9 @@ export class SupabaseOrderService implements OrderSubmissionService {
     const syncedOrder: OrderPayload = {
       ...localOrder, orderId: data.orderId, submittedAt: new Date().toISOString(),
       subtotal: data.subtotal, total: data.total, items: data.items,
-      slip: { ...localOrder.slip, referenceUrl: 'Payment proof submitted privately' },
+      slip: localOrder.slip ? { ...localOrder.slip, referenceUrl: 'Payment proof submitted privately' } : null,
     };
-    return { success: true, order: { ...syncedOrder, whatsappMessage: buildWhatsAppMessage(syncedOrder) }, mode: 'supabase', message: 'Your order request has been sent to Dotfumes for payment verification.' };
+    return { success: true, order: { ...syncedOrder, whatsappMessage: buildWhatsAppMessage(syncedOrder) }, mode: 'supabase', message: localOrder.paymentMethod === 'cash-on-delivery' ? 'Your Cash on Delivery order request has been sent to Dotfumes.' : 'Your order request has been sent to Dotfumes for payment verification.' };
   }
 }
 

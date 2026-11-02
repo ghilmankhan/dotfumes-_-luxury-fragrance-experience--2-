@@ -8,7 +8,8 @@ const maxMailtoUrlLength = 1800;
 
 const formatAmount = (value: number) => formatCurrency(value);
 const formatSlipReference = (order: OrderPayload) =>
-  order.submissionMode === 'supabase' ? 'Submitted privately in Dotfumes admin' : order.slip.referenceUrl;
+  order.paymentMethod === 'cash-on-delivery' ? 'Not required for cash on delivery' :
+  order.submissionMode === 'supabase' ? 'Submitted privately in Dotfumes admin' : order.slip?.referenceUrl || 'Not provided';
 
 export const formatPaymentMethodLabel = (method: PaymentMethod) => {
   switch (method) {
@@ -18,6 +19,8 @@ export const formatPaymentMethodLabel = (method: PaymentMethod) => {
       return 'Easypaisa';
     case 'jazzcash':
       return 'JazzCash';
+    case 'cash-on-delivery':
+      return 'Cash on Delivery';
     default:
       return method;
   }
@@ -63,7 +66,7 @@ export const buildWhatsAppMessage = (order: OrderPayload) =>
     `City: ${order.customer.city}`,
     `Address: ${order.customer.address}`,
     `Payment Method: ${formatPaymentMethodLabel(order.paymentMethod)}`,
-    `Slip Uploaded: ${order.slip.referenceUrl ? 'Yes' : 'No'}`,
+    `Slip Uploaded: ${order.slip?.referenceUrl ? 'Yes' : 'No'}`,
     '',
     'Order Items:',
     formatOrderItems(order.items),
@@ -80,7 +83,7 @@ export const buildOrderPayload = (params: {
   orderId: string;
   values: CheckoutFormValues;
   cartItems: CartItem[];
-  slipFile: File;
+  slipFile?: File;
   slipPreviewUrl?: string;
   slipReferenceUrl?: string;
   slipDriveFileId?: string;
@@ -122,7 +125,7 @@ export const buildOrderPayload = (params: {
     subtotal,
     deliveryFee,
     total,
-    paymentStatus: 'Pending Verification',
+    paymentStatus: values.paymentMethod === 'cash-on-delivery' ? 'Payment Pending' : 'Pending Verification',
     orderStatus: 'New',
     submissionMode,
     whatsappMessage: '',
@@ -136,14 +139,14 @@ export const buildOrderPayload = (params: {
       address: values.address.trim(),
       city: values.city.trim(),
     },
-    slip: {
+    slip: slipFile ? {
       fileName: slipFile.name,
       fileSize: slipFile.size,
       mimeType: slipFile.type,
       referenceUrl: slipReferenceUrl ?? createSlipReferenceUrl(orderId, slipFile.name),
       ...(slipPreviewUrl ? { previewUrl: slipPreviewUrl } : {}),
       ...(slipDriveFileId ? { driveFileId: slipDriveFileId } : {}),
-    },
+    } : null,
   };
 
   const whatsappMessage = buildWhatsAppMessage(order);
@@ -182,7 +185,7 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
     `City: ${order.customer.city}`,
     `Address: ${order.customer.address}`,
     `Payment Method: ${formatPaymentMethodLabel(order.paymentMethod)}`,
-    `Slip Uploaded: ${order.slip.referenceUrl ? 'Yes' : 'No'}`,
+    `Slip Uploaded: ${order.slip?.referenceUrl ? 'Yes' : 'No'}`,
     '',
     'Order Items:',
     formatOrderItems(order.items),
