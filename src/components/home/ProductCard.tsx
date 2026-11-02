@@ -12,6 +12,7 @@ import { eyebrowLabel, eyebrowLabelSm, bodyCopy, headingLg, tracking } from '../
 import { cn } from '../../lib/utils';
 import { easing } from '../../styles/tokens/motion';
 import { focusRing } from '../../styles/tokens/interactive';
+import { formatCurrency } from '../../lib/order';
 
 interface ProductCardProps {
   product: Product;
@@ -121,7 +122,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, index }) => {
         </p>
 
         <div className="w-full flex items-center justify-between border-t border-black/5 pt-6">
-          <span className="text-xl font-serif italic text-brand-black">${product.price}.00</span>
+          <span className="text-xl font-serif italic text-brand-black">{formatCurrency(product.price)}</span>
           <span className={cn(eyebrowLabelSm, 'text-brand-black/28')}>
             {product.sku}
           </span>

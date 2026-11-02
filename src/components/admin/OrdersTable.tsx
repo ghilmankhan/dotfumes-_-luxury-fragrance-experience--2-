@@ -1,4 +1,5 @@
 import { AdminOrder } from './types';
+import { formatCurrency } from '../../lib/order';
 
 export const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; emptyLabel: string }) => {
   return (
@@ -27,7 +28,7 @@ export const OrdersTable = ({ orders, emptyLabel }: { orders: AdminOrder[]; empt
               <td className="px-4 py-4 font-medium">{order.orderId}</td>
               <td className="px-4 py-4">{order.createdAt || '—'}</td>
               <td className="px-4 py-4">{order.customerName}</td>
-              <td className="px-4 py-4">${order.total.toFixed(2)}</td>
+              <td className="px-4 py-4">{formatCurrency(order.total)}</td>
               <td className="px-4 py-4">{order.paymentStatus}</td>
               <td className="px-4 py-4">{order.orderStatus}</td>
               <td className="px-4 py-4">

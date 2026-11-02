@@ -28,6 +28,8 @@ import { JournalPage } from './pages/JournalPage';
 import { SustainabilityPage } from './pages/SustainabilityPage';
 import { CareersPage } from './pages/CareersPage';
 import { useProductCatalogStore } from './store/useProductCatalogStore';
+import { isSupabaseConfigured } from './lib/supabase';
+import { SupabaseAdminPage } from './pages/SupabaseAdminPage';
 
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 
@@ -61,7 +63,7 @@ export default function App() {
             path="/admin"
             element={
               <Suspense fallback={null}>
-                <AdminPage />
+                {isSupabaseConfigured ? <SupabaseAdminPage /> : <AdminPage />}
               </Suspense>
             }
           />
@@ -69,7 +71,7 @@ export default function App() {
             path="/admin/*"
             element={
               <Suspense fallback={null}>
-                <AdminPage />
+                {isSupabaseConfigured ? <SupabaseAdminPage /> : <AdminPage />}
               </Suspense>
             }
           />

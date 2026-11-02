@@ -9,7 +9,7 @@ export type OrderStatus =
   | 'Cancelled'
   | 'Processing'
   | 'Completed';
-export type OrderSubmissionMode = 'frontend-fallback' | 'google-sheets';
+export type OrderSubmissionMode = 'frontend-fallback' | 'google-sheets' | 'supabase';
 
 export interface CheckoutFormValues {
   firstName: string;
@@ -19,6 +19,8 @@ export interface CheckoutFormValues {
   address: string;
   city: string;
   paymentMethod: PaymentMethod | '';
+  payerName: string;
+  paymentReference: string;
 }
 
 export interface OrderLineItem {
@@ -54,8 +56,10 @@ export interface OrderPayload {
   orderId: string;
   createdAt: string;
   submittedAt?: string;
-  currency: 'USD';
+  currency: 'PKR';
   paymentMethod: PaymentMethod;
+  payerName: string;
+  paymentReference: string;
   subtotal: number;
   deliveryFee: number;
   total: number;

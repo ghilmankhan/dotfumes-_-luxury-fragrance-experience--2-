@@ -8,6 +8,7 @@ import { buildOrderPayload, buildWhatsAppMessage, createOrderId } from '../lib/o
 import { isGoogleSheetsBackendEnabled, submitOrderToGoogleSheets } from '../lib/googleSheetsBackend';
 import { getCartAvailabilityIssues, getCartAvailabilityMessage } from '../lib/validation';
 import { Product } from '../models/types';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 export interface OrderSubmissionService {
   submit(draft: OrderDraft): Promise<OrderSubmissionResult>;
@@ -98,6 +99,42 @@ export class GoogleSheetsOrderService implements OrderSubmissionService {
   }
 }
 
+export class SupabaseOrderService implements OrderSubmissionService {
+  constructor(private readonly products: Product[]) {}
+
+  async submit(draft: OrderDraft): Promise<OrderSubmissionResult> {
+    if (!supabase) throw new Error('Supabase is not configured.');
+    ensureCartAvailability(draft, this.products, false);
+    const localOrder = buildOrderFromDraft(draft, 'supabase');
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        if (typeof result !== 'string' || !result.includes(',')) reject(new Error('Unable to read payment slip.'));
+        else resolve(result.split(',')[1]);
+      };
+      reader.onerror = () => reject(new Error('Unable to read payment slip.'));
+      reader.readAsDataURL(draft.slip.file);
+    });
+    const { data, error } = await supabase.functions.invoke('submit-order', {
+      body: {
+        honeypot: draft.honeypot ?? '',
+        order: localOrder,
+        slip: { fileName: draft.slip.file.name, mimeType: draft.slip.file.type, fileSize: draft.slip.file.size, base64 },
+      },
+    });
+    if (error || !data?.success || !data?.orderId || !Array.isArray(data?.items)) {
+      throw new Error(data?.message || error?.message || 'Unable to submit your order. Please try again.');
+    }
+    const syncedOrder: OrderPayload = {
+      ...localOrder, orderId: data.orderId, submittedAt: new Date().toISOString(),
+      subtotal: data.subtotal, total: data.total, items: data.items,
+      slip: { ...localOrder.slip, referenceUrl: 'Payment proof submitted privately' },
+    };
+    return { success: true, order: { ...syncedOrder, whatsappMessage: buildWhatsAppMessage(syncedOrder) }, mode: 'supabase', message: 'Your order request has been sent to Dotfumes for payment verification.' };
+  }
+}
+
 export class BackendOrderService implements OrderSubmissionService {
   async submit(draft: OrderDraft): Promise<OrderSubmissionResult> {
     void draft;
@@ -112,6 +149,10 @@ export const createOrderSubmissionService = (params: {
   allowOutOfStockCheckout: boolean;
 }): OrderSubmissionService => {
   const { products, allowOutOfStockCheckout } = params;
+
+  if (isSupabaseConfigured) {
+    return new SupabaseOrderService(products);
+  }
 
   if (isGoogleSheetsBackendEnabled()) {
     return new GoogleSheetsOrderService(products, allowOutOfStockCheckout);

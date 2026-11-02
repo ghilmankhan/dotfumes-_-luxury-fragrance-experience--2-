@@ -835,7 +835,7 @@ function resolveSettingsForFrontend_(settings) {
 }
 
 function resolveCurrency_(settings) {
-  return sanitizeText_(settings.currency || settings.currencycode || settings.storecurrency, 20) || 'USD';
+  return sanitizeText_(settings.currency || settings.currencycode || settings.storecurrency, 20) || 'PKR';
 }
 
 function resolveLowStockThreshold_(settings) {

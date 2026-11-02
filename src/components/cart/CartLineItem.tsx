@@ -8,6 +8,7 @@ import { Card } from '../ui/primitives/Card';
 import { cn } from '../../lib/utils';
 import { tracking } from '../../styles/tokens/typography';
 import { focusRing, touchTarget } from '../../styles/tokens/interactive';
+import { formatCurrency } from '../../lib/order';
 
 type CartLineItemProps = {
   item: CartItem;
@@ -152,7 +153,7 @@ export const CartLineItem = memo(function CartLineItem({
               </Button>
             </div>
             <span className="font-serif text-base font-semibold text-neutral-900 md:text-lg">
-              ${item.price * item.quantity}.00
+              {formatCurrency(item.price * item.quantity)}
             </span>
           </div>
           {isPendingRemove ? (

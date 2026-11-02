@@ -76,7 +76,7 @@ const defaultCatalogSettings: GoogleSheetsFrontendSettings = {
   showOutOfStockProducts: true,
   allowOutOfStockCheckout: false,
   lowStockThreshold: 3,
-  currency: 'USD',
+  currency: 'PKR',
 };
 
 const toCatalogResponse = (payload: unknown): ProductCatalogResponse => {
@@ -108,7 +108,7 @@ const toCatalogResponse = (payload: unknown): ProductCatalogResponse => {
     currency:
       typeof rawSettings.currency === 'string' && rawSettings.currency.trim()
         ? rawSettings.currency.trim()
-        : 'USD',
+        : 'PKR',
   };
 
   return { products, settings };

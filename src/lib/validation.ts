@@ -72,6 +72,14 @@ export const validateCheckoutForm = (values: CheckoutFormValues, slipFile: File 
     errors.paymentMethod = 'Please select your payment method.';
   }
 
+  if (values.payerName.trim().length < 2) {
+    errors.payerName = 'Enter the name used to make the payment.';
+  }
+
+  if (values.paymentReference.trim().length < 4) {
+    errors.paymentReference = 'Enter the transaction or transfer reference.';
+  }
+
   if (!slipFile) {
     errors.slip = 'Please upload your payment slip.';
     return errors;

@@ -11,6 +11,7 @@ import { CartLineItem } from './cart/CartLineItem';
 import { cn } from '../lib/utils';
 import { tracking } from '../styles/tokens/typography';
 import { focusRing, touchTarget } from '../styles/tokens/interactive';
+import { formatCurrency } from '../lib/order';
 
 export const CartDrawer = () => {
   const navigate = useNavigate();
@@ -144,7 +145,7 @@ export const CartDrawer = () => {
                   <span className={cn('text-[10px] uppercase text-neutral-500', tracking.wide)}>
                     Subtotal
                   </span>
-                  <span className="text-2xl font-serif tracking-tight text-neutral-900">${total}.00</span>
+                  <span className="text-2xl font-serif tracking-tight text-neutral-900">{formatCurrency(total)}</span>
                 </div>
 
                 <Button

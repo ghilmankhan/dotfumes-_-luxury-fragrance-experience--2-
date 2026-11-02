@@ -1,4 +1,5 @@
 import { AdminProductStock } from './types';
+import { formatCurrency } from '../../lib/order';
 
 export const ProductTable = ({
   products,
@@ -32,7 +33,7 @@ export const ProductTable = ({
               <td className="px-4 py-4 font-medium">{product.name}</td>
               <td className="px-4 py-4">{product.slug || '—'}</td>
               <td className="px-4 py-4">{product.category}</td>
-              <td className="px-4 py-4">${product.price.toFixed(2)}</td>
+              <td className="px-4 py-4">{formatCurrency(product.price)}</td>
               <td className="px-4 py-4">{product.stock}</td>
               <td className="px-4 py-4">{product.active ? 'Yes' : 'No'}</td>
             </tr>

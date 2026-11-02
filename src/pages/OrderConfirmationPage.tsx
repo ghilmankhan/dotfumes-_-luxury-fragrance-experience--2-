@@ -128,7 +128,7 @@ export const OrderConfirmationPage = () => {
             <span className={cn('text-[10px] font-bold uppercase', tracking.wider)}>Order Request Received</span>
           </div>
 
-          {order.submissionMode !== 'google-sheets' ? (
+          {order.submissionMode === 'frontend-fallback' ? (
             <p
               className={cn(
                 'mt-4 inline-block border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-[10px] uppercase text-amber-200',
@@ -251,12 +251,12 @@ export const OrderConfirmationPage = () => {
 
           <p className="mt-2 text-xs leading-6 text-white/45">
             {order.customer.email
-              ? 'If you entered an email, a confirmation email has been sent.'
+              ? 'Dotfumes can use your email to contact you about this order.'
               : 'No email was provided. You can still use WhatsApp for confirmation.'}
           </p>
 
           <p className="mt-6 text-[10px] uppercase tracking-[0.26em] text-white/40">
-            {order.submissionMode === 'google-sheets'
+            {order.submissionMode !== 'frontend-fallback'
               ? 'Dotfumes reviews payment proof manually and confirms next steps soon.'
               : 'Please send the prefilled support message so Dotfumes can confirm your request.'}
           </p>

@@ -176,7 +176,7 @@ const parseDashboardResponse = (raw: string) => {
     : payload.productStockTable;
 
   return {
-    currency: parseText(payload.currency, 'USD'),
+    currency: parseText(payload.currency, 'PKR'),
     summary,
     bestSellingPerfume,
     lowStockProducts: ensureArray(payload.lowStockProducts).map(normalizeProduct).filter(Boolean),
@@ -476,7 +476,7 @@ export const AdminPage = () => {
   }
 
   const summary = dashboard?.summary;
-  const currency = dashboard?.currency || 'USD';
+  const currency = dashboard?.currency || 'PKR';
 
   return (
     <section className="min-h-screen bg-brand-white px-6 pb-20 pt-20 text-brand-black md:px-12">

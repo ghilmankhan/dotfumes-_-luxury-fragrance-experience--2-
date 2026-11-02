@@ -7,8 +7,10 @@ import {
   type GoogleSheetsProductRow,
 } from '../lib/googleSheetsBackend';
 import { Product } from '../models/types';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchSupabaseProducts } from '../lib/supabaseCatalog';
 
-export type ProductCatalogSource = 'local' | 'google-sheets';
+export type ProductCatalogSource = 'local' | 'google-sheets' | 'supabase';
 
 export interface ProductCatalogState {
   products: Product[];
@@ -28,7 +30,7 @@ const defaultSettings: GoogleSheetsFrontendSettings = {
   showOutOfStockProducts: true,
   allowOutOfStockCheckout: false,
   lowStockThreshold: 3,
-  currency: 'USD',
+  currency: 'PKR',
 };
 
 const normalize = (value: string | undefined) => (value || '').trim().toLowerCase();
@@ -131,6 +133,15 @@ const loadCatalog = async (): Promise<{
   settings: GoogleSheetsFrontendSettings;
   source: ProductCatalogSource;
 }> => {
+  if (isSupabaseConfigured) {
+    const allProducts = await fetchSupabaseProducts();
+    return {
+      allProducts,
+      products: allProducts.filter((product) => product.active !== false),
+      settings: { ...defaultSettings, sheetProductDatabase: true },
+      source: 'supabase',
+    };
+  }
   if (!isGoogleSheetsBackendEnabled()) {
     const localProducts = FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true }));
     return {
@@ -175,8 +186,8 @@ const loadCatalog = async (): Promise<{
 };
 
 export const useProductCatalogStore = create<ProductCatalogState>((set, get) => ({
-  products: FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true })),
-  allProducts: FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true })),
+  products: isSupabaseConfigured ? [] : FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true })),
+  allProducts: isSupabaseConfigured ? [] : FEATURED_PRODUCTS.map((product) => ({ ...product, active: product.active ?? true })),
   settings: defaultSettings,
   source: 'local',
   isLoading: false,
@@ -189,9 +200,9 @@ export const useProductCatalogStore = create<ProductCatalogState>((set, get) => 
 
     set({ isLoading: true, lastError: '' });
 
-    const next = await loadCatalog();
-
-    set({
+    try {
+      const next = await loadCatalog();
+      set({
       allProducts: next.allProducts,
       products: next.products,
       settings: next.settings,
@@ -199,7 +210,15 @@ export const useProductCatalogStore = create<ProductCatalogState>((set, get) => 
       hydrated: true,
       isLoading: false,
       lastError: '',
-    });
+      });
+    } catch (error) {
+      set({
+        ...(isSupabaseConfigured ? { products: [], allProducts: [] } : {}),
+        isLoading: false,
+        hydrated: true,
+        lastError: error instanceof Error ? error.message : 'Unable to load catalog.',
+      });
+    }
   },
   refresh: async () => {
     if (get().isLoading) {

@@ -16,6 +16,9 @@ const filters: CategoryFilter[] = ['All', 'Unisex', 'Women', 'Men'];
 
 export const CollectionPage = () => {
   const productsCatalog = useProductCatalogStore((state) => state.products);
+  const catalogLoading = useProductCatalogStore((state) => state.isLoading);
+  const catalogError = useProductCatalogStore((state) => state.lastError);
+  const refreshCatalog = useProductCatalogStore((state) => state.refresh);
   usePageMeta({
     title: 'Collection | DOTFUMES',
     description: 'Explore the full DOTFUMES fragrance archive across men, women, and unisex scents.',
@@ -120,7 +123,11 @@ export const CollectionPage = () => {
             </div>
           </div>
 
-          {products.length > 0 ? (
+          {catalogError && products.length === 0 ? (
+            <div className="py-16 text-center" role="alert"><p className="text-sm text-black/65">The collection could not be loaded.</p><Button variant="outline" className="mt-5" onClick={() => void refreshCatalog()}>Try again</Button></div>
+          ) : catalogLoading && products.length === 0 ? (
+            <p className="py-16 text-center text-sm text-black/60" role="status">Loading fragrances…</p>
+          ) : products.length > 0 ? (
             <motion.div
               layout
               className="grid grid-cols-1 gap-x-12 gap-y-20 md:grid-cols-2 lg:grid-cols-3"

@@ -13,7 +13,8 @@ export const readLatestOrder = (): OrderPayload | null => {
   }
 
   try {
-    return JSON.parse(raw) as OrderPayload;
+    const order = JSON.parse(raw) as Partial<OrderPayload>;
+    return order.currency === 'PKR' && typeof order.orderId === 'string' ? order as OrderPayload : null;
   } catch {
     return null;
   }

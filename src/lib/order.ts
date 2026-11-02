@@ -6,7 +6,9 @@ const orderPrefix = 'DF';
 const defaultDeliveryFee = 0;
 const maxMailtoUrlLength = 1800;
 
-const formatAmount = (value: number) => `$${value.toFixed(2)}`;
+const formatAmount = (value: number) => formatCurrency(value);
+const formatSlipReference = (order: OrderPayload) =>
+  order.submissionMode === 'supabase' ? 'Submitted privately in Dotfumes admin' : order.slip.referenceUrl;
 
 export const formatPaymentMethodLabel = (method: PaymentMethod) => {
   switch (method) {
@@ -42,7 +44,7 @@ export const createOrderId = () => {
   const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(
     date.getDate(),
   ).padStart(2, '0')}`;
-  const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
+  const randomPart = crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase();
   return `${orderPrefix}-${datePart}-${randomPart}`;
 };
 
@@ -69,7 +71,7 @@ export const buildWhatsAppMessage = (order: OrderPayload) =>
     `Subtotal: ${formatAmount(order.subtotal)}`,
     `Delivery Fee: ${formatAmount(order.deliveryFee)}`,
     `Total: ${formatAmount(order.total)}`,
-    `Slip URL: ${order.slip.referenceUrl}`,
+    `Payment proof: ${formatSlipReference(order)}`,
     '',
     'Please confirm my Dotfumes order.',
   ].join('\n');
@@ -113,8 +115,10 @@ export const buildOrderPayload = (params: {
   const order: OrderPayload = {
     orderId,
     createdAt: new Date().toISOString(),
-    currency: 'USD',
+    currency: 'PKR',
     paymentMethod: values.paymentMethod as OrderPayload['paymentMethod'],
+    payerName: values.payerName.trim(),
+    paymentReference: values.paymentReference.trim(),
     subtotal,
     deliveryFee,
     total,
@@ -186,7 +190,7 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
     `Subtotal: ${formatAmount(order.subtotal)}`,
     `Delivery Fee: ${formatAmount(order.deliveryFee)}`,
     `Total: ${formatAmount(order.total)}`,
-    `Slip URL: ${order.slip.referenceUrl}`,
+    `Payment proof: ${formatSlipReference(order)}`,
     '',
     'Please confirm this order request and share next steps for delivery coordination.',
   ].join('\n');
@@ -202,7 +206,7 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
     `Phone: ${order.customer.phone}`,
     `Total: ${formatAmount(order.total)}`,
     `Payment: ${formatPaymentMethodLabel(order.paymentMethod)}`,
-    `Slip URL: ${order.slip.referenceUrl}`,
+    `Payment proof: ${formatSlipReference(order)}`,
     '',
     'Please confirm this order request and share next steps.',
   ].join('\n');
@@ -210,4 +214,4 @@ export const buildOrderEmailUrl = (order: OrderPayload) => {
   return `mailto:${appConfig.clientOrderEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(compactBody)}`;
 };
 
-export const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
+export const formatCurrency = (value: number) => `Rs ${new Intl.NumberFormat('en-PK', { maximumFractionDigits: 0 }).format(value)}`;

@@ -19,7 +19,8 @@ export const ProductPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const allProducts = useProductCatalogStore((state) => state.allProducts);
-  const product = allProducts.find((item) => item.slug === slug);
+  const hydrated = useProductCatalogStore((state) => state.hydrated);
+  const product = allProducts.find((item) => item.slug === slug && item.active !== false);
   const [quantity, setQuantity] = useState(1);
   const { addItem, openCart } = useCartStore();
   const { pushToast } = useToastStore();
@@ -62,7 +63,7 @@ export const ProductPage = () => {
       },
       offers: {
         '@type': 'Offer',
-        priceCurrency: 'USD',
+        priceCurrency: 'PKR',
         price: product.price,
         availability: availableStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       },
@@ -79,6 +80,10 @@ export const ProductPage = () => {
     () => allProducts.filter((item) => item.slug !== slug).slice(0, 2),
     [allProducts, slug],
   );
+
+  if (!product && !hydrated) {
+    return <section className="min-h-screen bg-brand-black px-6 py-40 text-center text-white" role="status">Loading fragrance…</section>;
+  }
 
   if (!product) {
     return (
@@ -136,7 +141,7 @@ export const ProductPage = () => {
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
         <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
-            src={product.images.angle}
+            src={product.images.angle || product.images.front}
             alt={`${product.name} perfume bottle angled product view`}
             wrapperClassName="h-[56vh] w-full max-w-2xl bg-transparent sm:h-[62vh] md:h-[66vh] lg:h-[70vh]"
             className="h-full w-full object-contain drop-shadow-[0_45px_90px_rgba(0,0,0,0.12)]"
@@ -152,7 +157,7 @@ export const ProductPage = () => {
             Collection
           </Link>
           <span className="text-[10px] font-bold uppercase tracking-[0.45em] text-brand-gold">
-            {product.category} / 100ml / {product.sku}
+            {product.category} {product.sizeMl ? `/ ${product.sizeMl}ml` : ''} / {product.sku}
           </span>
           <h1 className="mt-7 font-serif text-6xl italic leading-[0.9] tracking-tight md:text-8xl">
             {product.name}
@@ -238,7 +243,7 @@ export const ProductPage = () => {
 
       <div className="bg-brand-black text-white">
         <div className="grid min-h-[80vh] grid-cols-1 lg:grid-cols-2">
-          <div className="relative min-h-[60vh] overflow-hidden">
+          {product.images.lifestyle[0] && <div className="relative min-h-[60vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[0]}
               alt={`${product.name} perfume lifestyle campaign scene`}
@@ -246,7 +251,7 @@ export const ProductPage = () => {
               className="h-full w-full object-cover opacity-75"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-          </div>
+          </div>}
           <div className="flex flex-col justify-center px-6 py-20 md:px-16 lg:px-20">
             <p className="text-[10px] uppercase tracking-[0.45em] text-brand-gold">Campaign Mood</p>
             <h2 className="mt-8 font-serif text-5xl italic leading-[0.95] md:text-7xl">
@@ -260,13 +265,13 @@ export const ProductPage = () => {
         <div className="grid grid-cols-1 border-t border-white/10 lg:grid-cols-2">
           <div className="flex items-center justify-center bg-white p-8 md:p-16">
             <AssetImage
-              src={product.images.flatLay}
+              src={product.images.flatLay || product.images.front}
               alt={`${product.name} perfume bottle top-down flat lay`}
               wrapperClassName="aspect-[4/3] w-full max-w-2xl bg-white"
               className="h-full w-full object-contain drop-shadow-[0_35px_70px_rgba(0,0,0,0.08)]"
             />
           </div>
-          <div className="relative min-h-[52vh] overflow-hidden">
+          {product.images.lifestyle[1] && <div className="relative min-h-[52vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[1]}
               alt={`${product.name} still life with fragrance note ingredients`}
@@ -274,7 +279,7 @@ export const ProductPage = () => {
               className="h-full w-full object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-          </div>
+          </div>}
         </div>
       </div>
 

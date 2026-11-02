@@ -19,6 +19,8 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { createOrderSubmissionService } from '../services/orderSubmissionService';
 import { createSlipPreviewUrl, revokeSlipPreviewUrl } from '../lib/paymentSlip';
 import { isGoogleSheetsBackendEnabled } from '../lib/googleSheetsBackend';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchPaymentAccounts, type PaymentAccount } from '../lib/paymentAccounts';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import { cn } from '../lib/utils';
 import { CartLineItem } from '../components/cart/CartLineItem';
@@ -39,6 +41,8 @@ const initialValues: CheckoutFormValues = {
   address: '',
   city: '',
   paymentMethod: '',
+  payerName: '',
+  paymentReference: '',
 };
 
 const paymentOptions: Array<{ value: PaymentMethod; label: string; note: string }> = [
@@ -69,6 +73,8 @@ const errorFieldOrder: Array<keyof CheckoutErrors> = [
   'address',
   'city',
   'paymentMethod',
+  'payerName',
+  'paymentReference',
   'slip',
 ];
 
@@ -109,6 +115,8 @@ export const CheckoutPage = () => {
   const [slipPreviewUrl, setSlipPreviewUrl] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
+  const [paymentAccounts, setPaymentAccounts] = useState<PaymentAccount[]>([]);
+  const [paymentAccountsError, setPaymentAccountsError] = useState('');
   const handleRequestRemove = useCallback((id: string) => setPendingRemoveId(id), []);
   const handleCancelRemove = useCallback(() => setPendingRemoveId(null), []);
   const handleConfirmRemove = useCallback(
@@ -144,7 +152,7 @@ export const CheckoutPage = () => {
       }),
     [allProducts, allowOutOfStockCheckout],
   );
-  const googleSheetsEnabled = isGoogleSheetsBackendEnabled();
+  const googleSheetsEnabled = isGoogleSheetsBackendEnabled() || isSupabaseConfigured;
 
   usePageMeta({
     title: 'Checkout | DOTFUMES',
@@ -160,6 +168,17 @@ export const CheckoutPage = () => {
     };
   }, [slipPreviewUrl]);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let mounted = true;
+    void fetchPaymentAccounts().then((accounts) => {
+      if (mounted) setPaymentAccounts(accounts.filter((account) => account.active));
+    }).catch(() => {
+      if (mounted) setPaymentAccountsError('Payment methods are temporarily unavailable. Please check back soon.');
+    });
+    return () => { mounted = false; };
+  }, []);
+
   const {
     productById: latestProductById,
     availabilityIssues,
@@ -172,7 +191,8 @@ export const CheckoutPage = () => {
       values.address.trim() &&
       values.city.trim(),
   );
-  const paymentStepComplete = Boolean(values.paymentMethod && slipFile);
+  const paymentStepComplete = Boolean(values.paymentMethod && values.payerName.trim() && values.paymentReference.trim() && slipFile);
+  const selectedPaymentAccount = paymentAccounts.find((account) => account.method === values.paymentMethod);
 
   const clearError = (key: keyof CheckoutErrors) => {
     setErrors((previous) => {
@@ -224,6 +244,10 @@ export const CheckoutPage = () => {
     if (isSubmitting) {
       return;
     }
+    if (isSupabaseConfigured && !selectedPaymentAccount) {
+      setSubmitError('Online payment is not available yet. Please return when Dotfumes has enabled a receiving account.');
+      return;
+    }
 
     if (submitError) {
       setSubmitError('');
@@ -271,7 +295,7 @@ export const CheckoutPage = () => {
       saveLatestOrder(result.order);
       clearCart();
       void refreshCatalog();
-      pushToast(result.message, result.mode === 'google-sheets' ? 'success' : 'neutral');
+      pushToast(result.message, result.mode !== 'frontend-fallback' ? 'success' : 'neutral');
       navigate('/order-confirmation');
     } catch (error) {
       const message =
@@ -453,7 +477,7 @@ export const CheckoutPage = () => {
                 errors.paymentMethod && 'ring-1 ring-red-300 ring-offset-4 ring-offset-brand-white',
               )}
             >
-              {paymentOptions.map((option) => {
+              {paymentOptions.filter((option) => !isSupabaseConfigured || paymentAccounts.some((account) => account.method === option.value)).map((option) => {
                 const selected = values.paymentMethod === option.value;
 
                 return (
@@ -486,6 +510,21 @@ export const CheckoutPage = () => {
               })}
             </Stack>
             {errors.paymentMethod ? <FieldError message={errors.paymentMethod} /> : null}
+            {isSupabaseConfigured && paymentAccounts.length === 0 && <Card variant="light" className="border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-950">Online payment is being set up. Demo account details are not valid for transfers, so checkout is paused until Dotfumes enables an official account.</Card>}
+            {paymentAccountsError && <p role="alert" className="text-sm text-red-700">{paymentAccountsError}</p>}
+            {selectedPaymentAccount && <Card variant="light" className="space-y-2 border-brand-gold/40 bg-brand-ivory px-5 py-5 text-sm text-black/75">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-black">Send payment to</p>
+              {selectedPaymentAccount.bank_name && <p>Bank: <strong>{selectedPaymentAccount.bank_name}</strong></p>}
+              <p>Account title: <strong>{selectedPaymentAccount.account_title}</strong></p>
+              {selectedPaymentAccount.account_number && <p>{selectedPaymentAccount.method === 'bank-transfer' ? 'Account number' : 'Wallet number'}: <strong className="break-all">{selectedPaymentAccount.account_number}</strong></p>}
+              {selectedPaymentAccount.iban && <p>IBAN: <strong className="break-all">{selectedPaymentAccount.iban}</strong></p>}
+              {selectedPaymentAccount.instructions && <p>{selectedPaymentAccount.instructions}</p>}
+              <p className="pt-2 text-xs">Transfer exactly {formatCurrency(total)}, then enter the sender name and transaction reference below. Dotfumes verifies every receipt manually.</p>
+            </Card>}
+            {(!isSupabaseConfigured || selectedPaymentAccount) && <Grid cols={{ sm: 2 }} gap={3}>
+              <CheckoutInput label="Name used to pay" name="payerName" value={values.payerName} onChange={(value) => setField('payerName', value)} error={errors.payerName} autoComplete="name" />
+              <CheckoutInput label="Transaction reference" name="paymentReference" value={values.paymentReference} onChange={(value) => setField('paymentReference', value)} error={errors.paymentReference} />
+            </Grid>}
           </div>
 
           <div className="sr-only" aria-hidden>
@@ -577,7 +616,9 @@ export const CheckoutPage = () => {
           <Card variant="light" className="bg-brand-ivory px-5 py-4 text-xs leading-6 text-black/60">
             <div className="flex items-start gap-3">
               <ShieldCheck size={16} className="mt-1 text-brand-gold" />
-              {googleSheetsEnabled ? (
+              {isSupabaseConfigured && paymentAccounts.length === 0 ? (
+                <p>Checkout is paused until an official payment account is enabled. Please do not send money to any demo details.</p>
+              ) : googleSheetsEnabled ? (
                 <p>
                   Your order request and payment proof are received first, then reviewed manually by
                   Dotfumes. The team will contact you as early as possible for confirmation and
@@ -609,7 +650,7 @@ export const CheckoutPage = () => {
             variant="primary"
             loading={isSubmitting}
             disabled={
-              items.length === 0 || (!allowOutOfStockCheckout && availabilityIssues.length > 0)
+              items.length === 0 || (isSupabaseConfigured && !selectedPaymentAccount) || (!allowOutOfStockCheckout && availabilityIssues.length > 0)
             }
             className="w-full px-8 py-5 tracking-[0.35em]"
           >
@@ -620,7 +661,7 @@ export const CheckoutPage = () => {
               : 'Place Order Request'}
           </Button>
           <p className={cn('text-center text-[10px] uppercase text-black/58', tracking.normal)}>
-            Your order request is sent now. Dotfumes will contact you as early as possible.
+            {isSupabaseConfigured && !selectedPaymentAccount ? 'Order requests are paused until official payment details are available.' : 'Your order request is sent after submission. Dotfumes will contact you as early as possible.'}
           </p>
         </form>
 

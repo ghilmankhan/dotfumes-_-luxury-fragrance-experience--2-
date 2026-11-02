@@ -5,6 +5,7 @@ export interface Product {
   name: string;
   slug: string;
   price: number;
+  sizeMl?: number;
   description: string;
   shortDescription: string;
   category: 'Men' | 'Women' | 'Unisex';
@@ -22,6 +23,8 @@ export interface Product {
   stock: number;
   active?: boolean;
   lowStock?: boolean;
+  featured?: boolean;
+  sortOrder?: number;
 }
 
 export interface CartItem extends Product {

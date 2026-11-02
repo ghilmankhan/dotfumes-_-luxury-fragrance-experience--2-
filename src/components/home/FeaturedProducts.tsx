@@ -5,7 +5,7 @@ import { useProductCatalogStore } from '../../store/useProductCatalogStore';
 import { easing, duration } from '../../styles/tokens/motion';
 
 export const FeaturedProducts = () => {
-  const products = useProductCatalogStore((state) => state.products);
+  const products = useProductCatalogStore((state) => state.products).filter((product) => product.featured !== false).slice(0, 6);
 
   return (
     <section className="py-32 md:py-56 bg-brand-white px-8 md:px-16 lg:px-24">
