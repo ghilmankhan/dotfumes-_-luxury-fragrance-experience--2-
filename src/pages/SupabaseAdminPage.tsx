@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight, CreditCard, LogOut, Package, Plus, Search, ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { archiveSupabaseProduct, fetchSupabaseProducts, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
@@ -17,8 +18,8 @@ const blankProduct = (): Product => ({
   images: { front: '', angle: '', flatLay: '', lifestyle: [] },
   notes: { top: [], heart: [], base: [] },
 });
-const fieldClass = 'mt-1 w-full border border-black/20 bg-white px-3 py-2.5 text-sm text-black outline-none focus:border-amber-700';
-const labelClass = 'block text-xs font-medium text-black/70';
+const fieldClass = 'mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition-colors focus:border-[#a78045] focus:ring-2 focus:ring-[#a78045]/15';
+const labelClass = 'block text-sm font-medium text-stone-700';
 const makeSlug = (name: string) => name.trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 export const SupabaseAdminPage = () => {
@@ -186,45 +187,87 @@ export const SupabaseAdminPage = () => {
     finally { setBusy(false); }
   };
 
-  return <section className="min-h-screen bg-[#f5f2eb] px-5 py-12 text-black md:px-10">
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-wrap items-end justify-between gap-5 border-b border-black/15 pb-7">
-        <div><h1 className="font-serif text-4xl italic md:text-5xl">Catalog studio</h1><p className="mt-2 text-sm text-black/60">Manage the fragrances shown in the shop.</p></div>
-        <div className="flex gap-3"><Link className="border border-black/30 px-4 py-2 text-xs uppercase tracking-widest" to="/collection">View shop</Link>{userId && <button className="border border-black/30 px-4 py-2 text-xs uppercase tracking-widest" onClick={() => { setProducts([]); setOrders([]); setIsAdmin(false); setEditing(null); void supabase?.auth.signOut(); }}>Sign out</button>}</div>
+  const filteredProducts = products.filter((product) => `${product.name} ${product.category} ${product.sku}`.toLowerCase().includes(search.trim().toLowerCase()));
+  const pendingOrders = orders.filter((order) => order.order_status !== 'Cancelled' && order.order_status !== 'Delivered').length;
+  const sections = [
+    { key: 'products' as const, label: 'Products', count: products.length, Icon: Package },
+    { key: 'orders' as const, label: 'Orders', count: pendingOrders, Icon: ShoppingBag },
+    { key: 'payments' as const, label: 'Payments', count: null, Icon: CreditCard },
+  ];
+
+  return <section className="min-h-screen bg-[#f7f6f2] text-stone-950 selection:bg-[#e8d6b7] selection:text-stone-950">
+    {!userId ? <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-5 py-7 sm:px-8">
+      <div className="flex items-center justify-between border-b border-stone-200 pb-5">
+        <span className="font-serif text-2xl tracking-tight">dotfumes<span className="text-[#ae8a52]">.</span></span>
+        <Link to="/collection" className="inline-flex items-center gap-1.5 text-sm font-medium text-stone-600 transition-colors hover:text-stone-950">View shop <ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
-      {error && <p role="alert" className="mt-6 border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
-      {notice && <p role="status" className="mt-6 border border-green-300 bg-green-50 p-4 text-sm text-green-800">{notice}</p>}
-      {userId && showPasswordSetup && <form onSubmit={setAdminPassword} className="mt-8 max-w-md space-y-5 bg-white p-7">
-        <h2 className="font-serif text-2xl italic">Set admin password</h2>
-        <label className={labelClass}>New password<input className={fieldClass} type="password" autoComplete="new-password" minLength={12} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label>
-        <button disabled={busy} className="bg-black px-6 py-3 text-xs uppercase tracking-widest text-white disabled:opacity-50">Save password</button>
-      </form>}
-      {!userId ? <form onSubmit={signIn} className="mt-12 max-w-md space-y-5 rounded-xl bg-white p-7 shadow-sm">
-        <h2 className="font-serif text-2xl italic">Admin sign in</h2>
-        <label className={labelClass}>Email<input className={fieldClass} type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-        <label className={labelClass}>Password<input className={fieldClass} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
-        <button disabled={busy} className="bg-black px-6 py-3 text-xs uppercase tracking-widest text-white disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in'}</button>
-        <button type="button" disabled={busy} className="block text-xs underline disabled:opacity-50" onClick={() => void requestPasswordLink()}>Set or reset password by email</button>
-      </form> : isAdmin ? <div className="mt-8 space-y-8">
-        <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-4" role="tablist" aria-label="Studio sections">
-          {([['products', `Products (${products.length})`], ['orders', `Orders (${orders.length})`], ['payments', 'Payment accounts']] as const).map(([key, label]) => <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setEditing(null); setError(''); }} className={`rounded-md px-5 py-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#a78045] ${tab === key ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-white'}`}>{label}</button>)}
+      <div className="flex flex-1 items-center justify-center py-12">
+        <div className="w-full max-w-md">
+          <h1 className="font-serif text-4xl tracking-tight sm:text-5xl">Welcome back.</h1>
+          <p className="mt-3 text-sm leading-6 text-stone-600">Sign in to manage your Dotfumes store.</p>
+          {error && <p role="alert" className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+          {notice && <p role="status" className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+          <form onSubmit={signIn} className="mt-8 space-y-5 rounded-2xl bg-white p-6 shadow-[0_16px_50px_-32px_rgba(28,25,23,0.35)] sm:p-8">
+            <label className={labelClass}>Email address<input className={fieldClass} type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+            <label className={labelClass}>Password<input className={fieldClass} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+            <button disabled={busy} className="w-full rounded-xl bg-stone-950 px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045] disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in to admin'}</button>
+            <button type="button" disabled={busy} className="text-sm font-medium text-[#785b34] underline decoration-[#c5a059]/50 underline-offset-4 hover:text-stone-950 disabled:opacity-50" onClick={() => void requestPasswordLink()}>Set or reset password</button>
+          </form>
         </div>
-        {tab === 'products' && <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)]">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-serif text-3xl">Your fragrances</h2><p className="mt-1 text-sm text-stone-600">Edit a fragrance or add a new one in a few steps.</p></div><button type="button" disabled={busy} className="rounded-md bg-stone-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-stone-700 disabled:opacity-50" onClick={() => { setEditing(blankProduct()); setError(''); }}>Add product</button></div>
-            <label className="sr-only" htmlFor="product-search">Search products</label><input id="product-search" className="w-full rounded-md border border-stone-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#a78045]" placeholder="Search fragrances" value={search} onChange={(event) => setSearch(event.target.value)} />
-            <div className="space-y-3">{products.filter((product) => `${product.name} ${product.category} ${product.sku}`.toLowerCase().includes(search.toLowerCase())).map((product) => <div key={product.id} className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm">
-              <img src={product.images.front} alt="" className="h-16 w-16 shrink-0 rounded-md bg-[#f6f3ed] object-contain" />
-              <div className="min-w-0 flex-1"><p className="truncate font-medium">{product.name}</p><p className="mt-1 text-xs text-stone-600">{formatCurrency(product.price)} · {product.stock} available · {product.category}</p><p className="mt-1 text-xs text-stone-500">{product.active ? 'Visible in shop' : 'Hidden from shop'}</p></div>
-              <button type="button" className="rounded-md px-3 py-2 text-sm font-medium text-stone-800 hover:bg-stone-100" onClick={() => setEditing(product)}>Edit</button>
-              {product.active && <button type="button" disabled={busy} className="rounded-md px-3 py-2 text-sm text-stone-600 hover:bg-stone-100 disabled:opacity-50" onClick={() => void archive(product)}>Hide</button>}
-            </div>)}{products.length === 0 && <p className="rounded-xl bg-white p-6 text-sm text-stone-600">No fragrances yet. Add your first product.</p>}{products.length > 0 && !products.some((product) => `${product.name} ${product.category} ${product.sku}`.toLowerCase().includes(search.toLowerCase())) && <p className="rounded-xl bg-white p-6 text-sm text-stone-600">No products match that search.</p>}</div>
-          </div>
-          {editing && <StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} onChange={update} onUpload={(slot, file) => void upload(slot, file)} onSave={save} onCancel={() => setEditing(null)} />}
-        </div>}
-        {tab === 'orders' && <StudioOrders orders={orders} busy={busy} onStatus={(id, patch) => void updateOrder(id, patch)} onProof={(path) => void openSlip(path)} />}
-        {tab === 'payments' && <StudioPaymentAccounts accounts={paymentAccounts} busy={busy} onSave={saveAccount} />}
-      </div> : <p className="mt-10 text-sm text-black/60">{error ? 'Admin access is unavailable for this account.' : 'Checking admin access…'}</p>}
-    </div>
+      </div>
+    </div> : <div className="mx-auto min-h-screen max-w-[1720px] lg:grid lg:grid-cols-[244px_minmax(0,1fr)]">
+      <aside className="border-b border-stone-200 bg-[#eeebe4] px-5 py-5 sm:px-8 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:border-b-0 lg:border-r lg:px-6 lg:py-8">
+        <div className="flex items-center justify-between">
+          <span className="font-serif text-2xl tracking-tight">dotfumes<span className="text-[#ae8a52]">.</span></span>
+          <span className="rounded-full bg-white/75 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-stone-600">Admin</span>
+        </div>
+        <p className="mt-2 hidden text-xs text-stone-500 lg:block">Store workspace</p>
+        <nav aria-label="Admin sections" className="mt-6 grid grid-cols-3 gap-1 lg:mt-12 lg:flex lg:flex-col" role="tablist">
+          {sections.map(({ key, label, count, Icon }) => <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setError(''); }} className={`flex min-w-0 items-center justify-center gap-2 rounded-xl px-2 py-3 text-left text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#a78045] sm:text-sm lg:w-full lg:justify-start lg:gap-3 lg:px-3.5 ${tab === key ? 'bg-stone-950 text-white' : 'text-stone-600 hover:bg-white/80 hover:text-stone-950'}`}>
+            <Icon size={17} strokeWidth={1.8} aria-hidden="true" className="shrink-0" /><span className="truncate lg:flex-1">{label}</span>{count !== null && <span className={`hidden rounded-md px-2 py-0.5 text-xs tabular-nums sm:inline ${tab === key ? 'bg-white/15 text-white' : 'bg-white text-stone-600'}`}>{count}</span>}
+          </button>)}
+        </nav>
+        <div className="mt-6 hidden space-y-1 border-t border-stone-300/70 pt-5 lg:block">
+          <Link className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium text-stone-600 transition-colors hover:bg-white/80 hover:text-stone-950" to="/collection"><ArrowUpRight size={18} aria-hidden="true" />View shop</Link>
+          <button type="button" className="flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left text-sm font-medium text-stone-600 transition-colors hover:bg-white/80 hover:text-stone-950" onClick={() => { setProducts([]); setOrders([]); setIsAdmin(false); setEditing(null); void supabase?.auth.signOut(); }}><LogOut size={18} aria-hidden="true" />Sign out</button>
+        </div>
+      </aside>
+      <main className="min-w-0 px-5 pb-16 pt-7 sm:px-8 lg:px-10 lg:pt-11 xl:px-14">
+        <div className="mx-auto max-w-[1320px]">
+          <header className="flex flex-wrap items-end justify-between gap-5 border-b border-stone-200 pb-7">
+            <div><h1 className="font-serif text-4xl tracking-tight sm:text-[2.85rem]">{tab === 'products' ? 'Products' : tab === 'orders' ? 'Orders' : 'Payment accounts'}</h1><p className="mt-2 text-sm leading-6 text-stone-600">{tab === 'products' ? 'Keep your fragrance collection up to date.' : tab === 'orders' ? 'Review requests and keep each order moving.' : 'Choose which receiving accounts customers can use.'}</p></div>
+            {tab === 'products' && isAdmin && !editing && <button type="button" disabled={busy} className="inline-flex items-center gap-2 rounded-xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045] disabled:opacity-50" onClick={() => { setEditing(blankProduct()); setError(''); }}><Plus size={17} aria-hidden="true" />Add product</button>}
+            <div className="flex items-center gap-4 lg:hidden"><Link to="/collection" className="text-sm text-stone-600 underline underline-offset-4">View shop</Link><button type="button" className="text-sm text-stone-600 underline underline-offset-4" onClick={() => { setProducts([]); setOrders([]); setIsAdmin(false); setEditing(null); void supabase?.auth.signOut(); }}>Sign out</button></div>
+          </header>
+          {error && <p role="alert" className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
+          {notice && <p role="status" className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
+          {showPasswordSetup && <form onSubmit={setAdminPassword} className="mt-7 max-w-lg space-y-5 rounded-2xl bg-white p-6 shadow-sm">
+            <div><h2 className="font-serif text-2xl">Set admin password</h2><p className="mt-1 text-sm text-stone-600">Use at least 12 characters for your new password.</p></div>
+            <label className={labelClass}>New password<input className={fieldClass} type="password" autoComplete="new-password" minLength={12} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required /></label>
+            <button disabled={busy} className="rounded-xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">Save password</button>
+          </form>}
+          {!isAdmin ? <p className="mt-10 text-sm text-stone-600">{error ? 'Admin access is unavailable for this account.' : 'Checking admin access…'}</p> : <div className="pt-8">
+            {tab === 'products' && <div className={`grid gap-7 ${editing ? 'xl:grid-cols-[minmax(0,1fr)_minmax(390px,520px)]' : ''}`}>
+              <div className={editing ? 'hidden min-w-0 xl:block' : 'min-w-0'}>
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-5"><p className="text-sm text-stone-600"><span className="font-semibold tabular-nums text-stone-950">{products.length}</span> fragrances in your catalog</p><p className="text-xs text-stone-500">{products.filter((product) => product.active).length} visible in shop</p></div>
+                <label className="relative mb-5 block"><Search size={18} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" /><span className="sr-only">Search products</span><input id="product-search" className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-4 text-sm text-stone-950 outline-none transition-colors placeholder:text-stone-500 focus:border-[#a78045] focus:ring-2 focus:ring-[#a78045]/15" placeholder="Search by name, category or SKU" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+                <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200/80">
+                  {filteredProducts.map((product, index) => <div key={product.id} className={`flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-[#faf8f3] sm:flex-nowrap sm:px-5 ${index > 0 ? 'border-t border-stone-100' : ''}`}>
+                    <img src={product.images.front} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-[#f4f1eb] object-contain sm:h-18 sm:w-18" />
+                    <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-sm font-semibold text-stone-950 sm:text-base">{product.name}</h2><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${product.active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-600'}`}>{product.active ? 'Live' : 'Hidden'}</span></div><p className="mt-1.5 text-xs text-stone-600">{product.category} · {product.sizeMl} ml · <span className="tabular-nums">{product.stock}</span> in stock</p><p className="mt-1 text-sm font-medium tabular-nums text-stone-950">{formatCurrency(product.price)}</p></div>
+                    <div className="ml-auto flex shrink-0 items-center gap-1"><button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-[#a78045]" onClick={() => setEditing(product)}>Edit</button>{product.active && <button type="button" disabled={busy} className="rounded-lg px-3 py-2 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50" onClick={() => void archive(product)}>Hide</button>}</div>
+                  </div>)}
+                  {products.length === 0 && <div className="px-6 py-14 text-center"><Package size={26} strokeWidth={1.5} className="mx-auto text-[#a78045]" aria-hidden="true" /><p className="mt-4 font-serif text-xl">Your collection starts here</p><p className="mt-2 text-sm text-stone-600">Add a product to make it available in your store.</p></div>}
+                  {products.length > 0 && filteredProducts.length === 0 && <div className="px-6 py-14 text-center"><p className="font-serif text-xl">No matching products</p><p className="mt-2 text-sm text-stone-600">Try a different name, category or SKU.</p></div>}
+                </div>
+              </div>
+              {editing && <div className="min-w-0 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} onChange={update} onUpload={(slot, file) => void upload(slot, file)} onSave={save} onCancel={() => setEditing(null)} /></div>}
+            </div>}
+            {tab === 'orders' && <StudioOrders orders={orders} busy={busy} onStatus={(id, patch) => void updateOrder(id, patch)} onProof={(path) => void openSlip(path)} />}
+            {tab === 'payments' && <StudioPaymentAccounts accounts={paymentAccounts} busy={busy} onSave={saveAccount} />}
+          </div>}
+        </div>
+      </main>
+    </div>}
   </section>;
 };
