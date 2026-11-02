@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, CreditCard, LogOut, Package, Plus, Search, ShoppingBag } from 'lucide-react';
+import { ArrowUpRight, CreditCard, LogOut, Package, Plus, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { archiveSupabaseProduct, fetchSupabaseProducts, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
+import { archiveSupabaseProduct, deleteSupabaseProduct, fetchSupabaseProducts, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
 import type { Product } from '../models/types';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -35,6 +35,7 @@ export const SupabaseAdminPage = () => {
   const [tab, setTab] = useState<'products' | 'orders' | 'payments'>('products');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -139,6 +140,20 @@ export const SupabaseAdminPage = () => {
       await refreshCatalog();
       setNotice(`${product.name} is hidden from the shop.`);
     } catch (archiveError) { setError(archiveError instanceof Error ? archiveError.message : 'Unable to hide product.'); }
+    finally { setBusy(false); }
+  };
+
+  const removeProduct = async () => {
+    if (!deleting) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await deleteSupabaseProduct(deleting.id);
+      setProducts(await fetchSupabaseProducts());
+      await refreshCatalog();
+      if (editing?.id === deleting.id) setEditing(null);
+      setNotice(`${deleting.name} was deleted from the catalog.`);
+      setDeleting(null);
+    } catch (deleteError) { setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete product.'); setDeleting(null); }
     finally { setBusy(false); }
   };
 
@@ -255,7 +270,7 @@ export const SupabaseAdminPage = () => {
                   {filteredProducts.map((product, index) => <div key={product.id} className={`flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-[#faf8f3] sm:flex-nowrap sm:px-5 ${index > 0 ? 'border-t border-stone-100' : ''}`}>
                     <img src={product.images.front} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-[#f4f1eb] object-contain sm:h-18 sm:w-18" />
                     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-sm font-semibold text-stone-950 sm:text-base">{product.name}</h2><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${product.active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-600'}`}>{product.active ? 'Live' : 'Hidden'}</span></div><p className="mt-1.5 text-xs text-stone-600">{product.category} · {product.sizeMl} ml · <span className="tabular-nums">{product.stock}</span> in stock</p><p className="mt-1 text-sm font-medium tabular-nums text-stone-950">{formatCurrency(product.price)}</p></div>
-                    <div className="ml-auto flex shrink-0 items-center gap-1"><button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-[#a78045]" onClick={() => setEditing(product)}>Edit</button>{product.active && <button type="button" disabled={busy} className="rounded-lg px-3 py-2 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50" onClick={() => void archive(product)}>Hide</button>}</div>
+                    <div className="ml-auto flex shrink-0 items-center gap-1"><button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-[#a78045]" onClick={() => setEditing(product)}>Edit</button>{product.active && <button type="button" disabled={busy} className="rounded-lg px-3 py-2 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50" onClick={() => void archive(product)}>Hide</button>}<button type="button" disabled={busy} aria-label={`Delete ${product.name}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-medium text-red-800 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50" onClick={() => setDeleting(product)}><Trash2 size={15} aria-hidden="true" />Delete</button></div>
                   </div>)}
                   {products.length === 0 && <div className="px-6 py-14 text-center"><Package size={26} strokeWidth={1.5} className="mx-auto text-[#a78045]" aria-hidden="true" /><p className="mt-4 font-serif text-xl">Your collection starts here</p><p className="mt-2 text-sm text-stone-600">Add a product to make it available in your store.</p></div>}
                   {products.length > 0 && filteredProducts.length === 0 && <div className="px-6 py-14 text-center"><p className="font-serif text-xl">No matching products</p><p className="mt-2 text-sm text-stone-600">Try a different name, category or SKU.</p></div>}
@@ -268,6 +283,14 @@ export const SupabaseAdminPage = () => {
           </div>}
         </div>
       </main>
+      {deleting && <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/55 px-5 py-8" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setDeleting(null); }}>
+        <div role="alertdialog" aria-modal="true" aria-labelledby="delete-product-title" aria-describedby="delete-product-description" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-[0_24px_70px_-24px_rgba(0,0,0,0.35)] sm:p-8" onKeyDown={(event) => { if (event.key === 'Escape' && !busy) setDeleting(null); }}>
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-800"><Trash2 size={21} aria-hidden="true" /></span>
+          <h2 id="delete-product-title" className="mt-5 font-serif text-2xl text-stone-950">Delete {deleting.name}?</h2>
+          <p id="delete-product-description" className="mt-3 text-sm leading-6 text-stone-600">This removes the product from your catalog and shop. Past orders keep their item details. A product in an open order cannot be deleted.</p>
+          <div className="mt-7 flex justify-end gap-3"><button type="button" autoFocus disabled={busy} className="rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50" onClick={() => setDeleting(null)}>Cancel</button><button type="button" disabled={busy} className="rounded-xl bg-red-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-900 disabled:opacity-50" onClick={() => void removeProduct()}>{busy ? 'Deleting…' : 'Delete product'}</button></div>
+        </div>
+      </div>}
     </div>}
   </section>;
 };

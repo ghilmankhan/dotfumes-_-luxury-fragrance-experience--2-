@@ -71,6 +71,12 @@ export const archiveSupabaseProduct = async (id: string) => {
   if (error) throw error;
 };
 
+export const deleteSupabaseProduct = async (id: string) => {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.rpc('admin_delete_product', { p_product_id: id });
+  if (error) throw error;
+};
+
 export const uploadProductImage = async (file: File, productId: string) => {
   if (!supabase) throw new Error('Supabase is not configured.');
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024 || file.size === 0) {

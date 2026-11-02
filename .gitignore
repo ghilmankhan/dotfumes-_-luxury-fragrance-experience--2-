@@ -9,6 +9,7 @@ test-results/
 audit-artifacts/
 .agents/skills/
 supabase/.temp/
+.netlify/
 .env
 .env.local
 .env.*.local
