@@ -53,6 +53,11 @@ const paymentOptions: Array<{ value: PaymentMethod; label: string; note: string 
     note: 'Attach the paid transfer slip to complete your order.',
   },
   {
+    value: 'nayapay',
+    label: 'NayaPay',
+    note: 'Send payment to the shown NayaPay account and attach your receipt.',
+  },
+  {
     value: 'easypaisa',
     label: 'Easypaisa',
     note: 'Upload your Easypaisa payment screenshot as proof.',
@@ -485,7 +490,7 @@ export const CheckoutPage = () => {
             >
               {paymentOptions.filter((option) => option.value === 'cash-on-delivery'
                 ? isSupabaseConfigured || !isGoogleSheetsBackendEnabled()
-                : !isSupabaseConfigured || paymentAccounts.some((account) => account.method === option.value)).map((option) => {
+                : !isSupabaseConfigured || (isGuestOrderSubmissionEnabled && paymentAccounts.some((account) => account.method === option.value))).map((option) => {
                 const selected = values.paymentMethod === option.value;
 
                 return (
@@ -521,7 +526,7 @@ export const CheckoutPage = () => {
             {isSupabaseConfigured && !isGuestOrderSubmissionEnabled && <Card variant="light" className="border-amber-300 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-950">Cash on Delivery and online payment are shown for review. Order requests will open after Dotfumes enables the order service.</Card>}
             {isSupabaseConfigured && paymentAccounts.length === 0 && <p className="text-sm text-black/60">Online payment accounts are being set up. Demo details are not valid for transfers.</p>}
             {paymentAccountsError && <p role="alert" className="text-sm text-red-700">{paymentAccountsError}</p>}
-            {selectedPaymentAccount && <Card variant="light" className="space-y-2 border-brand-gold/40 bg-brand-ivory px-5 py-5 text-sm text-black/75">
+            {isGuestOrderSubmissionEnabled && selectedPaymentAccount && <Card variant="light" className="space-y-2 border-brand-gold/40 bg-brand-ivory px-5 py-5 text-sm text-black/75">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-black">Send payment to</p>
               {selectedPaymentAccount.bank_name && <p>Bank: <strong>{selectedPaymentAccount.bank_name}</strong></p>}
               <p>Account title: <strong>{selectedPaymentAccount.account_title}</strong></p>

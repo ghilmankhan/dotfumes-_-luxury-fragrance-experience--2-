@@ -13,7 +13,7 @@ export interface PaymentAccount {
 }
 
 const isMethod = (value: unknown): value is PaymentMethod =>
-  value === 'bank-transfer' || value === 'easypaisa' || value === 'jazzcash';
+  value === 'bank-transfer' || value === 'nayapay' || value === 'easypaisa' || value === 'jazzcash';
 
 const parseAccount = (value: unknown): PaymentAccount | null => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;

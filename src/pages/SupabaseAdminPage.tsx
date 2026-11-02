@@ -154,7 +154,9 @@ export const SupabaseAdminPage = () => {
     });
     if (updateError) setError(updateError.message);
     else {
-      setOrders((current) => current.map((order) => order.id === id ? { ...order, ...patch } : order));
+      const { data: latestOrders, error: reloadError } = await supabase.from('orders').select('id,created_at,customer_name,email,phone,city,address,payment_method,payer_name,payment_reference,total,payment_status,order_status,slip_path,items').order('created_at', { ascending: false }).limit(100);
+      if (reloadError) setError(reloadError.message);
+      else setOrders((latestOrders ?? []) as StudioOrder[]);
       await refreshCatalog();
       setProducts(await fetchSupabaseProducts());
     }

@@ -1,6 +1,6 @@
 import { CartItem } from './types';
 
-export type PaymentMethod = 'bank-transfer' | 'easypaisa' | 'jazzcash' | 'cash-on-delivery';
+export type PaymentMethod = 'bank-transfer' | 'nayapay' | 'easypaisa' | 'jazzcash' | 'cash-on-delivery';
 export type PaymentStatus = 'Pending Verification' | 'Payment Pending' | 'Verified' | 'Rejected';
 export type OrderStatus =
   | 'New'

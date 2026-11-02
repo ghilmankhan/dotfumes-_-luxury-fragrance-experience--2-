@@ -51,7 +51,8 @@ Deno.serve(async (request) => {
     const client = createClient(url, key, { auth: { persistSession: false } });
     let path: string | null = null;
     if (!cashOnDelivery && bytes) {
-      const extension = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'application/pdf':'pdf' }[slip.mimeType];
+      const extensions: Record<string, string> = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp', 'application/pdf':'pdf' };
+      const extension = extensions[slip.mimeType];
       path = `${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.${extension}`;
       const uploaded = await client.storage.from('payment-slips').upload(path, bytes, { contentType: slip.mimeType, upsert: false });
       if (uploaded.error) throw uploaded.error;
@@ -63,7 +64,7 @@ Deno.serve(async (request) => {
     if (error instanceof Error && error.message === 'Order request is too large') {
       return respond({ success: false, message: error.message }, 413);
     }
-    const message = error instanceof Error && /^(Insufficient stock|A product is unavailable|Invalid order)/.test(error.message)
+    const message = error instanceof Error && /^(Insufficient stock|A product is unavailable|Invalid order|Too many order requests|Order service is busy|Payment method is unavailable|Missing customer details|Missing payment reference)/.test(error.message)
       ? error.message : 'Order could not be submitted. Please retry or contact Dotfumes.';
     return respond({ success: false, message }, 400);
   }

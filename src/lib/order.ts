@@ -17,6 +17,8 @@ export const formatPaymentMethodLabel = (method: PaymentMethod) => {
       return 'Bank Transfer';
     case 'easypaisa':
       return 'Easypaisa';
+    case 'nayapay':
+      return 'NayaPay';
     case 'jazzcash':
       return 'JazzCash';
     case 'cash-on-delivery':
