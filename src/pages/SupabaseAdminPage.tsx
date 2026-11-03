@@ -38,6 +38,7 @@ export const SupabaseAdminPage = () => {
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const refreshCatalog = useProductCatalogStore((state) => state.refresh);
@@ -185,16 +186,18 @@ export const SupabaseAdminPage = () => {
     if (slipError || !data?.signedUrl) { setError(slipError?.message || 'Unable to open payment proof.'); return; }
     window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
   };
-  const upload = async (slot: 'front' | 'angle' | 'flatLay' | 'lifestyle', file?: File) => {
-    if (!file || !editing) return;
-    setBusy(true); setError('');
+  const uploadPhotos = async (files: File[]) => {
+    if (!files.length || !editing) return;
+    setBusy(true); setUploadingPhotos(true); setError('');
     try {
-      const url = await uploadProductImage(file, editing.id);
-      setEditing((current) => current ? { ...current, images: slot === 'lifestyle'
-        ? { ...current.images, lifestyle: [...current.images.lifestyle, url] }
-        : { ...current.images, [slot]: url } } : current);
+      for (const file of files) {
+        const url = await uploadProductImage(file, editing.id);
+        setEditing((current) => current ? { ...current, images: current.images.front
+          ? { ...current.images, lifestyle: [...current.images.lifestyle, url] }
+          : { ...current.images, front: url } } : current);
+      }
     } catch (uploadError) { setError(uploadError instanceof Error ? uploadError.message : 'Upload failed.'); }
-    finally { setBusy(false); }
+    finally { setBusy(false); setUploadingPhotos(false); }
   };
   const saveAccount = async (account: PaymentAccount) => {
     setBusy(true); setError(''); setNotice('');
@@ -285,7 +288,7 @@ export const SupabaseAdminPage = () => {
                   {products.length > 0 && filteredProducts.length === 0 && <div className="px-6 py-14 text-center"><p className="font-serif text-xl">No matching products</p><p className="mt-2 text-sm text-stone-600">Try a different name, category or SKU.</p></div>}
                 </div>
               </div>
-              {editing && <div className="min-w-0"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} onChange={update} onUpload={(slot, file) => void upload(slot, file)} onSave={save} onCancel={() => setEditing(null)} /></div>}
+              {editing && <div className="min-w-0"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} uploading={uploadingPhotos} onChange={update} onUploadPhotos={(files) => void uploadPhotos(files)} onSave={save} onCancel={() => setEditing(null)} /></div>}
             </div>}
             {tab === 'orders' && <StudioOrders orders={orders} busy={busy} onStatus={(id, patch) => void updateOrder(id, patch)} onProof={(path) => void openSlip(path)} />}
             {tab === 'payments' && <StudioPaymentAccounts accounts={paymentAccounts} busy={busy} onSave={saveAccount} />}

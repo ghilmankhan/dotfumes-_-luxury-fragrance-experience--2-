@@ -22,6 +22,7 @@ export const ProductPage = () => {
   const hydrated = useProductCatalogStore((state) => state.hydrated);
   const product = allProducts.find((item) => item.slug === slug && item.active !== false);
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
   const { addItem, openCart } = useCartStore();
   const { pushToast } = useToastStore();
   const availableStock = product ? getAvailableStock(product) : 0;
@@ -56,7 +57,7 @@ export const ProductPage = () => {
       '@type': 'Product',
       name: product.name,
       description: product.description,
-      image: [product.images.front, product.images.angle, ...product.images.lifestyle],
+      image: [product.images.front, product.images.angle, product.images.flatLay, ...product.images.lifestyle].filter(Boolean),
       brand: {
         '@type': 'Brand',
         name: 'DOTFUMES',
@@ -101,6 +102,9 @@ export const ProductPage = () => {
     );
   }
 
+  const galleryImages = [...new Set([product.images.front, product.images.angle, product.images.flatLay, ...product.images.lifestyle].filter(Boolean))];
+  const displayedImage = activeImage && galleryImages.includes(activeImage) ? activeImage : product.images.front;
+
   const addToCart = () => {
     if (isOutOfStock) {
       pushToast(`${product.name} is currently out of stock.`, 'error');
@@ -141,12 +145,17 @@ export const ProductPage = () => {
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(420px,0.82fr)]">
         <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
-            src={product.images.angle || product.images.front}
-            alt={`${product.name} perfume bottle angled product view`}
+            src={displayedImage}
+            alt={`${product.name} product photo ${galleryImages.indexOf(displayedImage) + 1}`}
             wrapperClassName="h-[56vh] w-full max-w-2xl bg-transparent sm:h-[62vh] md:h-[66vh] lg:h-[70vh]"
             className="h-full w-full object-contain drop-shadow-[0_45px_90px_rgba(0,0,0,0.12)]"
             fetchPriority="high"
           />
+          {galleryImages.length > 1 && <div aria-label="Product photos" className="absolute bottom-5 left-1/2 z-10 flex max-w-[calc(100%-2rem)] -translate-x-1/2 gap-2 overflow-x-auto rounded-xl bg-white/90 p-2 shadow-md sm:bottom-8">
+            {galleryImages.map((image, index) => <button key={image} type="button" aria-label={`View product photo ${index + 1}`} aria-pressed={displayedImage === image} onClick={() => setActiveImage(image)} className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-white p-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045] sm:h-16 sm:w-16 ${displayedImage === image ? 'border-[#a78045]' : 'border-transparent hover:border-stone-300'}`}>
+              <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
+            </button>)}
+          </div>}
         </div>
 
         <div className="flex flex-col justify-center px-6 py-16 md:px-14 lg:px-16 lg:pt-32">
