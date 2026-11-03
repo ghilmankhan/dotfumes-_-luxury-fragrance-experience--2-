@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, CreditCard, LogOut, Package, Plus, Search, ShoppingBag, Trash2 } from 'lucide-react';
+import { ArrowUpRight, CreditCard, Eye, EyeOff, LogOut, Package, Plus, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { archiveSupabaseProduct, deleteSupabaseProduct, fetchSupabaseProducts, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
@@ -25,6 +25,7 @@ const makeSlug = (name: string) => name.trim().toLowerCase().normalize('NFKD').r
 export const SupabaseAdminPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -224,7 +225,15 @@ export const SupabaseAdminPage = () => {
           {notice && <p role="status" className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p>}
           <form onSubmit={signIn} className="mt-8 space-y-5 rounded-2xl bg-white p-6 shadow-[0_16px_50px_-32px_rgba(28,25,23,0.35)] sm:p-8">
             <label className={labelClass}>Email address<input className={fieldClass} type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-            <label className={labelClass}>Password<input className={fieldClass} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+            <div>
+              <label htmlFor="admin-password" className={labelClass}>Password</label>
+              <div className="relative">
+                <input id="admin-password" className={`${fieldClass} pr-14`} type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword((visible) => !visible)} className="absolute inset-y-2 right-2 mt-2 flex w-10 items-center justify-center rounded-lg text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045]">
+                  {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+                </button>
+              </div>
+            </div>
             <button disabled={busy} className="w-full rounded-xl bg-stone-950 px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-stone-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045] disabled:opacity-50">{busy ? 'Signing in…' : 'Sign in to admin'}</button>
             <button type="button" disabled={busy} className="text-sm font-medium text-[#785b34] underline decoration-[#c5a059]/50 underline-offset-4 hover:text-stone-950 disabled:opacity-50" onClick={() => void requestPasswordLink()}>Set or reset password</button>
           </form>
