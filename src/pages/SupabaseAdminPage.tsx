@@ -285,7 +285,7 @@ export const SupabaseAdminPage = () => {
                   {products.length > 0 && filteredProducts.length === 0 && <div className="px-6 py-14 text-center"><p className="font-serif text-xl">No matching products</p><p className="mt-2 text-sm text-stone-600">Try a different name, category or SKU.</p></div>}
                 </div>
               </div>
-              {editing && <div className="min-w-0 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} onChange={update} onUpload={(slot, file) => void upload(slot, file)} onSave={save} onCancel={() => setEditing(null)} /></div>}
+              {editing && <div className="min-w-0"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} onChange={update} onUpload={(slot, file) => void upload(slot, file)} onSave={save} onCancel={() => setEditing(null)} /></div>}
             </div>}
             {tab === 'orders' && <StudioOrders orders={orders} busy={busy} onStatus={(id, patch) => void updateOrder(id, patch)} onProof={(path) => void openSlip(path)} />}
             {tab === 'payments' && <StudioPaymentAccounts accounts={paymentAccounts} busy={busy} onSave={saveAccount} />}
