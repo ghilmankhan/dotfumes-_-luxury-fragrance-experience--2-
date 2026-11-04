@@ -26,3 +26,11 @@ export const COLLECTION_IMAGES = {
       '/images/collections/trios/dotfumes-trio-contrast-wild-silence-bleu-heat-bold-decision-lifestyle-elements.webp',
   },
 } as const;
+
+// Curated story photography is separate from the administrator-managed product gallery.
+export const EDITORIAL_IMAGES = {
+  wildSilenceTwilight: '/images/products/wild-silence/dotfumes-wild-silence-lifestyle-volcanic-plain-twilight.webp',
+  boldDecisionStillLife: '/images/products/bold-decision/dotfumes-bold-decision-lifestyle-citrus-pepper-still-life-linen.webp',
+  softPromiseBloom: '/images/products/soft-promise/dotfumes-soft-promise-lifestyle-floral-bloom-peony-gardenia.webp',
+  firstMeetStillLife: '/images/products/first-meet/dotfumes-first-meet-lifestyle-tropical-fruit-still-life-travertine.webp',
+} as const;

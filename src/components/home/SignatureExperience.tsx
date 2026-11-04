@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { AssetImage } from '../AssetImage';
-import { FEATURED_PRODUCTS } from '../../constants/products';
+import { EDITORIAL_IMAGES } from '../../constants/images';
 import { eyebrowLabelSm } from '../../styles/tokens/typography';
 import { cn } from '../../lib/utils';
 import { easing, duration } from '../../styles/tokens/motion';
@@ -12,7 +12,7 @@ const INGREDIENTS = [
     origin: 'Bold Decision',
     description:
       'A sharp still-life of citrus peel, black pepper, and linen restraint. The opening reads bright, dry, and decisive.',
-    image: FEATURED_PRODUCTS[0].images.lifestyle[1],
+    image: EDITORIAL_IMAGES.boldDecisionStillLife,
     mood: 'Dusk Authority',
   },
   {
@@ -20,7 +20,7 @@ const INGREDIENTS = [
     origin: 'Soft Promise',
     description:
       'Peony and gardenia are treated as atmosphere, not sweetness: luminous, intimate, and quietly textural.',
-    image: FEATURED_PRODUCTS[1].images.lifestyle[1],
+    image: EDITORIAL_IMAGES.softPromiseBloom,
     mood: 'Floral Veil',
   },
   {
@@ -28,7 +28,7 @@ const INGREDIENTS = [
     origin: 'First Meet',
     description:
       'Solar fruit and travertine warmth create the golden transition between skin, memory, and desire.',
-    image: FEATURED_PRODUCTS[4].images.lifestyle[1],
+    image: EDITORIAL_IMAGES.firstMeetStillLife,
     mood: 'Golden Hour',
   },
 ];
@@ -108,6 +108,7 @@ export const SignatureExperience = () => {
                 <motion.div style={{ rotate }} className="w-full h-full">
                   <AssetImage
                     src={item.image}
+                    sizes="(min-width: 768px) 600px, 350px"
                     alt={item.name}
                     wrapperClassName="h-full w-full bg-neutral-950"
                     className="h-full w-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[1.8s] ease-[cubic-bezier(0.16,1,0.3,1)] opacity-70 group-hover:opacity-90"

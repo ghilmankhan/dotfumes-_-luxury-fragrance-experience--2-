@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { inspectImageBytes } from '../src/lib/imageBinary';
-import { legacyGallery, projectGallery, imageSrcSet } from '../src/lib/productImages';
+import { legacyGallery, projectGallery, imageSrcSet, imageSource, localImageSource, localImageSrcSet } from '../src/lib/productImages';
 import { FEATURED_PRODUCTS } from '../src/constants/products';
 
 test('real local WebP signature and dimensions are detected', () => {
@@ -34,4 +34,32 @@ test('responsive sources are selected in width order', () => {
     },
   }] };
   assert.equal(imageSrcSet(product, product.images.front), `/thumb.webp 320w, /card.webp 640w, ${product.images.front} 1200w`);
+});
+
+test('verified local variants serve legacy thumbnails while preserving original gallery URL', () => {
+  const product = FEATURED_PRODUCTS[0];
+  const front = product.images.front;
+  const thumb = localImageSource(front, 'thumb');
+  assert.match(thumb, /\/images\/derivatives\/products\/bold-decision\/.+160x200\.webp$/);
+  assert.equal(localImageSource(front, 'gallery'), front);
+  assert.ok(localImageSrcSet(front)?.includes(`${front} 1122w`));
+  assert.ok(readFileSync(`public${thumb}`).length < readFileSync(`public${front}`).length);
+});
+
+test('administrator variants take precedence over local derivatives', () => {
+  const original = FEATURED_PRODUCTS[0];
+  const asset = { ...legacyGallery(original)[0], variants: {
+    thumb: { url: '/admin-thumb.webp', path: 'thumb', width: 320, height: 400, bytes: 9000 },
+  } };
+  const product = { ...original, imageAssets: [asset] };
+  assert.equal(imageSource(product, original.images.front, 'thumb'), '/admin-thumb.webp');
+  assert.match(imageSrcSet(product, original.images.front) ?? '', /admin-thumb\.webp 320w/);
+});
+
+test('Supabase legacy image records can use local derivatives without replacing their original URL', () => {
+  const original = FEATURED_PRODUCTS[0];
+  const product = { ...original, imageAssets: legacyGallery(original) };
+  assert.equal(imageSource(product, original.images.front, 'thumb'), localImageSource(original.images.front, 'thumb'));
+  assert.equal(imageSrcSet(product, original.images.front), localImageSrcSet(original.images.front));
+  assert.equal(product.imageAssets[0].originalUrl, original.images.front);
 });

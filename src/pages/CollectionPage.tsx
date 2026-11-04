@@ -88,6 +88,7 @@ export const CollectionPage = () => {
             </div>
             <AssetImage
               src={COLLECTION_IMAGES.familyLineup}
+              sizes="(min-width: 1800px) 990px, (min-width: 1024px) 55vw, calc(100vw - 48px)"
               alt="Dotfumes all five bottles line up"
               wrapperClassName="aspect-[16/9] w-full bg-white"
               className="h-full w-full object-contain drop-shadow-[0_35px_70px_rgba(0,0,0,0.08)]"

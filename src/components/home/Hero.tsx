@@ -190,7 +190,14 @@ export const Hero = () => {
     const nextIndex = (activeIndex + 1) % HERO_SLIDES.length;
     const nextSlide = HERO_SLIDES[nextIndex];
     const preload = new Image();
-    preload.src = slideFallbacks[nextSlide.slug] ? nextSlide.fallbackImage : nextSlide.image;
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      preload.src = slideFallbacks[nextSlide.slug] ? nextSlide.fallbackImage : nextSlide.image.replace('.webp', '-mobile-900x1125.webp');
+    } else {
+      preload.srcset = slideFallbacks[nextSlide.slug] ? '' : [900, 1440, 2560].map((width) =>
+        `${width === 2560 ? nextSlide.image : nextSlide.image.replace('.webp', `-${width}w.webp`)} ${width}w`).join(', ');
+      preload.sizes = '100vw';
+      preload.src = slideFallbacks[nextSlide.slug] ? nextSlide.fallbackImage : nextSlide.image;
+    }
   }, [activeIndex, prefersReducedMotion, slideFallbacks]);
 
   const currentSlideImage = slideFallbacks[activeSlide.slug]

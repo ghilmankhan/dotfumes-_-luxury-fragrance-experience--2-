@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 import type { Product } from '../models/types';
-import { getImageAsset, imageSource, imageSrcSet } from '../lib/productImages';
+import { getImageAsset, imageSource, imageSrcSet, localImageDimensions, localImageSource, localImageSrcSet } from '../lib/productImages';
 
 interface AssetImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   wrapperClassName?: string;
@@ -23,8 +23,9 @@ export const AssetImage: React.FC<AssetImageProps> = ({
   style,
   ...props
 }) => {
-  const resolvedSrc = product && src ? imageSource(product, src, sourceSize) : src;
+  const resolvedSrc = src ? (product ? imageSource(product, src, sourceSize) : localImageSource(src, sourceSize)) : src;
   const asset = product && src ? getImageAsset(product, src) : undefined;
+  const localDimensions = src ? localImageDimensions(src) : undefined;
   const intrinsic = asset?.originalMime === 'image/jpeg' ? asset.variants.gallery : undefined;
   const [loadedSrc, setLoadedSrc] = React.useState<string | undefined>();
   const [failedSrc, setFailedSrc] = React.useState<string | undefined>();
@@ -52,10 +53,10 @@ export const AssetImage: React.FC<AssetImageProps> = ({
       <img
         {...props}
         src={resolvedSrc}
-        srcSet={product && src ? imageSrcSet(product, src) : props.srcSet}
+        srcSet={props.srcSet ?? (src ? (product ? imageSrcSet(product, src) : localImageSrcSet(src)) : undefined)}
         sizes={props.sizes}
-        width={props.width ?? intrinsic?.width ?? asset?.originalWidth}
-        height={props.height ?? intrinsic?.height ?? asset?.originalHeight}
+        width={props.width ?? intrinsic?.width ?? asset?.originalWidth ?? localDimensions?.width}
+        height={props.height ?? intrinsic?.height ?? asset?.originalHeight ?? localDimensions?.height}
         alt={alt}
         loading={loading}
         decoding={props.decoding ?? 'async'}

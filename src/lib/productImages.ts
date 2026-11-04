@@ -1,5 +1,6 @@
 import type { Product, ProductImageAsset, ProductImageVariant } from '../models/types';
 import { validateImageFile } from './imageBinary';
+import { LOCAL_IMAGE_VARIANTS } from '../constants/localImageVariants';
 
 const targets = { thumb: 320, card: 640, gallery: 1600 } as const;
 
@@ -31,15 +32,34 @@ export const legacyGallery = (product: Product): ProductImageAsset[] => {
 export const getImageAsset = (product: Product, url: string) =>
   product.imageAssets?.find((asset) => asset.originalUrl === url);
 
+export const localImageSource = (url: string, size: 'thumb' | 'card' | 'gallery') => {
+  const entry = LOCAL_IMAGE_VARIANTS[url];
+  if (!entry) return url;
+  const target = { thumb: 160, card: 480, gallery: 800 }[size];
+  return entry.variants.find((variant) => variant.width >= target)?.url ?? url;
+};
+
+export const localImageSrcSet = (url: string) => {
+  const entry = LOCAL_IMAGE_VARIANTS[url];
+  if (!entry) return undefined;
+  return [...entry.variants.map((variant) => `${variant.url} ${variant.width}w`), `${url} ${entry.originalWidth}w`].join(', ');
+};
+
+export const localImageDimensions = (url: string) => {
+  const entry = LOCAL_IMAGE_VARIANTS[url];
+  return entry ? { width: entry.originalWidth, height: entry.originalHeight } : undefined;
+};
+
 export const imageSource = (product: Product, url: string, size: 'thumb' | 'card' | 'gallery') => {
   const asset = getImageAsset(product, url);
-  if (!asset) return url;
-  return asset.variants[size]?.url ?? asset.variants.gallery?.url ?? asset.originalUrl;
+  if (!asset) return localImageSource(url, size);
+  const next = size === 'thumb' ? asset.variants.card ?? asset.variants.gallery : size === 'card' ? asset.variants.gallery : undefined;
+  return asset.variants[size]?.url ?? next?.url ?? localImageSource(asset.originalUrl, size);
 };
 
 export const imageSrcSet = (product: Product, url: string) => {
   const asset = getImageAsset(product, url);
-  if (!asset) return undefined;
+  if (!asset || Object.keys(asset.variants).length === 0) return localImageSrcSet(url);
   const variants = Object.values(asset.variants) as ProductImageVariant[];
   const widths = new Map<number, string>();
   for (const variant of variants) widths.set(variant.width, variant.url);

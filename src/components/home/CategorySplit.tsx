@@ -46,6 +46,7 @@ const CategoryBlock: React.FC<CategoryBlockProps> = ({
       >
         <AssetImage
           src={image}
+          sizes="(min-width: 768px) 50vw, 100vw"
           alt={imageAlt}
           wrapperClassName="h-full w-full bg-neutral-950"
           className="h-full w-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-80 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"

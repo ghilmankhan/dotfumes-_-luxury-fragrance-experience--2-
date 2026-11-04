@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { AssetImage } from '../AssetImage';
-import { FEATURED_PRODUCTS } from '../../constants/products';
+import { EDITORIAL_IMAGES } from '../../constants/images';
 import { motionTiers, easing, duration } from '../../styles/tokens/motion';
 
 export const BrandStory = () => {
@@ -29,7 +29,8 @@ export const BrandStory = () => {
             {/* Cinematic Atmosphere Layer */}
             <motion.div style={{ y: imageY }} className="w-full h-[130%] relative">
               <AssetImage
-                src={FEATURED_PRODUCTS[2].images.lifestyle[0]}
+                src={EDITORIAL_IMAGES.wildSilenceTwilight}
+                sizes="(min-width: 1280px) 520px, (min-width: 1024px) 38vw, (min-width: 768px) 19vw, calc(100vw - 56px)"
                 alt="Wild Silence volcanic twilight campaign atmosphere"
                 wrapperClassName="h-full w-full bg-neutral-200"
                 className="h-full w-full object-cover grayscale hover:grayscale-0 transition-all duration-[1.8s] ease-[cubic-bezier(0.16,1,0.3,1)]"
