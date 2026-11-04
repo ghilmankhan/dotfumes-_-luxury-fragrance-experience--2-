@@ -1,0 +1,882 @@
+[
+  {
+    "filename": "dotfumes-duo-bold-untamed-bold-decision-wild-silence-lifestyle-slate.webp",
+    "repository_path": "public/images/collections/duos/dotfumes-duo-bold-untamed-bold-decision-wild-silence-lifestyle-slate.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 180598,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "8e2d896c769df6d38eabeeb36af6ee5a21760bf55a5de809207c91834fccc16b",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-duo-bold-untamed-bold-decision-wild-silence-white-bg.webp",
+    "repository_path": "public/images/collections/duos/dotfumes-duo-bold-untamed-bold-decision-wild-silence-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 74760,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "ef1ce1c167db5e3969079a302ae36d19405955f61f32be09bea79852daac2089",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-duo-his-hers-bleu-heat-soft-promise-lifestyle-marble-vanity.webp",
+    "repository_path": "public/images/collections/duos/dotfumes-duo-his-hers-bleu-heat-soft-promise-lifestyle-marble-vanity.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 142346,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "dc68bb1337103abf8524ee65a430c901e1dfd672adc2d70571d48a295aa619d3",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-duo-his-hers-bleu-heat-soft-promise-white-bg.webp",
+    "repository_path": "public/images/collections/duos/dotfumes-duo-his-hers-bleu-heat-soft-promise-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 80834,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "6b1abc37c435ed0c4b14b8f72762facba7d44da6ee022f1396a75fdb92383761",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-collection-all-five-bottles-line-up-white-bg.webp",
+    "repository_path": "public/images/collections/family/dotfumes-collection-all-five-bottles-line-up-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 107280,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "a3c2ad47895a99e6789c89a3208b87feef47e59e22d09c8ca3bcb0271dbd40fd",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-collection-family-mood-hero-obsidian-cinematic.webp",
+    "repository_path": "public/images/collections/family/dotfumes-collection-family-mood-hero-obsidian-cinematic.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 182420,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "43e36fd78ef4a02e10a415de6d5fa94ebc387c97e1b8129a854fd02e6b49b4b4",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-trio-contrast-wild-silence-bleu-heat-bold-decision-lifestyle-elements.webp",
+    "repository_path": "public/images/collections/trios/dotfumes-trio-contrast-wild-silence-bleu-heat-bold-decision-lifestyle-elements.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 173212,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "e7ef4023839336e57cbfe342a3d9fb6ebc4bfd7cb56006292883a5282114cb2b",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-trio-feminine-soft-promise-wild-silence-first-meet-lifestyle-garden.webp",
+    "repository_path": "public/images/collections/trios/dotfumes-trio-feminine-soft-promise-wild-silence-first-meet-lifestyle-garden.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 189610,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "0a09d28d9579bee2d6505f29fd4ed9b8ca9de03e1b2b817bf1e4d8243d298be6",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-trio-feminine-soft-promise-wild-silence-first-meet-white-bg.webp",
+    "repository_path": "public/images/collections/trios/dotfumes-trio-feminine-soft-promise-wild-silence-first-meet-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 105306,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "bdda0b46ac4c5335e3e4f32362c9ba879b4990c1f70999891274e55956049210",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-trio-power-bold-decision-first-meet-bleu-heat-lifestyle-boardroom.webp",
+    "repository_path": "public/images/collections/trios/dotfumes-trio-power-bold-decision-first-meet-bleu-heat-lifestyle-boardroom.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 180710,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "eb9a44b747b145f5e8796768dd5b5f1c50bf8f4124a3936a6b528c7334c6ce09",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-trio-power-bold-decision-first-meet-bleu-heat-white-bg.webp",
+    "repository_path": "public/images/collections/trios/dotfumes-trio-power-bold-decision-first-meet-bleu-heat-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 106124,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "1e37c2890c0ce2befe01dc515e3c0d2c9cf11e64ce9512aa500234a828cc2346",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/images.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-about-hero-maison-split-1800x2400.webp",
+    "repository_path": "public/images/hero/dotfumes-about-hero-maison-split-1800x2400.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1800,
+    "height_px": 2400,
+    "aspect_ratio": 0.75,
+    "bytes": 149416,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "950e4e3fac1f776425cb1fccc0a30bc09eca8f4627fc70077741cb9b3c618b8c",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/pages/AboutPage.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-collection-hero-textsafe-five-bottles-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-collection-hero-textsafe-five-bottles-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 138560,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "61119ad081c3d9a96b7ae3268d38b0d6ab4faa1614f207dae05985aa2d2e05f8",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/pages/CollectionPage.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-home-hero-bleu-heat-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-home-hero-bleu-heat-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 102120,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "fac9b269684d58cea971415c3f03db59e7ca5d8d8516753cb6e016330a4e63b7",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/components/home/Hero.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-home-hero-bold-decision-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-home-hero-bold-decision-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 123762,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "b909fb5fc3769eceadfc83f135e9e4a1014b92a7759872d2dbb9c13836b9a752",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/components/home/Hero.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-home-hero-first-meet-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-home-hero-first-meet-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 111770,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "78bf9a568186e0fe3b7312fbc38c0c8365891800f40b6d9242e0ea00fe68d4ed",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/components/home/Hero.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-home-hero-soft-promise-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-home-hero-soft-promise-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 99806,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "0d8e0965a53f3618a5152bcc980dc794deeb47bbe1729c95da98abf65a182a2f",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/components/home/Hero.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-home-hero-wild-silence-2560x1440.webp",
+    "repository_path": "public/images/hero/dotfumes-home-hero-wild-silence-2560x1440.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 2560,
+    "height_px": 1440,
+    "aspect_ratio": 1.7778,
+    "bytes": 99484,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "4d7324809f5df60b00c366c8aea8322d0fff60923039ad409c3a41e5095ba858",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/components/home/Hero.tsx"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "logo-webp.webp",
+    "repository_path": "public/images/logo/logo-webp.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1536,
+    "height_px": 1024,
+    "aspect_ratio": 1.5,
+    "bytes": 185410,
+    "color_mode": "RGB",
+    "has_alpha": "yes",
+    "animated": false,
+    "sha256": "3e0f40bcc074f3151d7147d704b86f0c656e05c9cdd5ff9cfbcde4b3eac4054f",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "index.html"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bleu-heat-extrait-parfum-bottle-front-white-bg.webp",
+    "repository_path": "public/images/products/bleu-heat/dotfumes-bleu-heat-extrait-parfum-bottle-front-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 69656,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "7252e0d4de2c6eb3f8b961a1b5269c219e7be33514e9f7ae16ba5e70633b5066",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bleu-heat-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "repository_path": "public/images/products/bleu-heat/dotfumes-bleu-heat-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 81356,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "e8073b6420694237cd99eaea8bc8e2f955be9a974726298f238f76a8475c3588",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bleu-heat-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "repository_path": "public/images/products/bleu-heat/dotfumes-bleu-heat-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 64532,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "e44ec665cecdb5768329de5f1938801435fdea5a8ada2289e534dadae6247d8d",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bleu-heat-lifestyle-boxing-gym-dawn-athletic.webp",
+    "repository_path": "public/images/products/bleu-heat/dotfumes-bleu-heat-lifestyle-boxing-gym-dawn-athletic.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 122064,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "e1a9fbfa2e3751c293d7768c179b1ff7d623b34b91a0decd5c4dfb466fec77c4",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bleu-heat-lifestyle-wood-plank-still-life-notes.webp",
+    "repository_path": "public/images/products/bleu-heat/dotfumes-bleu-heat-lifestyle-wood-plank-still-life-notes.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 192782,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "33cd48147984d5c4acd5cc78217666d564687753161707bd4edbf1317b8e1cac",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bold-decision-extrait-parfum-bottle-front-white-bg.webp",
+    "repository_path": "public/images/products/bold-decision/dotfumes-bold-decision-extrait-parfum-bottle-front-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 65514,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "fd3c108b281c8106dc26df93d188639b9b4c86fb41055d06df6ab73912974a38",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bold-decision-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "repository_path": "public/images/products/bold-decision/dotfumes-bold-decision-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 72004,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "24218ff83096d623730f9e112beccf81c386e29541ad7118c78e015f288fae03",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bold-decision-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "repository_path": "public/images/products/bold-decision/dotfumes-bold-decision-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 56308,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "b1e037b359024aceedbe2d05473e5b2ee899532b1b80bff119470d0c2d7a6024",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bold-decision-lifestyle-citrus-pepper-still-life-linen.webp",
+    "repository_path": "public/images/products/bold-decision/dotfumes-bold-decision-lifestyle-citrus-pepper-still-life-linen.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 211190,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "0f6634532f50aa01178ecaffb3f0aace7f844a03b9704171c32c7e8db4e62beb",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-bold-decision-lifestyle-leadership-dusk-walnut-desk.webp",
+    "repository_path": "public/images/products/bold-decision/dotfumes-bold-decision-lifestyle-leadership-dusk-walnut-desk.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 151588,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "f552612887cb1f58c26741c2410b6869aae3afcc4f075641bcc06ed20e022ce9",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-first-meet-extrait-parfum-bottle-front-white-bg.webp",
+    "repository_path": "public/images/products/first-meet/dotfumes-first-meet-extrait-parfum-bottle-front-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 83498,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "2fb6dce9cbd78c0f9ebc0e4e1de12f6526a6262046c7d5570060b3d6002c9ecf",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-first-meet-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "repository_path": "public/images/products/first-meet/dotfumes-first-meet-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 97832,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "6dbf8cb4f0d210eaccd0e8ee5c0567ca201560c20a39223fb97113fac23eb141",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-first-meet-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "repository_path": "public/images/products/first-meet/dotfumes-first-meet-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 71534,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "1454a0667cdea15debdf8a61f522d5d286a41e23fbd670b17db8496c6e457941",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-first-meet-lifestyle-golden-hour-office-terrace.webp",
+    "repository_path": "public/images/products/first-meet/dotfumes-first-meet-lifestyle-golden-hour-office-terrace.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 148752,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "539562d6b4071c128f2ba2b624e1334b5c3d18a3506bc12646ebac98ca5ccd01",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-first-meet-lifestyle-tropical-fruit-still-life-travertine.webp",
+    "repository_path": "public/images/products/first-meet/dotfumes-first-meet-lifestyle-tropical-fruit-still-life-travertine.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 170238,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "32d4f2b6a132fdd53bbfd0685bcc4262e35cc823ae9cb7de6e375bb4ef5f90ea",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-soft-promise-extrait-parfum-bottle-front-white-bg.webp",
+    "repository_path": "public/images/products/soft-promise/dotfumes-soft-promise-extrait-parfum-bottle-front-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 65940,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "1ed125374f378abc5cc820089bc4aabe9c0a005bed5c55533d0190a7cbf2f78e",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-soft-promise-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "repository_path": "public/images/products/soft-promise/dotfumes-soft-promise-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 72218,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "894fd24cbb88898416b4b22a2776e5b6dc780e013280e777e2a2dfa8a43c936c",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-soft-promise-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "repository_path": "public/images/products/soft-promise/dotfumes-soft-promise-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 58446,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "e51f6ca9e2b735f0f03f6927707ce18b3281a8e8e3d43ad73ee2efd7c847db79",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-soft-promise-lifestyle-floral-bloom-peony-gardenia.webp",
+    "repository_path": "public/images/products/soft-promise/dotfumes-soft-promise-lifestyle-floral-bloom-peony-gardenia.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 152830,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "daa3900ae939f88dfc0a0992eac49651d492fbe58daf7fd1ed8469f0321228c6",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-soft-promise-lifestyle-pink-boudoir-marble-tray.webp",
+    "repository_path": "public/images/products/soft-promise/dotfumes-soft-promise-lifestyle-pink-boudoir-marble-tray.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 100854,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "907d69d83996b0eff6d826c5c57325e1d7abbe3e079497b2526e2f92fd7193e0",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-wild-silence-extrait-parfum-bottle-front-white-bg.webp",
+    "repository_path": "public/images/products/wild-silence/dotfumes-wild-silence-extrait-parfum-bottle-front-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 50252,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "fa4072e48d29a354f6bc4e8f072af2936b23dd51e07e7a41f6792fcf15069769",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-wild-silence-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "repository_path": "public/images/products/wild-silence/dotfumes-wild-silence-extrait-parfum-bottle-three-quarter-angle-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 73408,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "4864ebfd30113c38e37215a62bbbb7248f22f5978e45752d6e1d68ae8b9a1676",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-wild-silence-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "repository_path": "public/images/products/wild-silence/dotfumes-wild-silence-extrait-parfum-bottle-top-down-flat-lay-white-bg.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1254,
+    "height_px": 1254,
+    "aspect_ratio": 1.0,
+    "bytes": 64220,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "08c94691ddb7ce1245f24db609de37f027f35846c0ada2bf10780267a0cacd38",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-wild-silence-lifestyle-forest-floor-slate-stone.webp",
+    "repository_path": "public/images/products/wild-silence/dotfumes-wild-silence-lifestyle-forest-floor-slate-stone.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1672,
+    "height_px": 941,
+    "aspect_ratio": 1.7768,
+    "bytes": 191576,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "d20fe14b1f7003e2ada79ef66b2f7529ce062cd9f31584f1a855403a95ec45ea",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  },
+  {
+    "filename": "dotfumes-wild-silence-lifestyle-volcanic-plain-twilight.webp",
+    "repository_path": "public/images/products/wild-silence/dotfumes-wild-silence-lifestyle-volcanic-plain-twilight.webp",
+    "extension": ".webp",
+    "detected_mime": "image/webp",
+    "width_px": 1122,
+    "height_px": 1402,
+    "aspect_ratio": 0.8003,
+    "bytes": 138838,
+    "color_mode": "RGB",
+    "has_alpha": "no",
+    "animated": false,
+    "sha256": "af0aa6352a99856cd80e93407dc8f0284e3dbc06406e674eec287acaded6e251",
+    "source_reference_count": 1,
+    "source_reference_files": [
+      "src/constants/products.ts"
+    ],
+    "encoding_quality": "NOT VERIFIED",
+    "display_suitability": "REQUIRES VISUAL/LAYOUT REVIEW"
+  }
+]

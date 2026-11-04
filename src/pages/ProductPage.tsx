@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Minus, Plus, ShoppingBag, ShieldCheck, Truck, Leaf } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { AssetImage } from '../components/AssetImage';
+import { getImageAsset, imageSource, imageSrcSet } from '../lib/productImages';
 import { useCartStore } from '../store/useCartStore';
 import { useToastStore } from '../store/useToastStore';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -37,6 +38,7 @@ export const ProductPage = () => {
           description: product.description,
           path: `/product/${product.slug}`,
           ogType: 'product',
+          ogImage: product.images.front,
         }
       : {
           title: 'Fragrance Not Found | DOTFUMES',
@@ -146,14 +148,17 @@ export const ProductPage = () => {
         <div className="relative flex min-h-[62vh] items-start justify-center overflow-hidden bg-neutral-100 px-6 pt-16 sm:min-h-[68vh] sm:px-8 sm:pt-20 md:min-h-[72vh] md:items-center md:pt-24 lg:min-h-screen lg:pt-28">
           <AssetImage
             src={displayedImage}
-            alt={`${product.name} product photo ${galleryImages.indexOf(displayedImage) + 1}`}
+            product={product}
+            sourceSize="gallery"
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            alt={getImageAsset(product, displayedImage)?.altText || `${product.name} perfume photo ${galleryImages.indexOf(displayedImage) + 1}`}
             wrapperClassName="h-[56vh] w-full max-w-2xl bg-transparent sm:h-[62vh] md:h-[66vh] lg:h-[70vh]"
             className="h-full w-full object-contain drop-shadow-[0_45px_90px_rgba(0,0,0,0.12)]"
             fetchPriority="high"
           />
           {galleryImages.length > 1 && <div aria-label="Product photos" className="absolute bottom-5 left-1/2 z-10 flex max-w-[calc(100%-2rem)] -translate-x-1/2 gap-2 overflow-x-auto rounded-xl bg-white/90 p-2 shadow-md sm:bottom-8">
             {galleryImages.map((image, index) => <button key={image} type="button" aria-label={`View product photo ${index + 1}`} aria-pressed={displayedImage === image} onClick={() => setActiveImage(image)} className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 bg-white p-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a78045] sm:h-16 sm:w-16 ${displayedImage === image ? 'border-[#a78045]' : 'border-transparent hover:border-stone-300'}`}>
-              <img src={image} alt="" className="h-full w-full object-contain" loading="lazy" />
+              <img src={imageSource(product, image, 'thumb')} srcSet={imageSrcSet(product, image)} sizes="64px" alt="" width="64" height="64" className="h-full w-full object-contain" loading="lazy" />
             </button>)}
           </div>}
         </div>
@@ -255,6 +260,9 @@ export const ProductPage = () => {
           {product.images.lifestyle[0] && <div className="relative min-h-[60vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[0]}
+              product={product}
+              sourceSize="gallery"
+              sizes="(min-width: 1024px) 50vw, 100vw"
               alt={`${product.name} perfume lifestyle campaign scene`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-75"
@@ -275,7 +283,10 @@ export const ProductPage = () => {
           <div className="flex items-center justify-center bg-white p-8 md:p-16">
             <AssetImage
               src={product.images.flatLay || product.images.front}
-              alt={`${product.name} perfume bottle top-down flat lay`}
+              product={product}
+              sourceSize="gallery"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              alt={product.images.flatLay ? `${product.name} perfume bottle top-down flat lay` : `${product.name} perfume bottle front view`}
               wrapperClassName="aspect-[4/3] w-full max-w-2xl bg-white"
               className="h-full w-full object-contain drop-shadow-[0_35px_70px_rgba(0,0,0,0.08)]"
             />
@@ -283,6 +294,9 @@ export const ProductPage = () => {
           {product.images.lifestyle[1] && <div className="relative min-h-[52vh] overflow-hidden">
             <AssetImage
               src={product.images.lifestyle[1]}
+              product={product}
+              sourceSize="gallery"
+              sizes="(min-width: 1024px) 50vw, 100vw"
               alt={`${product.name} still life with fragrance note ingredients`}
               wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
               className="h-full w-full object-cover opacity-80"
@@ -304,6 +318,9 @@ export const ProductPage = () => {
               >
                 <AssetImage
                   src={item.images.front}
+                  product={item}
+                  sourceSize="thumb"
+                  sizes="96px"
                   alt={`Front view of ${item.name} perfume bottle`}
                   wrapperClassName="h-28 w-24 shrink-0 bg-white/5"
                   className="h-full w-full object-contain"

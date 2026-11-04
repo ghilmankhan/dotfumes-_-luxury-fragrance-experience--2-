@@ -10,6 +10,7 @@ export default defineConfig({
   reporter: 'list',
   use: {
     baseURL: 'http://127.0.0.1:3000',
+    channel: 'chrome',
     trace: 'on-first-retry',
   },
   webServer: {

@@ -1,10 +1,14 @@
 import React from 'react';
 import { cn } from '../lib/utils';
+import type { Product } from '../models/types';
+import { getImageAsset, imageSource, imageSrcSet } from '../lib/productImages';
 
 interface AssetImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   wrapperClassName?: string;
   imgClassName?: string;
   blurDataClassName?: string;
+  product?: Product;
+  sourceSize?: 'thumb' | 'card' | 'gallery';
 }
 
 export const AssetImage: React.FC<AssetImageProps> = ({
@@ -14,13 +18,18 @@ export const AssetImage: React.FC<AssetImageProps> = ({
   imgClassName,
   wrapperClassName,
   blurDataClassName,
+  product,
+  sourceSize = 'gallery',
   style,
   ...props
 }) => {
+  const resolvedSrc = product && src ? imageSource(product, src, sourceSize) : src;
+  const asset = product && src ? getImageAsset(product, src) : undefined;
+  const intrinsic = asset?.originalMime === 'image/jpeg' ? asset.variants.gallery : undefined;
   const [loadedSrc, setLoadedSrc] = React.useState<string | undefined>();
   const [failedSrc, setFailedSrc] = React.useState<string | undefined>();
-  const loaded = loadedSrc === src;
-  const failed = failedSrc === src;
+  const loaded = loadedSrc === resolvedSrc;
+  const failed = failedSrc === resolvedSrc;
   const loading = props.loading ?? (props.fetchPriority === 'high' ? 'eager' : 'lazy');
 
   return (
@@ -42,19 +51,23 @@ export const AssetImage: React.FC<AssetImageProps> = ({
 
       <img
         {...props}
-        src={src}
+        src={resolvedSrc}
+        srcSet={product && src ? imageSrcSet(product, src) : props.srcSet}
+        sizes={props.sizes}
+        width={props.width ?? intrinsic?.width ?? asset?.originalWidth}
+        height={props.height ?? intrinsic?.height ?? asset?.originalHeight}
         alt={alt}
         loading={loading}
         decoding={props.decoding ?? 'async'}
         style={style}
         onLoad={(event) => {
-          setLoadedSrc(src);
+          setLoadedSrc(resolvedSrc);
           setFailedSrc(undefined);
           props.onLoad?.(event);
         }}
         onError={(event) => {
           setLoadedSrc(undefined);
-          setFailedSrc(src);
+          setFailedSrc(resolvedSrc);
           props.onError?.(event);
         }}
         className={cn(

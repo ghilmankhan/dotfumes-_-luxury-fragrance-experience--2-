@@ -44,6 +44,10 @@ export const AboutPage = () => {
         <div className="relative min-h-[70vh] overflow-hidden">
           <AssetImage
             src={aboutHeroImage}
+            srcSet={heroImageFailed ? undefined : [720, 1200, 1800].map((width) => `${width === 1800 ? aboutHeroImage : aboutHeroImage.replace('.webp', `-${width}w.webp`)} ${width}w`).join(', ')}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            width="1800"
+            height="2400"
             alt="Dotfumes maison portrait hero with cinematic bottle arrangement"
             wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
             className="h-full w-full object-cover object-[58%_center] opacity-72 md:object-[64%_center]"

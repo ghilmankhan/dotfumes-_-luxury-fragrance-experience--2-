@@ -1,6 +1,7 @@
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { Product } from '../../models/types';
 import { formatCurrency } from '../../lib/order';
+import { legacyGallery, projectGallery, imageSource } from '../../lib/productImages';
 
 const inputClass = 'mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition-colors placeholder:text-stone-400 focus:border-[#a78045] focus:ring-2 focus:ring-[#a78045]/15';
 const labelClass = 'block text-sm font-medium text-stone-700';
@@ -13,40 +14,33 @@ type Props = {
   uploading: boolean;
   onChange: (patch: Partial<Product>) => void;
   onUploadPhotos: (files: File[]) => void;
+  onReplacePhoto: (file: File, imageId: string) => void;
+  onOptimizePhotos: () => void;
   onSave: (event: FormEvent) => void;
   onCancel: () => void;
 };
 
-export const StudioProductEditor = ({ product, isNew, busy, uploading, onChange, onUploadPhotos, onSave, onCancel }: Props) => {
-  const photos = [
-    ...(product.images.front ? [{ src: product.images.front, label: 'Main photo', slot: 'front' as const }] : []),
-    ...(product.images.angle ? [{ src: product.images.angle, label: 'Additional photo', slot: 'angle' as const }] : []),
-    ...(product.images.flatLay ? [{ src: product.images.flatLay, label: 'Additional photo', slot: 'flatLay' as const }] : []),
-    ...product.images.lifestyle.map((src, index) => ({ src, label: 'Additional photo', slot: 'lifestyle' as const, index })),
-  ];
-  const removePhoto = (slot: 'front' | 'angle' | 'flatLay' | 'lifestyle', index?: number) => {
-    const images = { ...product.images, lifestyle: [...product.images.lifestyle] };
-    if (slot === 'front') {
-      if (images.angle) { images.front = images.angle; images.angle = ''; }
-      else if (images.flatLay) { images.front = images.flatLay; images.flatLay = ''; }
-      else { images.front = images.lifestyle.shift() ?? ''; }
-    } else if (slot === 'lifestyle' && index !== undefined) images.lifestyle.splice(index, 1);
-    else if (slot === 'angle' || slot === 'flatLay') images[slot] = '';
-    onChange({ images });
+export const StudioProductEditor = ({ product, isNew, busy, uploading, onChange, onUploadPhotos, onReplacePhoto, onOptimizePhotos, onSave, onCancel }: Props) => {
+  const [preview, setPreview] = useState<'desktop' | 'mobile'>('desktop');
+  const photos = product.imageAssets ?? legacyGallery(product);
+  const changePhotos = (next: typeof photos) => {
+    const imageAssets = next.map((asset, position) => ({ ...asset, position }));
+    onChange({ imageAssets, images: projectGallery(imageAssets) });
   };
-  const makeMain = (slot: 'angle' | 'flatLay' | 'lifestyle', index?: number) => {
-    const images = { ...product.images, lifestyle: [...product.images.lifestyle] };
-    const previousMain = images.front;
-    if (slot === 'lifestyle' && index !== undefined) {
-      images.front = images.lifestyle[index];
-      if (previousMain) images.lifestyle[index] = previousMain;
-      else images.lifestyle.splice(index, 1);
-    } else if (slot === 'angle' || slot === 'flatLay') {
-      images.front = images[slot];
-      images[slot] = previousMain;
-    }
-    onChange({ images });
+  const removePhoto = (id: string) => {
+    const next = photos.filter((photo) => photo.id !== id);
+    if (photos.find((photo) => photo.id === id)?.isPrimary && next.length) next[0] = { ...next[0], isPrimary: true };
+    changePhotos(next);
   };
+  const makeMain = (id: string) => changePhotos(photos.map((photo) => ({ ...photo, isPrimary: photo.id === id })));
+  const move = (index: number, offset: number) => {
+    const next = [...photos];
+    const destination = index + offset;
+    if (destination < 0 || destination >= next.length) return;
+    [next[index], next[destination]] = [next[destination], next[index]];
+    changePhotos(next);
+  };
+  const primary = photos.find((photo) => photo.isPrimary);
 
   return <form onSubmit={onSave} aria-label="Product editor" className="space-y-7 rounded-2xl bg-white p-5 ring-1 ring-stone-200/80 sm:p-7">
     <div className="flex items-start justify-between gap-4 border-b border-stone-100 pb-6">
@@ -64,20 +58,32 @@ export const StudioProductEditor = ({ product, isNew, busy, uploading, onChange,
 
     <div className="border-t border-stone-100 pt-6">
       <h3 className="mb-2 text-sm font-semibold text-stone-950">Product photos</h3>
-      <p className="mb-5 text-xs leading-5 text-stone-600">Select several photos at once. The first photo is the main image; you can change it below.</p>
+      <p className="mb-5 text-xs leading-5 text-stone-600">Select several photos at once. The first photo is the main image; you can change it below. Bottle photos work best around 1200 × 1500 pixels (4:5). Originals are preserved.</p>
       <label className={labelClass}>Upload photos
         <input className="mt-2 block w-full text-sm text-stone-600 file:mr-4 file:rounded-lg file:border-0 file:bg-stone-950 file:px-4 file:py-2.5 file:text-xs file:font-medium file:text-white disabled:opacity-50" type="file" multiple disabled={busy} accept="image/jpeg,image/png,image/webp" onChange={(event) => { onUploadPhotos(Array.from(event.currentTarget.files ?? [])); event.currentTarget.value = ''; }} />
       </label>
       <p className="mt-2 text-xs text-stone-500" role={uploading ? 'status' : undefined}>JPG, PNG or WEBP, up to 5 MB each. {uploading ? 'Uploading photos…' : 'Save the product after uploading.'}</p>
-      {photos.length > 0 && <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {photos.map((photo) => <div key={`${photo.slot}-${photo.src}`} className="rounded-xl border border-stone-200 p-2">
-          <img src={photo.src} alt={photo.label} className="aspect-square w-full rounded-lg bg-[#f6f3ed] object-contain" />
-          <div className="mt-2 flex items-center justify-between gap-1">
-            {photo.slot === 'front' ? <span className="px-1 text-xs font-semibold text-stone-800">Main photo</span> : <button type="button" disabled={busy} className="rounded-md px-1 py-1 text-xs font-medium text-[#785b34] hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-[#a78045] disabled:opacity-50" onClick={() => makeMain(photo.slot, 'index' in photo ? photo.index : undefined)}>Make main</button>}
-            <button type="button" disabled={busy} aria-label={`Remove ${photo.label.toLowerCase()}`} className="rounded-md px-1 py-1 text-xs font-medium text-red-700 hover:bg-red-50 hover:text-red-900 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50" onClick={() => removePhoto(photo.slot, 'index' in photo ? photo.index : undefined)}>Remove</button>
-          </div>
-        </div>)}
-      </div>}
+      {photos.some((photo) => !photo.variants.thumb || !photo.variants.card || !photo.variants.gallery) && !isNew && <button type="button" disabled={busy} onClick={onOptimizePhotos} className="mt-3 rounded-lg border border-stone-300 px-3 py-2 text-xs font-semibold text-stone-800 hover:bg-stone-50 disabled:opacity-50">Prepare smaller sizes for existing photos</button>}
+      {photos.length > 0 && <>
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((photo, index) => <div key={photo.id} className="rounded-xl border border-stone-200 p-2">
+            <img src={imageSource(product, photo.originalUrl, 'thumb')} alt={photo.altText || `${product.name || 'Product'} photo ${index + 1}`} className="aspect-square w-full rounded-lg bg-[#f6f3ed] object-contain" loading="lazy" width="320" height="320" />
+            <p className="mt-2 truncate text-xs font-semibold text-stone-800">{photo.isPrimary ? 'Main photo' : `Photo ${index + 1}`}</p>
+            <p className="mt-0.5 text-[11px] text-stone-500">{photo.originalWidth && photo.originalHeight ? `${photo.originalWidth} × ${photo.originalHeight}` : 'Legacy image'}{photo.originalBytes ? ` · ${(photo.originalBytes / 1048576).toFixed(2)} MB` : ''}</p>
+            <div className="mt-2 flex flex-wrap gap-1 text-xs">
+              {!photo.isPrimary && <button type="button" disabled={busy} className="rounded-md px-1 py-1 text-[#785b34] hover:bg-stone-100 disabled:opacity-50" onClick={() => makeMain(photo.id)}>Make main</button>}
+              <button type="button" disabled={busy || index === 0} aria-label={`Move photo ${index + 1} earlier`} className="rounded-md px-1 py-1 hover:bg-stone-100 disabled:opacity-40" onClick={() => move(index, -1)}>←</button>
+              <button type="button" disabled={busy || index === photos.length - 1} aria-label={`Move photo ${index + 1} later`} className="rounded-md px-1 py-1 hover:bg-stone-100 disabled:opacity-40" onClick={() => move(index, 1)}>→</button>
+              <label className="cursor-pointer rounded-md px-1 py-1 hover:bg-stone-100">Replace<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} className="sr-only" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) onReplacePhoto(file, photo.id); event.currentTarget.value = ''; }} /></label>
+              <button type="button" disabled={busy} aria-label={`Remove photo ${index + 1}`} className="rounded-md px-1 py-1 text-red-700 hover:bg-red-50 disabled:opacity-50" onClick={() => removePhoto(photo.id)}>Remove</button>
+            </div>
+          </div>)}
+        </div>
+        {primary && <div className="mt-5 rounded-xl border border-stone-200 bg-[#f7f6f2] p-3">
+          <div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold text-stone-800">Shop preview</p><div className="flex gap-1"><button type="button" aria-pressed={preview === 'desktop'} onClick={() => setPreview('desktop')} className="rounded-md px-2 py-1 text-xs hover:bg-white">Desktop</button><button type="button" aria-pressed={preview === 'mobile'} onClick={() => setPreview('mobile')} className="rounded-md px-2 py-1 text-xs hover:bg-white">Mobile</button></div></div>
+          <div className={`mx-auto mt-3 bg-white p-4 ${preview === 'mobile' ? 'max-w-[200px]' : 'max-w-[320px]'}`}><img src={imageSource(product, primary.originalUrl, 'card')} alt={primary.altText || `${product.name} main photo preview`} className="aspect-square w-full object-contain" /></div>
+        </div>}
+      </>}
     </div>
 
     <div className="space-y-5 border-t border-stone-100 pt-6"><h3 className="text-sm font-semibold text-stone-950">Description</h3><label className={labelClass}>Short description<textarea className={inputClass} rows={2} value={product.shortDescription} onChange={(event) => onChange({ shortDescription: event.target.value })} placeholder="A few words about the scent" /></label>

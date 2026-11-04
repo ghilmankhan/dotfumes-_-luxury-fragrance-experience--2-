@@ -7,6 +7,7 @@ type MetaOptions = {
   path?: string;
   ogType?: 'website' | 'product';
   robots?: 'index,follow' | 'noindex,nofollow';
+  ogImage?: string;
 };
 
 const upsertMetaTag = (selector: string, attributes: Record<string, string>) => {
@@ -49,6 +50,7 @@ export const usePageMeta = ({
   path,
   ogType = 'website',
   robots = 'index,follow',
+  ogImage,
 }: MetaOptions) => {
   useEffect(() => {
     document.title = title;
@@ -60,9 +62,13 @@ export const usePageMeta = ({
       content: description,
     });
     upsertMetaTag('meta[property="og:type"]', { property: 'og:type', content: ogType });
+    const defaultImage = `${window.location.origin}/images/logo/logo-webp.webp`;
+    const image = ogImage ? new URL(ogImage, window.location.origin).href : defaultImage;
+    upsertMetaTag('meta[property="og:image"]', { property: 'og:image', content: image });
+    upsertMetaTag('meta[name="twitter:image"]', { name: 'twitter:image', content: image });
 
     const canonical = resolveCanonical(path);
     upsertCanonical(canonical);
     upsertMetaTag('meta[property="og:url"]', { property: 'og:url', content: canonical });
-  }, [description, ogType, path, robots, title]);
+  }, [description, ogImage, ogType, path, robots, title]);
 };

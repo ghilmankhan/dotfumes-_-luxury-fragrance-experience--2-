@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, CreditCard, Eye, EyeOff, LogOut, Package, Plus, Search, ShoppingBag, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { archiveSupabaseProduct, deleteSupabaseProduct, fetchSupabaseProducts, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
+import { archiveSupabaseProduct, cleanupProductVariants, deleteSupabaseProduct, fetchSupabaseProducts, optimizeExistingProductImage, saveSupabaseProduct, uploadProductImage } from '../lib/supabaseCatalog';
+import { imageSource, imageSrcSet, legacyGallery, projectGallery } from '../lib/productImages';
 import { useProductCatalogStore } from '../store/useProductCatalogStore';
-import type { Product } from '../models/types';
+import type { Product, ProductImageAsset } from '../models/types';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { formatCurrency } from '../lib/order';
 import { fetchPaymentAccounts, savePaymentAccount, type PaymentAccount } from '../lib/paymentAccounts';
@@ -16,6 +17,7 @@ const blankProduct = (): Product => ({
   id: crypto.randomUUID(), sku: '', name: '', slug: '', price: 0, stock: 0, sizeMl: 50,
   category: 'Unisex', active: false, featured: false, sortOrder: 100, description: '', shortDescription: '',
   images: { front: '', angle: '', flatLay: '', lifestyle: [] },
+  imageAssets: [],
   notes: { top: [], heart: [], base: [] },
 });
 const fieldClass = 'mt-2 w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition-colors focus:border-[#a78045] focus:ring-2 focus:ring-[#a78045]/15';
@@ -39,6 +41,7 @@ export const SupabaseAdminPage = () => {
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const uploadedThisSession = useRef<ProductImageAsset[]>([]);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const refreshCatalog = useProductCatalogStore((state) => state.refresh);
@@ -64,8 +67,14 @@ export const SupabaseAdminPage = () => {
       const { data, error: accessError } = await supabase.from('admin_users').select('user_id').eq('user_id', userId).maybeSingle();
       if (cancelled) return;
       if (accessError || !data) { setIsAdmin(false); setError('This account does not have catalog admin access.'); setBusy(false); return; }
-      setIsAdmin(true);
       try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session.session?.user.app_metadata?.role !== 'admin') {
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          if (refreshError) throw refreshError;
+        }
+        if (cancelled) return;
+        setIsAdmin(true);
         const rows = await fetchSupabaseProducts();
         const { data: orderRows, error: ordersError } = await supabase.from('orders').select('id,created_at,customer_name,email,phone,city,address,payment_method,payer_name,payment_reference,total,payment_status,order_status,slip_path,items').order('created_at', { ascending: false }).limit(100);
         if (ordersError) throw ordersError;
@@ -126,10 +135,15 @@ export const SupabaseAdminPage = () => {
     }
     setBusy(true);
     try {
+      const before = products.find((item) => item.id === product.id)?.imageAssets ?? [];
       await saveSupabaseProduct({ ...product, active: product.active ?? false });
       setProducts(await fetchSupabaseProducts());
       await refreshCatalog();
+      const kept = new Set((product.imageAssets ?? []).flatMap((asset) => Object.values(asset.variants).map((variant) => variant?.path).filter((path): path is string => Boolean(path))));
+      const cleanup = [...new Set([...before, ...uploadedThisSession.current].flatMap((asset) => Object.values(asset.variants).map((variant) => variant?.path).filter((path): path is string => Boolean(path))))].filter((path) => !kept.has(path));
+      uploadedThisSession.current = [];
       setEditing(null); setNotice('Product saved.');
+      if (cleanup.length) void cleanupProductVariants(cleanup).catch(() => setNotice('Product saved. Some unused image copies need a cleanup retry.'));
     } catch (saveError) { setError(saveError instanceof Error ? saveError.message : 'Unable to save product.'); }
     finally { setBusy(false); }
   };
@@ -149,12 +163,14 @@ export const SupabaseAdminPage = () => {
     if (!deleting) return;
     setBusy(true); setError(''); setNotice('');
     try {
+      const cleanup = (deleting.imageAssets ?? []).flatMap((asset) => Object.values(asset.variants).map((variant) => variant?.path).filter((path): path is string => Boolean(path)));
       await deleteSupabaseProduct(deleting.id);
       setProducts(await fetchSupabaseProducts());
       await refreshCatalog();
       if (editing?.id === deleting.id) setEditing(null);
       setNotice(`${deleting.name} was deleted from the catalog.`);
       setDeleting(null);
+      if (cleanup.length) void cleanupProductVariants(cleanup).catch(() => setNotice(`${deleting.name} was deleted; some unused image copies need a cleanup retry.`));
     } catch (deleteError) { setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete product.'); setDeleting(null); }
     finally { setBusy(false); }
   };
@@ -191,13 +207,59 @@ export const SupabaseAdminPage = () => {
     setBusy(true); setUploadingPhotos(true); setError('');
     try {
       for (const file of files) {
-        const url = await uploadProductImage(file, editing.id);
-        setEditing((current) => current ? { ...current, images: current.images.front
-          ? { ...current.images, lifestyle: [...current.images.lifestyle, url] }
-          : { ...current.images, front: url } } : current);
+        const asset = await uploadProductImage(file, editing.id);
+        uploadedThisSession.current.push(asset);
+        setEditing((current) => {
+          if (!current) return current;
+          const assets = current.imageAssets ?? legacyGallery(current);
+          const next = [...assets, { ...asset, position: assets.length, isPrimary: assets.length === 0, slot: assets.length === 0 ? 'front' as const : 'lifestyle' as const, altText: `${current.name || 'Product'} perfume photo` }];
+          return { ...current, imageAssets: next, images: projectGallery(next) };
+        });
       }
-    } catch (uploadError) { setError(uploadError instanceof Error ? uploadError.message : 'Upload failed.'); }
+    } catch (uploadError) { setError(`${uploadError instanceof Error ? uploadError.message : 'Upload failed.'} Successfully uploaded photos remain in this draft; retry the failed file.`); }
     finally { setBusy(false); setUploadingPhotos(false); }
+  };
+  const replacePhoto = async (file: File, imageId: string) => {
+    if (!editing) return;
+    setBusy(true); setUploadingPhotos(true); setError('');
+    try {
+      const replacement = await uploadProductImage(file, editing.id);
+      uploadedThisSession.current.push(replacement);
+      setEditing((current) => {
+        if (!current) return current;
+        const assets = current.imageAssets ?? legacyGallery(current);
+        const next = assets.map((asset) => asset.id === imageId ? { ...replacement, slot: asset.slot, position: asset.position, isPrimary: asset.isPrimary, altText: asset.altText } : asset);
+        return { ...current, imageAssets: next, images: projectGallery(next) };
+      });
+    } catch (uploadError) { setError(uploadError instanceof Error ? uploadError.message : 'Replacement upload failed. Original photo is unchanged.'); }
+    finally { setBusy(false); setUploadingPhotos(false); }
+  };
+  const optimizeExistingPhotos = async () => {
+    if (!editing) return;
+    const pending = (editing.imageAssets ?? legacyGallery(editing)).filter((asset) => !asset.variants.thumb || !asset.variants.card || !asset.variants.gallery);
+    if (!pending.length) return;
+    setBusy(true); setUploadingPhotos(true); setError('');
+    try {
+      for (const asset of pending) {
+        if (asset.id.startsWith('legacy-')) throw new Error('Save this product once before optimizing its existing photos.');
+        const optimized = await optimizeExistingProductImage(asset, editing.id);
+        uploadedThisSession.current.push(optimized);
+        setEditing((current) => {
+          if (!current) return current;
+          const assets = current.imageAssets ?? legacyGallery(current);
+          const next = assets.map((item) => item.id === asset.id ? { ...optimized, slot: item.slot, position: item.position, isPrimary: item.isPrimary, altText: item.altText } : item);
+          return { ...current, imageAssets: next, images: projectGallery(next) };
+        });
+      }
+      setNotice('Photo sizes are ready. Save the product to publish them.');
+    } catch (optimizeError) { setError(optimizeError instanceof Error ? optimizeError.message : 'Could not optimize existing photos.'); }
+    finally { setBusy(false); setUploadingPhotos(false); }
+  };
+  const cancelEditing = () => {
+    const paths = uploadedThisSession.current.flatMap((asset) => Object.values(asset.variants).map((variant) => variant?.path).filter((path): path is string => Boolean(path)));
+    uploadedThisSession.current = [];
+    setEditing(null);
+    if (paths.length) void cleanupProductVariants(paths).catch(() => setNotice('Unused image copies need a cleanup retry.'));
   };
   const saveAccount = async (account: PaymentAccount) => {
     setBusy(true); setError(''); setNotice('');
@@ -280,7 +342,7 @@ export const SupabaseAdminPage = () => {
                 <label className="relative mb-5 block"><Search size={18} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400" /><span className="sr-only">Search products</span><input id="product-search" className="w-full rounded-xl border border-stone-200 bg-white py-3 pl-11 pr-4 text-sm text-stone-950 outline-none transition-colors placeholder:text-stone-500 focus:border-[#a78045] focus:ring-2 focus:ring-[#a78045]/15" placeholder="Search by name, category or SKU" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
                 <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-stone-200/80">
                   {filteredProducts.map((product, index) => <div key={product.id} className={`flex flex-wrap items-center gap-4 px-4 py-4 transition-colors hover:bg-[#faf8f3] sm:flex-nowrap sm:px-5 ${index > 0 ? 'border-t border-stone-100' : ''}`}>
-                    <img src={product.images.front} alt="" className="h-16 w-16 shrink-0 rounded-lg bg-[#f4f1eb] object-contain sm:h-18 sm:w-18" />
+                    <img src={imageSource(product, product.images.front, 'thumb')} srcSet={imageSrcSet(product, product.images.front)} sizes="72px" alt="" width="72" height="72" loading="lazy" className="h-16 w-16 shrink-0 rounded-lg bg-[#f4f1eb] object-contain sm:h-18 sm:w-18" />
                     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="truncate text-sm font-semibold text-stone-950 sm:text-base">{product.name}</h2><span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${product.active ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-600'}`}>{product.active ? 'Live' : 'Hidden'}</span></div><p className="mt-1.5 text-xs text-stone-600">{product.category} · {product.sizeMl} ml · <span className="tabular-nums">{product.stock}</span> in stock</p><p className="mt-1 text-sm font-medium tabular-nums text-stone-950">{formatCurrency(product.price)}</p></div>
                     <div className="ml-auto flex shrink-0 items-center gap-1"><button type="button" className="rounded-lg px-3 py-2 text-sm font-semibold text-stone-900 transition-colors hover:bg-stone-100 focus-visible:outline-2 focus-visible:outline-[#a78045]" onClick={() => setEditing(product)}>Edit</button>{product.active && <button type="button" disabled={busy} className="rounded-lg px-3 py-2 text-sm text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 disabled:opacity-50" onClick={() => void archive(product)}>Hide</button>}<button type="button" disabled={busy} aria-label={`Delete ${product.name}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-medium text-red-800 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50" onClick={() => setDeleting(product)}><Trash2 size={15} aria-hidden="true" />Delete</button></div>
                   </div>)}
@@ -288,7 +350,7 @@ export const SupabaseAdminPage = () => {
                   {products.length > 0 && filteredProducts.length === 0 && <div className="px-6 py-14 text-center"><p className="font-serif text-xl">No matching products</p><p className="mt-2 text-sm text-stone-600">Try a different name, category or SKU.</p></div>}
                 </div>
               </div>
-              {editing && <div className="min-w-0"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} uploading={uploadingPhotos} onChange={update} onUploadPhotos={(files) => void uploadPhotos(files)} onSave={save} onCancel={() => setEditing(null)} /></div>}
+              {editing && <div className="min-w-0"><StudioProductEditor product={editing} isNew={!products.some((product) => product.id === editing.id)} busy={busy} uploading={uploadingPhotos} onChange={update} onUploadPhotos={(files) => void uploadPhotos(files)} onReplacePhoto={(file, id) => void replacePhoto(file, id)} onOptimizePhotos={() => void optimizeExistingPhotos()} onSave={save} onCancel={cancelEditing} /></div>}
             </div>}
             {tab === 'orders' && <StudioOrders orders={orders} busy={busy} onStatus={(id, patch) => void updateOrder(id, patch)} onProof={(path) => void openSlip(path)} />}
             {tab === 'payments' && <StudioPaymentAccounts accounts={paymentAccounts} busy={busy} onSave={saveAccount} />}

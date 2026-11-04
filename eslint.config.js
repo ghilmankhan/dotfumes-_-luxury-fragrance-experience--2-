@@ -54,4 +54,12 @@ export default tseslint.config(
       globals: globals.node,
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
+    files: ['netlify/edge-functions/**/*.js'],
+    languageOptions: { globals: { ...globals.browser, Netlify: 'readonly' } },
+  },
 );

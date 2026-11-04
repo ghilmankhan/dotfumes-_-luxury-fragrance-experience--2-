@@ -196,6 +196,9 @@ export const Hero = () => {
   const currentSlideImage = slideFallbacks[activeSlide.slug]
     ? activeSlide.fallbackImage
     : activeSlide.image;
+  const currentSlideSrcSet = slideFallbacks[activeSlide.slug] ? undefined :
+    [900, 1440, 2560].map((width) => `${width === 2560 ? currentSlideImage : currentSlideImage.replace('.webp', `-${width}w.webp`)} ${width}w`).join(', ');
+  const mobileSlideImage = slideFallbacks[activeSlide.slug] ? activeSlide.fallbackImage : activeSlide.image.replace('.webp', '-mobile-900x1125.webp');
 
   const handleBlurCapture = (event: FocusEvent<HTMLElement>) => {
     const nextTarget = event.relatedTarget as Node | null;
@@ -231,22 +234,9 @@ export const Hero = () => {
         >
           <img
             src={currentSlideImage}
-            alt={activeSlide.alt}
-            className="h-full w-full object-cover md:hidden"
-            style={{ objectPosition: activeSlide.mobileObjectPosition }}
-            loading={activeIndex === 0 ? 'eager' : 'lazy'}
-            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
-            decoding="async"
-            sizes="100vw"
-            onError={() =>
-              setSlideFallbacks((prev) => ({
-                ...prev,
-                [activeSlide.slug]: true,
-              }))
-            }
-          />
-          <img
-            src={currentSlideImage}
+            srcSet={currentSlideSrcSet}
+            width="2560"
+            height="1440"
             alt=""
             aria-hidden="true"
             className="hidden h-full w-full object-cover md:block"
@@ -307,6 +297,20 @@ export const Hero = () => {
               </div>
             </motion.div>
           </AnimatePresence>
+        </div>
+
+        <div className="relative -mx-6 mt-8 overflow-hidden bg-black md:hidden">
+          <img
+            src={mobileSlideImage}
+            width={slideFallbacks[activeSlide.slug] ? 1672 : 900}
+            height={slideFallbacks[activeSlide.slug] ? 941 : 1125}
+            alt={activeSlide.alt}
+            className="h-auto w-full object-contain"
+            loading={activeIndex === 0 ? 'eager' : 'lazy'}
+            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+            decoding="async"
+            onError={() => setSlideFallbacks((prev) => ({ ...prev, [activeSlide.slug]: true }))}
+          />
         </div>
 
         <div className="mt-10 flex flex-col gap-6 md:mt-0">

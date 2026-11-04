@@ -45,6 +45,10 @@ export const CollectionPage = () => {
       <div className="relative min-h-[72vh] overflow-hidden bg-brand-black px-6 pt-36 text-white md:px-16 md:pt-44 lg:px-24">
         <AssetImage
           src={collectionHeroImage}
+          srcSet={heroImageFailed ? undefined : [900, 1440, 2560].map((width) => `${width === 2560 ? collectionHeroImage : collectionHeroImage.replace('.webp', `-${width}w.webp`)} ${width}w`).join(', ')}
+          sizes="100vw"
+          width="2560"
+          height="1440"
           alt="Dotfumes five-fragrance collection campaign in cinematic lighting"
           wrapperClassName="absolute inset-0 h-full w-full bg-neutral-950"
           className="h-full w-full object-cover object-[72%_center] opacity-56 md:object-[76%_center] md:opacity-62 lg:object-right lg:opacity-64"

@@ -94,6 +94,9 @@ export const CartLineItem = memo(function CartLineItem({
         <div className="h-24 w-20 bg-neutral-50 flex-shrink-0 flex items-center justify-center p-3 md:w-24 md:h-32 md:p-4">
           <AssetImage
             src={item.images.front}
+            product={item}
+            sourceSize="thumb"
+            sizes="96px"
             alt={item.name}
             wrapperClassName="h-full w-full bg-transparent"
             className="h-full w-full object-contain"
@@ -176,6 +179,9 @@ export const CartLineItem = memo(function CartLineItem({
     <div className="flex gap-5 border-b border-black/5 pb-6">
       <AssetImage
         src={item.images.front}
+        product={item}
+        sourceSize="thumb"
+        sizes="96px"
         alt={item.name}
         wrapperClassName="h-28 w-20 shrink-0 bg-neutral-50"
         className="h-full w-full object-contain"

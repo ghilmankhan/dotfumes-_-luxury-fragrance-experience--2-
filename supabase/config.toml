@@ -1,2 +1,5 @@
 [functions.submit-order]
 verify_jwt = false
+
+[functions.manage-product-image]
+verify_jwt = false
